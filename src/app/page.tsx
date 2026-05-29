@@ -60,8 +60,8 @@ function AuthScreen() {
     setError('');
     try {
       let phoneNum = '';
-      if (role === 'seeker') phoneNum = '+255712345001';
-      else if (role === 'guide') phoneNum = '+255711111001';
+      if (role === 'seeker') phoneNum = '+14155550001';
+      else if (role === 'guide') phoneNum = '+255712000001';
       else if (role === 'admin') phoneNum = '+255700000001';
       await login(phoneNum);
     } catch {
@@ -390,7 +390,7 @@ export default function Home() {
 
   // Show onboarding for first-time seekers
   if (isAuthenticated && user?.role === 'seeker' && showOnboarding) {
-    return <Onboarding onComplete={() => setShowOnboarding(false)} />;
+    return <Onboarding />;
   }
 
   // Show auth screen if not logged in
