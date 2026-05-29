@@ -1,0 +1,172 @@
+// Kariako Guide - Marketplace for local market guides in Kariakoo
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  phone        String   @unique
+  name         String
+  role         String   @default("seeker") // seeker, guide, admin
+  languagePref String   @default("sw") // sw, en
+  avatarUrl    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  guideProfile  GuideProfile?
+  seekerRequests Request[]      @relation("SeekerRequests")
+  guideSessions  Session[]      @relation("GuideSessions")
+  seekerSessions Session[]      @relation("SeekerSessions")
+  sentMessages   Message[]      @relation("SentMessages")
+  badges         Badge[]
+  payouts        Payout[]
+}
+
+model GuideProfile {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  bio            String   @default("")
+  idDocumentUrl  String?
+  status         String   @default("pending") // pending, active, suspended
+  zones          String   @default("[]") // JSON array of zone IDs
+  languages      String   @default("[]") // JSON array of language codes
+  avgRating      Float    @default(0)
+  totalSessions  Int      @default(0)
+  isOnline       Boolean  @default(false)
+  currentStatus  String   @default("offline") // online, offline, busy
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badges Badge[]
+}
+
+model Zone {
+  id          String   @id @default(cuid())
+  name        String
+  nameSw      String   @default("")
+  description String   @default("")
+  geoBounds   String   @default("{}") // JSON geo-boundaries
+  color       String   @default("#4CAF50")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  requests   Request[]
+  vendors    Vendor[]
+  priceRadar PriceRadar[]
+}
+
+model Request {
+  id          String   @id @default(cuid())
+  seekerId    String
+  description String
+  zoneIds     String   @default("[]") // JSON array of zone IDs
+  budget      Float    @default(0)
+  photoUrl    String?
+  status      String   @default("open") // open, matched, active, completed, cancelled
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  seeker   User     @relation("SeekerRequests", fields: [seekerId], references: [id], onDelete: Cascade)
+  zones    Zone[]
+  sessions Session[]
+}
+
+model Session {
+  id             String    @id @default(cuid())
+  requestId      String
+  guideId        String
+  seekerId       String
+  sessionCode    String    @default("")
+  startedAt      DateTime?
+  completedAt    DateTime?
+  escrowStatus   String    @default("pending") // pending, held, released, refunded, disputed
+  amount         Float     @default(0)
+  platformFee    Float     @default(0)
+  ratingSeeker   Float?
+  ratingGuide    Float?
+  reviewSeeker   String?
+  reviewGuide    String?
+  disputeFlag    Boolean   @default(false)
+  disputeReason  String?
+  emergencyFlag  Boolean   @default(false)
+  seekerConfirmed Boolean  @default(false)
+  guideConfirmed  Boolean  @default(false)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  request  Request  @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  guide    User     @relation("GuideSessions", fields: [guideId], references: [id])
+  seeker   User     @relation("SeekerSessions", fields: [seekerId], references: [id])
+  messages Message[]
+}
+
+model Message {
+  id               String   @id @default(cuid())
+  sessionId        String
+  senderId         String
+  content          String
+  translatedContent String?
+  createdAt        DateTime @default(now())
+
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  sender  User    @relation("SentMessages", fields: [senderId], references: [id])
+}
+
+model Vendor {
+  id          String   @id @default(cuid())
+  name        String
+  zoneId      String
+  categories  String   @default("[]") // JSON array
+  stallNumber String   @default("")
+  contact     String   @default("")
+  geoLat      Float    @default(-6.8264)
+  geoLng      Float    @default(39.2695)
+  approved    Boolean  @default(false)
+  recommendations Int  @default(0)
+  openHours   String   @default("8:00-18:00")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  zone Zone @relation(fields: [zoneId], references: [id], onDelete: Cascade)
+}
+
+model PriceRadar {
+  id         String   @id @default(cuid())
+  category   String
+  zoneId     String
+  priceMin   Float
+  priceMax   Float
+  updatedAt  DateTime @default(now())
+  updatedBy  String   @default("admin")
+
+  zone Zone @relation(fields: [zoneId], references: [id], onDelete: Cascade)
+}
+
+model Payout {
+  id              String    @id @default(cuid())
+  guideId         String
+  amount          Float
+  status          String    @default("pending") // pending, processed, failed
+  mobileMoneyNumber String  @default("")
+  processedAt     DateTime?
+  createdAt       DateTime  @default(now())
+
+  guide User @relation(fields: [guideId], references: [id], onDelete: Cascade)
+}
+
+model Badge {
+  id        String   @id @default(cuid())
+  guideId   String
+  badgeType String
+  awardedAt DateTime @default(now())
+
+  user         User          @relation(fields: [guideId], references: [id], onDelete: Cascade)
+  guideProfile GuideProfile? @relation(fields: [guideId], references: [userId])
+}
