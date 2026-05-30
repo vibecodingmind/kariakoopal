@@ -1046,7 +1046,7 @@ export function GuideDashboard() {
 
   const renderBackButton = (targetView: GuideView = 'home') => (
     <button
-      className="glass gap-1.5 mb-4 text-muted-foreground hover:text-foreground text-sm px-3 py-1.5 rounded-xl hover:bg-[var(--glass-hover)] transition-colors flex items-center"
+      className="gap-1.5 mb-4 text-muted-foreground hover:text-kariako-green text-sm px-3 py-1.5 rounded-lg hover:bg-[var(--kariako-green-light)] transition-colors flex items-center border border-border"
       onClick={() => navigateTo(targetView)}
     >
       <ArrowLeft className="size-4" />
@@ -1073,29 +1073,28 @@ export function GuideDashboard() {
     <div className="space-y-6">
       {/* Welcome */}
       <div>
-        <h1 className="text-2xl font-bold gradient-text">
+        <h1 className="text-2xl font-bold gradient-text-green">
           {t('welcome', lang)}, {user?.name?.split(' ')[0] || ''}! 👋
         </h1>
         <p className="text-muted-foreground text-sm mt-1">{t('tagline', lang)}</p>
       </div>
 
       {/* Status Toggle - Prominent */}
-      <Card className={cn(
-        'overflow-hidden transition-all duration-300 glass-card gradient-border amber-glow-sm',
+      <div className={cn(
+        'kcard overflow-hidden p-6 transition-all duration-300',
         guideStore.status === 'online' && 'border-emerald-400 dark:border-emerald-600 bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-950/30 dark:to-green-950/20',
         guideStore.status === 'busy' && 'border-amber-400 dark:border-amber-600 bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-950/30 dark:to-yellow-950/20',
         guideStore.status === 'offline' && 'border-gray-300 dark:border-gray-600',
       )}>
-        <CardContent className="p-6">
           <div className="text-center space-y-4">
             {/* Animated status indicator */}
             <div className="flex justify-center">
               {guideStore.status === 'online' && (
                 <div className="relative">
-                  <div className="size-20 rounded-full bg-emerald-500 flex items-center justify-center">
+                  <div className="size-20 rounded-full bg-kariako-green flex items-center justify-center">
                     <Eye className="size-10 text-white" />
                   </div>
-                  <div className="absolute inset-0 size-20 rounded-full bg-emerald-400/40 animate-ping" />
+                  <div className="absolute inset-0 size-20 rounded-full bg-kariako-green/40 animate-ping" />
                 </div>
               )}
               {guideStore.status === 'busy' && (
@@ -1133,10 +1132,10 @@ export function GuideDashboard() {
             <div className="flex gap-2 justify-center">
               <button
                 className={cn(
-                  'h-11 px-5 gap-2 rounded-xl font-semibold transition-all flex items-center justify-center',
+                  'h-11 px-5 gap-2 rounded-lg font-semibold transition-all flex items-center justify-center',
                   guideStore.status === 'online'
-                    ? 'glass-button'
-                    : 'glass hover:bg-[var(--glass-hover)] text-emerald-700 dark:text-emerald-300'
+                    ? 'kbtn'
+                    : 'kbtn-outline'
                 )}
                 onClick={() => handleToggleStatus('online')}
                 disabled={statusToggleLoading || guideStore.status === 'online'}
@@ -1146,7 +1145,7 @@ export function GuideDashboard() {
               </button>
               <button
                 className={cn(
-                  'h-11 px-5 gap-2 rounded-xl font-semibold transition-all glass flex items-center justify-center',
+                  'h-11 px-5 gap-2 rounded-lg font-semibold transition-all flex items-center justify-center border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-muted/50',
                   guideStore.status === 'offline' && 'ring-2 ring-gray-400'
                 )}
                 onClick={() => handleToggleStatus('offline')}
@@ -1157,17 +1156,15 @@ export function GuideDashboard() {
               </button>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
 
       {/* Active session banner */}
       {activeSessionData && (
-        <Card
-          className="glass-card amber-glow-sm cursor-pointer hover:shadow-md transition-shadow"
+        <div
+          className="kcard cursor-pointer p-4 flex items-center gap-3"
           onClick={() => navigateTo('session')}
         >
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="size-10 rounded-full bg-amber-200 dark:bg-amber-800 flex items-center justify-center shrink-0">
+            <div className="size-10 rounded-full bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center shrink-0">
               <Clock className="size-5 text-amber-700 dark:text-amber-300" />
             </div>
             <div className="flex-1 min-w-0">
@@ -1176,50 +1173,54 @@ export function GuideDashboard() {
                 {activeSessionData.seeker?.name || 'Seeker'} &middot; {activeSessionData.sessionCode}
               </p>
             </div>
-            <Badge className="glass text-amber-800 dark:text-amber-200 text-xs px-2 py-0.5 rounded-full">
+            <span className="kbadge kbadge-pending">
               {t('active', lang)}
-            </Badge>
-          </CardContent>
-        </Card>
+            </span>
+        </div>
       )}
+
+      {/* Session Value Card */}
+      <div className="kcard-green p-4 flex items-center gap-3">
+        <div className="size-12 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+          <CircleDollarSign className="size-6 text-white" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-white/80">{lang === 'sw' ? 'Thamani la kikao' : 'Session Value'}</p>
+          <p className="text-2xl font-bold text-white">TZS 45,000</p>
+        </div>
+      </div>
 
       {/* Quick stats cards */}
       <div className="grid grid-cols-3 gap-3">
-        <Card>
-          <CardContent className="p-4 text-center">
-            <div className="size-10 rounded-full glass flex items-center justify-center mx-auto mb-2">
-              <MessageSquare className="size-5 text-sky-600 dark:text-sky-400" />
+        <div className="kcard p-4 text-center">
+            <div className="size-10 rounded-full bg-[var(--kariako-green-light)] flex items-center justify-center mx-auto mb-2">
+              <MessageSquare className="size-5 text-kariako-green" />
             </div>
-            <p className="text-2xl font-bold gradient-text">{profile?.totalSessions || 0}</p>
+            <p className="text-2xl font-bold gradient-text-green">{profile?.totalSessions || 0}</p>
             <p className="text-xs text-muted-foreground">{lang === 'sw' ? 'Vikao vyote' : 'Total Sessions'}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <div className="size-10 rounded-full glass flex items-center justify-center mx-auto mb-2">
+        </div>
+        <div className="kcard p-4 text-center">
+            <div className="size-10 rounded-full bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center mx-auto mb-2">
               <Star className="size-5 text-amber-600 dark:text-amber-400" />
             </div>
-            <p className="text-2xl font-bold gradient-text">{profile?.avgRating?.toFixed(1) || '0.0'}</p>
+            <p className="text-2xl font-bold gradient-text-gold">{profile?.avgRating?.toFixed(1) || '0.0'}</p>
             <p className="text-xs text-muted-foreground">{lang === 'sw' ? 'Wastani wa ukadiriaji' : 'Avg Rating'}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <div className="size-10 rounded-full glass flex items-center justify-center mx-auto mb-2">
-              <DollarSign className="size-5 text-emerald-600 dark:text-emerald-400" />
+        </div>
+        <div className="kcard p-4 text-center">
+            <div className="size-10 rounded-full bg-[var(--kariako-green-light)] flex items-center justify-center mx-auto mb-2">
+              <DollarSign className="size-5 text-kariako-green" />
             </div>
-            <p className="text-lg font-bold gradient-text">{formatTZS(earningsData.weekly, lang)}</p>
+            <p className="text-lg font-bold gradient-text-green">{formatTZS(earningsData.weekly, lang)}</p>
             <p className="text-xs text-muted-foreground">{t('weekly_total', lang)}</p>
-          </CardContent>
-        </Card>
+        </div>
       </div>
 
       {/* Badges showcase - horizontal scroll */}
       {myBadges.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-bold gradient-text">{t('my_badges', lang)}</h2>
-            <Button variant="ghost" size="sm" className="text-xs" onClick={() => navigateTo('badges')}>
+            <h2 className="text-lg font-bold gradient-text-green">{t('my_badges', lang)}</h2>
+            <Button variant="ghost" size="sm" className="text-xs text-kariako-green" onClick={() => navigateTo('badges')}>
               {t('see_all', lang)}
             </Button>
           </div>
@@ -1247,8 +1248,7 @@ export function GuideDashboard() {
       )}
 
       {/* Subscription Status Card */}
-      <Card className="border-amber-200 dark:border-amber-800 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/20 cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigateTo('subscription')}>
-        <CardContent className="p-4 flex items-center gap-3">
+      <div className="kcard-yellow cursor-pointer p-4 flex items-center gap-3" onClick={() => navigateTo('subscription')}>
           <div className="size-10 rounded-full bg-amber-200 dark:bg-amber-800 flex items-center justify-center shrink-0">
             <Crown className="size-5 text-amber-700 dark:text-amber-300" />
           </div>
@@ -1262,13 +1262,11 @@ export function GuideDashboard() {
               return tier === 'pro' ? 'Pro - More features!' : tier === 'elite' ? 'Elite - Top tier!' : 'Starter - Upgrade to Pro';
             })()}</p>
           </div>
-          <Badge className="glass text-amber-800 dark:text-amber-200 text-xs px-2 py-0.5 rounded-full">{subscriptions.length > 0 ? subscriptions[0].tier.charAt(0).toUpperCase() + subscriptions[0].tier.slice(1) : 'Starter'}</Badge>
-        </CardContent>
-      </Card>
+          <span className="kbadge kbadge-gold">{subscriptions.length > 0 ? subscriptions[0].tier.charAt(0).toUpperCase() + subscriptions[0].tier.slice(1) : 'Starter'}</span>
+      </div>
 
       {/* USSD Offline Info Card */}
-      <Card className="border-gray-200 dark:border-gray-700 bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-900/30 dark:to-slate-900/20 cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigateTo('profile')}>
-        <CardContent className="p-4">
+      <div className="kcard cursor-pointer p-4" onClick={() => navigateTo('profile')}>
           <div className="flex items-center gap-3 mb-3">
             <div className="size-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center shrink-0">
               <WifiOff className="size-5 text-gray-600 dark:text-gray-300" />
@@ -1279,65 +1277,52 @@ export function GuideDashboard() {
             </div>
             <Badge variant="outline" className="text-xs">{isUssdOffline ? (lang === 'sw' ? 'Nje' : 'Offline') : (lang === 'sw' ? 'Mtandaoni' : 'Online')}</Badge>
           </div>
-          <div className="flex items-center gap-3 bg-white/60 dark:bg-gray-800/40 rounded-lg px-4 py-3 border border-gray-200 dark:border-gray-700">
+          <div className="flex items-center gap-3 bg-muted/50 rounded-lg px-4 py-3 border border-border">
             <Phone className="size-5 text-gray-600 dark:text-gray-300 shrink-0" />
             <p className="text-xl font-mono font-bold tracking-wider text-foreground">*150*99#</p>
           </div>
-        </CardContent>
-      </Card>
+      </div>
 
       {/* Feature Quick Links */}
       <div>
         <h2 className="text-lg font-bold text-foreground mb-3">{lang === 'sw' ? 'Zaidi ya Huduma' : 'More Features'}</h2>
         <div className="grid grid-cols-3 gap-3">
-          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigateTo('packages')}>
-            <CardContent className="p-3 text-center">
-              <div className="size-10 rounded-full glass flex items-center justify-center mx-auto mb-1.5">
+          <div className="kcard cursor-pointer p-3 text-center" onClick={() => navigateTo('packages')}>
+              <div className="size-10 rounded-full bg-[var(--kariako-green-light)] flex items-center justify-center mx-auto mb-1.5">
                 <Package className="size-5 text-orange-600 dark:text-orange-400" />
               </div>
               <p className="text-[11px] font-medium text-foreground">{lang === 'sw' ? 'Vifurushi' : 'Packages'}</p>
-            </CardContent>
-          </Card>
-          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigateTo('mentorship')}>
-            <CardContent className="p-3 text-center">
-              <div className="size-10 rounded-full glass flex items-center justify-center mx-auto mb-1.5">
+          </div>
+          <div className="kcard cursor-pointer p-3 text-center" onClick={() => navigateTo('mentorship')}>
+              <div className="size-10 rounded-full bg-[var(--kariako-green-light)] flex items-center justify-center mx-auto mb-1.5">
                 <GraduationCap className="size-5 text-violet-600 dark:text-violet-400" />
               </div>
               <p className="text-[11px] font-medium text-foreground">{lang === 'sw' ? 'Ushauri' : 'Mentorship'}</p>
-            </CardContent>
-          </Card>
-          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigateTo('calendar')}>
-            <CardContent className="p-3 text-center">
-              <div className="size-10 rounded-full glass flex items-center justify-center mx-auto mb-1.5">
+          </div>
+          <div className="kcard cursor-pointer p-3 text-center" onClick={() => navigateTo('calendar')}>
+              <div className="size-10 rounded-full bg-[var(--kariako-green-light)] flex items-center justify-center mx-auto mb-1.5">
                 <Calendar className="size-5 text-teal-600 dark:text-teal-400" />
               </div>
               <p className="text-[11px] font-medium text-foreground">{lang === 'sw' ? 'Kalenda' : 'Calendar'}</p>
-            </CardContent>
-          </Card>
-          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigateTo('stories')}>
-            <CardContent className="p-3 text-center">
-              <div className="size-10 rounded-full glass flex items-center justify-center mx-auto mb-1.5">
+          </div>
+          <div className="kcard cursor-pointer p-3 text-center" onClick={() => navigateTo('stories')}>
+              <div className="size-10 rounded-full bg-[var(--kariako-green-light)] flex items-center justify-center mx-auto mb-1.5">
                 <BookOpen className="size-5 text-rose-600 dark:text-rose-400" />
               </div>
               <p className="text-[11px] font-medium text-foreground">{lang === 'sw' ? 'Hadithi' : 'Stories'}</p>
-            </CardContent>
-          </Card>
-          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigateTo('insights')}>
-            <CardContent className="p-3 text-center">
-              <div className="size-10 rounded-full glass flex items-center justify-center mx-auto mb-1.5">
+          </div>
+          <div className="kcard cursor-pointer p-3 text-center" onClick={() => navigateTo('insights')}>
+              <div className="size-10 rounded-full bg-[var(--kariako-green-light)] flex items-center justify-center mx-auto mb-1.5">
                 <BarChart3 className="size-5 text-sky-600 dark:text-sky-400" />
               </div>
               <p className="text-[11px] font-medium text-foreground">{lang === 'sw' ? 'Uchambuzi' : 'Insights'}</p>
-            </CardContent>
-          </Card>
-          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigateTo('subscription')}>
-            <CardContent className="p-3 text-center">
-              <div className="size-10 rounded-full glass flex items-center justify-center mx-auto mb-1.5">
+          </div>
+          <div className="kcard cursor-pointer p-3 text-center" onClick={() => navigateTo('subscription')}>
+              <div className="size-10 rounded-full bg-[var(--kariako-green-light)] flex items-center justify-center mx-auto mb-1.5">
                 <Crown className="size-5 text-amber-600 dark:text-amber-400" />
               </div>
               <p className="text-[11px] font-medium text-foreground">{lang === 'sw' ? 'Usajili' : 'Plans'}</p>
-            </CardContent>
-          </Card>
+          </div>
         </div>
       </div>
 
@@ -1345,8 +1330,7 @@ export function GuideDashboard() {
       {guideOfWeek && (
         <div>
           <h2 className="text-lg font-bold text-foreground mb-3">{t('guide_of_week', lang)}</h2>
-          <Card className="overflow-hidden border-amber-300 dark:border-amber-600 bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-950/30 dark:to-yellow-950/20">
-            <CardContent className="p-4">
+          <div className="kcard-yellow overflow-hidden p-4">
               <div className="flex items-center gap-3">
                 <div className={cn(
                   'size-14 rounded-full flex items-center justify-center text-white font-bold text-lg border-2 border-amber-400',
@@ -1372,8 +1356,7 @@ export function GuideDashboard() {
                   </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+          </div>
         </div>
       )}
 
@@ -1388,8 +1371,7 @@ export function GuideDashboard() {
             </div>
           ) : (
             sessions.slice(0, 3).map((session) => (
-              <Card key={session.id} className="cursor-pointer hover:shadow-sm transition-shadow">
-                <CardContent className="p-3 flex items-center gap-3">
+              <div key={session.id} className="kcard p-3 flex items-center gap-3 cursor-pointer">
                   <div className={cn(
                     'size-8 rounded-full flex items-center justify-center shrink-0',
                     getAvatarColor(session.seeker?.id || '')
@@ -1413,8 +1395,7 @@ export function GuideDashboard() {
                       {session.completedAt ? t('completed', lang) : t('active', lang)}
                     </Badge>
                   </div>
-                </CardContent>
-              </Card>
+              </div>
             ))
           )}
         </div>
@@ -1434,10 +1415,10 @@ export function GuideDashboard() {
             <EyeOff className="size-12 mx-auto mb-3 opacity-40" />
             <p className="text-lg font-medium">{lang === 'sw' ? 'Hupo mtandaoni' : 'You are offline'}</p>
             <p className="text-sm mt-1">{lang === 'sw' ? 'Kuwa mtandaoni kupokea maombi' : 'Go online to receive requests'}</p>
-            <Button className="mt-4 gap-2" onClick={() => handleToggleStatus('online')}>
+            <button className="kbtn mt-4 gap-2" onClick={() => handleToggleStatus('online')}>
               <Eye className="size-4" />
               {t('go_online', lang)}
-            </Button>
+            </button>
           </div>
         </div>
       );
@@ -1452,10 +1433,10 @@ export function GuideDashboard() {
               {lang === 'sw' ? `Maombi ${liveRequests.length} yanapatikana` : `${liveRequests.length} requests available`}
             </p>
           </div>
-          <Button variant="outline" size="sm" className="gap-1.5" onClick={fetchRequests}>
+          <button className="kbtn-outline gap-1.5 text-sm" onClick={fetchRequests}>
             <RefreshCw className="size-3.5" />
             {t('refresh', lang)}
-          </Button>
+          </button>
         </div>
 
         {isLoadingRequests ? (
@@ -1475,8 +1456,8 @@ export function GuideDashboard() {
               const seekerFirstName = request.seeker?.name?.split(' ')[0] || (lang === 'sw' ? 'Muombaji' : 'Seeker');
 
               return (
-                <Card key={request.id} className={cn('overflow-hidden', urgencyColors[urgency])}>
-                  <CardContent className="p-4 space-y-3">
+                <div key={request.id} className={cn('kcard overflow-hidden', urgencyColors[urgency])}>
+                    <div className="p-4 space-y-3">
                     {/* Header: name + urgency badge */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
@@ -1488,16 +1469,16 @@ export function GuideDashboard() {
                         </div>
                         <span className="font-semibold text-foreground text-sm">{seekerFirstName}</span>
                       </div>
-                      <Badge className={cn(
-                        'text-[9px] h-5',
-                        urgency === 'new' && 'bg-emerald-200 text-emerald-800 dark:bg-emerald-800 dark:text-emerald-200',
-                        urgency === 'standard' && 'bg-amber-200 text-amber-800 dark:bg-amber-800 dark:text-amber-200',
-                        urgency === 'aging' && 'bg-red-200 text-red-800 dark:bg-red-800 dark:text-red-200',
+                      <span className={cn(
+                        'kbadge',
+                        urgency === 'new' && 'kbadge-live',
+                        urgency === 'standard' && 'kbadge-pending',
+                        urgency === 'aging' && 'kbadge-urgent',
                       )}>
                         {urgency === 'new' && (lang === 'sw' ? 'Jipya' : 'New')}
                         {urgency === 'standard' && (lang === 'sw' ? 'Kawaida' : 'Standard')}
                         {urgency === 'aging' && (lang === 'sw' ? 'Zamani' : 'Aging')}
-                      </Badge>
+                      </span>
                     </div>
 
                     {/* Description */}
@@ -1511,7 +1492,7 @@ export function GuideDashboard() {
                           ? request.zones.map((z) => t(z.nameKey, lang)).join(', ')
                           : lang === 'sw' ? 'Eneo la soko' : 'Market zone'}
                       </div>
-                      <span className="font-bold text-emerald-600 dark:text-emerald-400 text-sm">
+                      <span className="font-bold text-kariako-green text-sm">
                         {formatTZS(request.budget, lang)}
                       </span>
                     </div>
@@ -1523,8 +1504,8 @@ export function GuideDashboard() {
                     </div>
 
                     {/* Accept button */}
-                    <Button
-                      className="w-full h-11 text-base font-semibold gap-2"
+                    <button
+                      className="kbtn w-full h-11 text-base font-semibold gap-2"
                       onClick={() => handleAcceptRequest(request)}
                       disabled={isSubmitting || !!activeSessionId}
                     >
@@ -1534,14 +1515,14 @@ export function GuideDashboard() {
                         <CheckCircle2 className="size-4" />
                       )}
                       {t('accept_request', lang)}
-                    </Button>
+                    </button>
                     {activeSessionId && (
                       <p className="text-xs text-center text-amber-600 dark:text-amber-400">
                         {lang === 'sw' ? 'Maliza kikao cha sasa kwanza' : 'Finish your current session first'}
                       </p>
                     )}
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               );
             })}
           </div>
@@ -1560,10 +1541,10 @@ export function GuideDashboard() {
             <MessageSquare className="size-12 mx-auto mb-3 opacity-40" />
             <p className="text-lg font-medium">{t('no_sessions', lang)}</p>
             <p className="text-sm mt-1">{lang === 'sw' ? 'Kubali ombi kuanza kikao' : 'Accept a request to start a session'}</p>
-            <Button className="mt-4 gap-2" onClick={() => navigateTo('requests')}>
+            <button className="kbtn mt-4 gap-2" onClick={() => navigateTo('requests')}>
               <Radio className="size-4" />
               {t('live_requests', lang)}
-            </Button>
+            </button>
           </div>
         </div>
       );
@@ -1597,8 +1578,7 @@ export function GuideDashboard() {
         />
 
         {/* Seeker info card */}
-        <Card>
-          <CardContent className="p-4">
+        <div className="kcard p-4">
             <div className="flex items-center gap-3">
               <div className={cn(
                 'size-12 rounded-full flex items-center justify-center text-white font-bold',
@@ -1611,7 +1591,7 @@ export function GuideDashboard() {
                 <p className="text-xs text-muted-foreground">{activeSessionData.seeker?.phone || ''}</p>
               </div>
               <div className="text-right">
-                <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400">
+                <p className="text-sm font-bold text-kariako-green">
                   {formatTZS(activeSessionData.amount, lang)}
                 </p>
                 <p className="text-[10px] text-muted-foreground">
@@ -1619,53 +1599,56 @@ export function GuideDashboard() {
                 </p>
               </div>
             </div>
-          </CardContent>
-        </Card>
+        </div>
 
         {/* Request details */}
         {activeSessionData.request && (
-          <Card>
-            <CardContent className="p-4">
+          <div className="kcard p-4">
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">
                 {lang === 'sw' ? 'Maelezo ya ombi' : 'Request Details'}
               </p>
               <p className="text-sm text-foreground">{activeSessionData.request.description}</p>
-            </CardContent>
-          </Card>
+          </div>
         )}
 
         {/* Chat/Map/Navigation toggle */}
         <div className="flex gap-2">
-          <Button
-            variant={sessionTab === 'chat' ? 'default' : 'outline'}
-            className="flex-1 h-10 gap-2"
+          <button
+            className={cn(
+              'flex-1 h-10 gap-2 rounded-lg font-semibold transition-all flex items-center justify-center text-sm',
+              sessionTab === 'chat' ? 'kbtn' : 'kbtn-outline'
+            )}
             onClick={() => setSessionTab('chat')}
           >
             <MessageSquare className="size-4" />
             {lang === 'sw' ? 'Mazungumzo' : 'Chat'}
-          </Button>
-          <Button
-            variant={sessionTab === 'map' ? 'default' : 'outline'}
-            className="flex-1 h-10 gap-2"
+          </button>
+          <button
+            className={cn(
+              'flex-1 h-10 gap-2 rounded-lg font-semibold transition-all flex items-center justify-center text-sm',
+              sessionTab === 'map' ? 'kbtn' : 'kbtn-outline'
+            )}
             onClick={() => setSessionTab('map')}
           >
             <MapPin className="size-4" />
             {lang === 'sw' ? 'Ramani' : 'Map'}
-          </Button>
-          <Button
-            variant={sessionTab === 'navigation' ? 'default' : 'outline'}
-            className="flex-1 h-10 gap-2"
+          </button>
+          <button
+            className={cn(
+              'flex-1 h-10 gap-2 rounded-lg font-semibold transition-all flex items-center justify-center text-sm',
+              sessionTab === 'navigation' ? 'kbtn' : 'kbtn-outline'
+            )}
             onClick={() => setSessionTab('navigation')}
           >
             <Navigation className="size-4" />
             {lang === 'sw' ? 'Urambazaji' : 'Navigate'}
-          </Button>
+          </button>
         </div>
 
         {/* Chat view */}
         {sessionTab === 'chat' && (
           <>
-            <Card className="overflow-hidden">
+            <div className="kcard overflow-hidden">
               <SessionChat
                 sessionId={activeSessionData.id}
                 currentUserId={user?.id || ''}
@@ -1682,7 +1665,7 @@ export function GuideDashboard() {
                 isLoading={isLoadingSession}
                 className="h-[300px]"
               />
-            </Card>
+            </div>
             {/* Voice Messages in session */}
             <VoiceMessages
               onSendVoice={(recording) => {
@@ -1714,14 +1697,12 @@ export function GuideDashboard() {
 
         {/* Seeker live location indicator */}
         {seekerLocation && sessionTab === 'map' && (
-          <Card className="glass-card">
-            <CardContent className="p-3 flex items-center gap-2">
+          <div className="kcard p-3 flex items-center gap-2">
               <div className="size-3 rounded-full bg-blue-500 animate-pulse" />
               <span className="text-xs text-muted-foreground">
                 {lang === 'sw' ? 'Mahali pa muombaji:' : 'Seeker location:'} {seekerLocation.lat.toFixed(4)}, {seekerLocation.lng.toFixed(4)}
               </span>
-            </CardContent>
-          </Card>
+          </div>
         )}
 
         {/* Indoor Navigation tab */}
@@ -1772,13 +1753,13 @@ export function GuideDashboard() {
         />
 
         {/* Mark Complete button (large, prominent) */}
-        <Button
-          className="w-full h-12 text-base font-semibold gap-2"
+        <button
+          className="kbtn w-full h-12 text-base font-semibold gap-2"
           onClick={handleCompleteSession}
         >
           <CheckCircle2 className="size-5" />
           {t('mark_complete', lang)}
-        </Button>
+        </button>
 
         {/* Escrow Payment */}
         <EscrowPayment
@@ -1837,52 +1818,44 @@ export function GuideDashboard() {
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 gap-3">
-        <Card className="border-amber-300 dark:border-amber-600">
-          <CardContent className="p-4">
+        <div className="kcard border-amber-300 dark:border-amber-600 p-4">
             <div className="flex items-center gap-2 mb-2">
               <Timer className="size-4 text-amber-600 dark:text-amber-400" />
               <span className="text-xs text-muted-foreground">{t('pending_earnings', lang)}</span>
             </div>
             <p className="text-lg font-bold text-amber-700 dark:text-amber-300">{formatTZS(earningsData.pending, lang)}</p>
             <p className="text-[10px] text-muted-foreground mt-1">{lang === 'sw' ? 'Inasubiri (escrow)' : 'In escrow'}</p>
-          </CardContent>
-        </Card>
-        <Card className="border-emerald-300 dark:border-emerald-600">
-          <CardContent className="p-4">
+        </div>
+        <div className="kcard border-emerald-300 dark:border-emerald-600 p-4">
             <div className="flex items-center gap-2 mb-2">
-              <CircleDollarSign className="size-4 text-emerald-600 dark:text-emerald-400" />
+              <CircleDollarSign className="size-4 text-kariako-green" />
               <span className="text-xs text-muted-foreground">{t('released_earnings', lang)}</span>
             </div>
-            <p className="text-lg font-bold text-emerald-700 dark:text-emerald-300">{formatTZS(earningsData.released, lang)}</p>
+            <p className="text-lg font-bold text-kariako-green">{formatTZS(earningsData.released, lang)}</p>
             <p className="text-[10px] text-muted-foreground mt-1">{lang === 'sw' ? 'Inapatikana' : 'Available'}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
+        </div>
+        <div className="kcard p-4">
             <div className="flex items-center gap-2 mb-2">
               <TrendingUp className="size-4 text-sky-600 dark:text-sky-400" />
               <span className="text-xs text-muted-foreground">{t('weekly_total', lang)}</span>
             </div>
-            <p className="text-lg font-bold gradient-text">{formatTZS(earningsData.weekly, lang)}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
+            <p className="text-lg font-bold gradient-text-green">{formatTZS(earningsData.weekly, lang)}</p>
+        </div>
+        <div className="kcard p-4">
             <div className="flex items-center gap-2 mb-2">
               <Wallet className="size-4 text-purple-600 dark:text-purple-400" />
               <span className="text-xs text-muted-foreground">{t('all_time', lang)}</span>
             </div>
-            <p className="text-lg font-bold gradient-text">{formatTZS(earningsData.total, lang)}</p>
-          </CardContent>
-        </Card>
+            <p className="text-lg font-bold gradient-text-green">{formatTZS(earningsData.total, lang)}</p>
+        </div>
       </div>
 
       {/* Earnings chart - simple bar chart last 7 days */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm">{lang === 'sw' ? 'Mapato ya siku 7 zilizopita' : 'Last 7 Days Earnings'}</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <div className="kcard overflow-hidden">
+        <div className="p-4 pb-2">
+          <h3 className="text-sm font-semibold text-foreground">{lang === 'sw' ? 'Mapato ya siku 7 zilizopita' : 'Last 7 Days Earnings'}</h3>
+        </div>
+        <div className="p-4 pt-0">
           <div className="flex items-end gap-2 h-32">
             {weeklyEarningsData.map((day, i) => {
               const maxAmount = Math.max(...weeklyEarningsData.map((d) => d.amount), 1);
@@ -1896,7 +1869,7 @@ export function GuideDashboard() {
                     className={cn(
                       'w-full rounded-t-md transition-all',
                       day.amount > 0
-                        ? 'bg-emerald-500 dark:bg-emerald-400'
+                        ? 'bg-kariako-green'
                         : 'bg-muted-foreground/20'
                     )}
                     style={{ height: `${heightPct}%` }}
@@ -1906,29 +1879,27 @@ export function GuideDashboard() {
               );
             })}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Commission breakdown */}
-      <Card className="bg-muted/30">
-        <CardContent className="p-4 flex items-center justify-between">
+      <div className="kcard p-4 flex items-center justify-between bg-muted/30">
           <div className="flex items-center gap-2">
             <Banknote className="size-4 text-muted-foreground" />
             <span className="text-sm text-muted-foreground">{lang === 'sw' ? 'Ada ya jukwaa' : 'Platform fee'}</span>
           </div>
           <span className="font-bold text-foreground">12%</span>
-        </CardContent>
-      </Card>
+      </div>
 
       {/* Request Payout button */}
-      <Button
-        className="w-full h-12 text-base gap-2"
+      <button
+        className="kbtn w-full h-12 text-base gap-2"
         onClick={() => setPayoutDialogOpen(true)}
         disabled={earningsData.released <= 0}
       >
         <DollarSign className="size-5" />
         {lang === 'sw' ? 'Omba malipo' : 'Request Payout'}
-      </Button>
+      </button>
 
       {/* Multi-Currency Display */}
       <MultiCurrency
@@ -1939,18 +1910,16 @@ export function GuideDashboard() {
       />
 
       {/* Quick link to Insights */}
-      <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigateTo('insights')}>
-        <CardContent className="p-4 flex items-center gap-3">
-          <div className="size-10 rounded-full glass flex items-center justify-center shrink-0">
-            <BarChart3 className="size-5 text-sky-600 dark:text-sky-400" />
+      <div className="kcard cursor-pointer p-4 flex items-center gap-3" onClick={() => navigateTo('insights')}>
+          <div className="size-10 rounded-full bg-[var(--kariako-green-light)] flex items-center justify-center shrink-0">
+            <BarChart3 className="size-5 text-kariako-green" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-foreground text-sm">{lang === 'sw' ? 'Uchambuzi wa Utendaji' : 'Performance Insights'}</p>
             <p className="text-xs text-muted-foreground">{lang === 'sw' ? 'Tazama takwimu zako' : 'View your stats'}</p>
           </div>
           <ArrowLeft className="size-4 text-muted-foreground rotate-180" />
-        </CardContent>
-      </Card>
+      </div>
 
       {/* Payout History */}
       <div>
@@ -1967,8 +1936,7 @@ export function GuideDashboard() {
         ) : (
           <div className="space-y-2 max-h-96 overflow-y-auto">
             {payouts.map((payout) => (
-              <Card key={payout.id}>
-                <CardContent className="p-3 flex items-center justify-between">
+              <div key={payout.id} className="kcard p-3 flex items-center justify-between">
                   <div>
                     <p className="text-sm font-semibold text-foreground">{formatTZS(payout.amount, lang)}</p>
                     <p className="text-xs text-muted-foreground">{formatDate(payout.createdAt, lang)}</p>
@@ -1986,8 +1954,7 @@ export function GuideDashboard() {
                   )}>
                     {t(payout.status as 'pending' | 'completed', lang)}
                   </Badge>
-                </CardContent>
-              </Card>
+              </div>
             ))}
           </div>
         )}
@@ -2091,9 +2058,9 @@ export function GuideDashboard() {
                     </p>
                   ) : (
                     <div className="mt-1">
-                      <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                      <div className="kprogress w-full">
                         <div
-                          className="h-full rounded-full bg-muted-foreground/30"
+                          className="kprogress-bar"
                           style={{ width: `${Math.min(Math.random() * 80 + 10, 95)}%` }}
                         />
                       </div>
@@ -2115,9 +2082,8 @@ export function GuideDashboard() {
 
         {/* Guide of the Week featured */}
         {guideOfWeek && (
-          <Card className="overflow-hidden border-amber-300 dark:border-amber-600 bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-950/30 dark:to-yellow-950/20 mb-4">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-1 text-amber-600 dark:text-amber-400 text-xs font-medium mb-2">
+          <div className="kcard-yellow overflow-hidden mb-4 p-4">
+              <div className="flex items-center gap-1 text-amber-700 dark:text-amber-300 text-xs font-medium mb-2">
                 <Crown className="size-3.5" />
                 {t('guide_of_week', lang)}
               </div>
@@ -2133,8 +2099,7 @@ export function GuideDashboard() {
                   <RatingStars rating={guideOfWeek.rating} size="sm" showNumeric />
                 </div>
               </div>
-            </CardContent>
-          </Card>
+          </div>
         )}
 
         {/* Leaderboard list */}
@@ -2156,10 +2121,10 @@ export function GuideDashboard() {
                   className={cn(
                     'flex items-center gap-3 rounded-lg border p-3 transition-colors',
                     isCurrentUser
-                      ? 'border-primary bg-primary/5 dark:bg-primary/10 ring-1 ring-primary/30'
+                      ? 'border-kariako-green bg-[var(--kariako-green-light)] ring-1 ring-kariako-green/30'
                       : position <= 3
                         ? 'bg-amber-50/50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800'
-                        : 'bg-background border-border hover:bg-muted/30'
+                        : 'kcard'
                   )}
                 >
                   {/* Position */}
@@ -2187,14 +2152,14 @@ export function GuideDashboard() {
                   {/* Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5">
-                      <h4 className={cn('font-medium text-sm truncate', isCurrentUser ? 'text-primary font-bold' : 'text-foreground')}>
+                      <h4 className={cn('font-medium text-sm truncate', isCurrentUser ? 'text-kariako-green font-bold' : 'text-foreground')}>
                         {guide.name} {isCurrentUser && `(${lang === 'sw' ? 'Wewe' : 'You'})`}
                       </h4>
                       {guide.isVerifiedElite && (
-                        <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300 text-[9px] h-4 px-1">
+                        <span className="kbadge kbadge-gold text-[9px] h-4 px-1">
                           <Star className="size-2.5 fill-amber-500 text-amber-500 mr-0.5" />
                           Elite
-                        </Badge>
+                        </span>
                       )}
                     </div>
                     <RatingStars rating={guide.rating} size="sm" showNumeric={false} />
@@ -2215,12 +2180,10 @@ export function GuideDashboard() {
 
         {/* Current position */}
         {currentGuideRank > 0 && (
-          <Card className="mt-4 bg-primary/5 dark:bg-primary/10 border-primary/20">
-            <CardContent className="p-3 flex items-center justify-between">
+          <div className="kcard mt-4 p-3 flex items-center justify-between bg-[var(--kariako-green-light)] border-kariako-green/20">
               <span className="text-sm text-muted-foreground">{lang === 'sw' ? 'Nafasi yako' : 'Your position'}</span>
-              <span className="text-lg font-bold text-primary">#{currentGuideRank}</span>
-            </CardContent>
-          </Card>
+              <span className="text-lg font-bold text-kariako-green">#{currentGuideRank}</span>
+          </div>
         )}
       </div>
     </div>
@@ -2400,9 +2363,9 @@ export function GuideDashboard() {
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-foreground">{t('nav_profile', lang)}</h1>
         {!isProfileEditing ? (
-          <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setIsProfileEditing(true)}>
+          <button className="kbtn-outline gap-1.5 text-sm" onClick={() => setIsProfileEditing(true)}>
             {t('edit', lang)}
-          </Button>
+          </button>
         ) : (
           <div className="flex gap-2">
             <Button variant="ghost" size="sm" onClick={() => {
@@ -2413,17 +2376,16 @@ export function GuideDashboard() {
             }}>
               {t('cancel', lang)}
             </Button>
-            <Button size="sm" onClick={handleSaveProfile} disabled={isProfileSaving}>
+            <button className="kbtn text-sm" onClick={handleSaveProfile} disabled={isProfileSaving}>
               {isProfileSaving ? <Loader2 className="size-3.5 animate-spin" /> : null}
               {t('save', lang)}
-            </Button>
+            </button>
           </div>
         )}
       </div>
 
       {/* Profile header */}
-      <Card>
-        <CardContent className="p-6">
+      <div className="kcard p-6">
           <div className="flex items-center gap-4">
             <div className="relative">
               <div className={cn(
@@ -2433,7 +2395,7 @@ export function GuideDashboard() {
                 {user?.name ? getInitials(user.name) : '?'}
               </div>
               {isProfileEditing && (
-                <button className="absolute bottom-0 right-0 size-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md">
+                <button className="absolute bottom-0 right-0 size-7 rounded-full bg-kariako-green text-white flex items-center justify-center shadow-md">
                   <Camera className="size-3.5" />
                 </button>
               )}
@@ -2449,34 +2411,32 @@ export function GuideDashboard() {
               </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
+      </div>
 
       {/* Account Status */}
-      <Card>
-        <CardContent className="p-4">
+      <div className="kcard p-4">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-foreground">{lang === 'sw' ? 'Hali ya akaunti' : 'Account Status'}</span>
-            <Badge className={cn(
-              'text-xs',
-              profile?.status === 'active' && 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300',
-              profile?.status === 'pending' && 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
-              profile?.status === 'suspended' && 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300',
+            <span className={cn(
+              'kbadge',
+              profile?.status === 'active' && 'kbadge-verified',
+              profile?.status === 'pending' && 'kbadge-pending',
+              profile?.status === 'suspended' && 'kbadge-urgent',
             )}>
               {profile?.status === 'active' && t('trust_verified', lang)}
               {profile?.status === 'pending' && t('trust_pending', lang)}
               {profile?.status === 'suspended' && t('trust_suspended', lang)}
-            </Badge>
+            </span>
           </div>
 
           {/* ID Verification */}
-          <div className="flex items-center justify-between mt-3 pt-3 border-t">
+          <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
             <span className="text-sm font-medium text-foreground">{lang === 'sw' ? 'Uthibitisho wa kitambulisho' : 'ID Verification'}</span>
             <div className="flex items-center gap-1.5">
               {profile?.idDocumentUrl ? (
                 <>
-                  <ShieldCheck className="size-4 text-emerald-600 dark:text-emerald-400" />
-                  <span className="text-xs text-emerald-600 dark:text-emerald-400">{t('trust_verified', lang)}</span>
+                  <ShieldCheck className="size-4 text-kariako-green" />
+                  <span className="text-xs text-kariako-green">{t('trust_verified', lang)}</span>
                 </>
               ) : (
                 <>
@@ -2486,12 +2446,10 @@ export function GuideDashboard() {
               )}
             </div>
           </div>
-        </CardContent>
-      </Card>
+      </div>
 
       {/* Bio */}
-      <Card>
-        <CardContent className="p-4 space-y-3">
+      <div className="kcard p-4 space-y-3">
           <label className="text-sm font-medium text-foreground">{lang === 'sw' ? 'Wasifu wako' : 'Your Bio'}</label>
           {isProfileEditing ? (
             <Textarea
@@ -2506,12 +2464,10 @@ export function GuideDashboard() {
               {profile?.bio || (lang === 'sw' ? 'Hakuna wasifu bado' : 'No bio yet')}
             </p>
           )}
-        </CardContent>
-      </Card>
+      </div>
 
       {/* Zone Specializations */}
-      <Card>
-        <CardContent className="p-4 space-y-3">
+      <div className="kcard p-4 space-y-3">
           <label className="text-sm font-medium text-foreground">{lang === 'sw' ? 'Maeneo unayojua' : 'Zone Specializations'}</label>
           <div className="flex flex-wrap gap-2">
             {isLoadingZones ? (
@@ -2537,7 +2493,7 @@ export function GuideDashboard() {
                     className={cn(
                       'inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors',
                       isSelected
-                        ? `${zc?.bg || 'bg-primary/10'} ${zc?.text || 'text-primary'} border-current`
+                        ? `${zc?.bg || 'bg-[var(--kariako-green-light)]'} ${zc?.text || 'text-kariako-green'} border-current`
                         : 'border-border text-muted-foreground',
                       isProfileEditing && 'cursor-pointer hover:border-foreground/30',
                       !isProfileEditing && 'cursor-default'
@@ -2550,12 +2506,10 @@ export function GuideDashboard() {
               })
             )}
           </div>
-        </CardContent>
-      </Card>
+      </div>
 
       {/* Languages Spoken */}
-      <Card>
-        <CardContent className="p-4 space-y-3">
+      <div className="kcard p-4 space-y-3">
           <label className="text-sm font-medium text-foreground">{lang === 'sw' ? 'Lugha unazozungumza' : 'Languages Spoken'}</label>
           <div className="flex flex-wrap gap-2">
             {allLanguages.map((langCode) => {
@@ -2577,7 +2531,7 @@ export function GuideDashboard() {
                   className={cn(
                     'inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors',
                     isSelected
-                      ? 'bg-primary/10 text-primary border-primary/30'
+                      ? 'bg-[var(--kariako-green-light)] text-kariako-green border-kariako-green/30'
                       : 'border-border text-muted-foreground',
                     isProfileEditing && 'cursor-pointer hover:border-foreground/30',
                     !isProfileEditing && 'cursor-default'
@@ -2589,12 +2543,10 @@ export function GuideDashboard() {
               );
             })}
           </div>
-        </CardContent>
-      </Card>
+      </div>
 
       {/* USSD Offline Mode */}
-      <Card className="cursor-pointer hover:shadow-md transition-shadow">
-        <CardContent className="p-4">
+      <div className="kcard cursor-pointer p-4">
           <div className="flex items-center gap-2 mb-3">
             <WifiOff className="size-4 text-gray-600 dark:text-gray-400" />
             <span className="text-sm font-medium text-foreground">{lang === 'sw' ? 'Hali ya Nje ya Mtandao' : 'Offline Mode'}</span>
@@ -2608,13 +2560,11 @@ export function GuideDashboard() {
             language={lang}
             className="!p-0 !border-0 !shadow-none"
           />
-        </CardContent>
-      </Card>
+      </div>
 
       {/* Subscription Link */}
-      <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigateTo('subscription')}>
-        <CardContent className="p-4 flex items-center gap-3">
-          <div className="size-10 rounded-full glass flex items-center justify-center shrink-0">
+      <div className="kcard cursor-pointer p-4 flex items-center gap-3" onClick={() => navigateTo('subscription')}>
+          <div className="size-10 rounded-full bg-[var(--kariako-green-light)] flex items-center justify-center shrink-0">
             <Crown className="size-5 text-amber-600 dark:text-amber-400" />
           </div>
           <div className="flex-1 min-w-0">
@@ -2626,8 +2576,7 @@ export function GuideDashboard() {
             })()}</p>
           </div>
           <ArrowLeft className="size-4 text-muted-foreground rotate-180" />
-        </CardContent>
-      </Card>
+      </div>
     </div>
   );
 
@@ -2651,14 +2600,14 @@ export function GuideDashboard() {
       )}
 
       {/* Sticky Header */}
-      <header className="sticky top-0 z-40 glass-nav">
+      <header className="knav sticky top-0 z-40">
         <div className="flex items-center justify-between px-4 h-14">
           <div className="flex items-center gap-2">
-            <h1 className="text-lg font-bold gradient-text">{t('app_name', lang)}</h1>
+            <h1 className="text-lg font-bold gradient-text-green">{t('app_name', lang)}</h1>
             {guideStore.status === 'online' && (
               <span className="flex items-center gap-1">
-                <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">{t('online', lang)}</span>
+                <span className="size-2 rounded-full bg-kariako-green animate-pulse" />
+                <span className="text-xs text-kariako-green font-medium">{t('online', lang)}</span>
               </span>
             )}
             {guideStore.status === 'busy' && (
@@ -2714,7 +2663,7 @@ export function GuideDashboard() {
       </main>
 
       {/* Bottom Tab Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 glass-nav">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 knav border-t border-border">
         <div className="flex items-center justify-around h-16 max-w-lg mx-auto">
           {[
             { key: 'home' as GuideView, icon: Home, label: t('nav_home', lang) },
@@ -2734,7 +2683,7 @@ export function GuideDashboard() {
                 className={cn(
                   'flex flex-col items-center justify-center gap-0.5 min-w-[56px] py-2 px-2 rounded-lg transition-colors relative',
                   isActive
-                    ? 'text-amber-600 dark:text-amber-400'
+                    ? 'text-kariako-green'
                     : 'text-muted-foreground hover:text-foreground'
                 )}
                 aria-label={tab.label}

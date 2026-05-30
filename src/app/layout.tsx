@@ -12,14 +12,14 @@ const inter = Inter({
 });
 
 export const viewport: Viewport = {
-  themeColor: "#d97706",
+  themeColor: "#0B5D3A",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
 };
 
 export const metadata: Metadata = {
-  title: "Kariako Guide - Your Guide to Kariakoo Market",
+  title: "Kariako Guide - Navigate Kariakoo Like a Local",
   description: "Connect with verified local market guides in Kariakoo, Dar es Salaam. Navigate the market like a local, find fair prices, and explore with confidence.",
   keywords: ["Kariakoo", "Dar es Salaam", "Tanzania", "market guide", "local guide", "tourism", "wholesale"],
   authors: [{ name: "Kariako Guide" }],
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "Kariako Guide",
-    description: "Your guide to Kariakoo market - Connect with verified local experts",
+    description: "Your trusted guide to Kariakoo market - Connect with verified local experts",
     type: "website",
   },
 };
@@ -49,7 +49,7 @@ export default function RootLayout({
     <html lang="sw" suppressHydrationWarning>
       <head>
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#d97706" />
+        <meta name="theme-color" content="#0B5D3A" />
         <link rel="apple-touch-icon" href="/logo.svg" />
         <link rel="apple-touch-icon" sizes="192x192" href="/logo.svg" />
         <link rel="apple-touch-icon" sizes="512x512" href="/logo.svg" />
@@ -58,10 +58,9 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="Kariako Guide" />
       </head>
       <body
-        className={`${inter.variable} antialiased bg-background text-foreground relative`}
+        className={`${inter.variable} antialiased bg-[#F8F9FA] text-[#212529] dark:bg-[#0D1117] dark:text-[#F0F6FC]`}
       >
         <Providers>
-          <div className="mesh-gradient" aria-hidden="true" />
           {children}
           <Toaster />
           <PWARegister />

@@ -1001,7 +1001,7 @@ export function SeekerDashboard() {
 
   const renderBackButton = (targetView: SeekerView = 'home') => (
     <button
-      className="glass flex items-center gap-1.5 mb-4 px-3 py-1.5 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-[var(--glass-hover)] transition-colors"
+      className="kbtn-outline flex items-center gap-1.5 mb-4 py-1.5 text-sm"
       onClick={() => navigateTo(targetView)}
     >
       <ArrowLeft className="size-4" />
@@ -1016,16 +1016,29 @@ export function SeekerDashboard() {
     <div className="space-y-6">
       {/* Welcome */}
       <div>
-        <h1 className="text-2xl font-bold gradient-text">
+        <h1 className="text-2xl font-bold gradient-text-green">
           {t('welcome', lang)}, {user?.name?.split(' ')[0] || ''}! 👋
         </h1>
         <p className="text-muted-foreground text-sm mt-1">{t('tagline', lang)}</p>
       </div>
 
-      {/* Active session banner */}
+      {/* Online status indicator */}
+      <div className="flex items-center gap-2">
+        <span className="size-2.5 rounded-full bg-emerald-500 animate-pulse-dot" />
+        <span className="text-sm font-medium text-emerald-700 dark:text-emerald-400">{t('online', lang)}</span>
+      </div>
+
+      {/* Navigation tabs: Market | Guides | Escrow */}
+      <div className="knav rounded-xl p-1 flex gap-1">
+        <button className="knav-link knav-link-active flex-1 text-center">{lang === 'sw' ? 'Soko' : 'Market'}</button>
+        <button className="knav-link flex-1 text-center" onClick={() => navigateTo('matching')}>{lang === 'sw' ? 'Waongozaji' : 'Guides'}</button>
+        <button className="knav-link flex-1 text-center" onClick={() => navigateTo('price-radar')}>{lang === 'sw' ? 'Dhamana' : 'Escrow'}</button>
+      </div>
+
+      {/* Active Request Card - with LIVE badge */}
       {activeSession && (
         <div
-          className="glass-card gradient-border amber-glow-sm cursor-pointer"
+          className="kcard cursor-pointer"
           onClick={() => {
             setActiveSessionId(activeSession.id);
             fetchActiveSession(activeSession.id);
@@ -1033,142 +1046,326 @@ export function SeekerDashboard() {
             setView('session');
           }}
         >
-          <div className="p-4 flex items-center gap-3">
-            <div className="size-10 rounded-full glass flex items-center justify-center shrink-0">
-              <Clock className="size-5 text-amber-600 dark:text-amber-400 animate-gentle-pulse" />
+          <div className="p-4">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="size-10 rounded-full bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center shrink-0">
+                <Clock className="size-5 text-kariako-green animate-pulse-dot" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <p className="font-semibold text-foreground text-sm">{t('active_session', lang)}</p>
+                  <span className="kbadge kbadge-live">LIVE</span>
+                </div>
+                <p className="text-xs text-muted-foreground truncate mt-0.5">
+                  {activeSession.guide?.name || 'Guide'} &middot; {activeSession.sessionCode}
+                </p>
+              </div>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-semibold text-foreground text-sm">{t('active_session', lang)}</p>
-              <p className="text-xs text-muted-foreground truncate">
-                {activeSession.guide?.name || 'Guide'} &middot; {activeSession.sessionCode}
-              </p>
+            <div className="flex gap-2">
+              <button className="kbtn-outline text-xs py-1.5 px-3 flex-1" onClick={(e) => { e.stopPropagation(); navigateTo('session'); }}>
+                {lang === 'sw' ? 'Tazama Kikao' : 'View Session'}
+              </button>
+              <button className="kbtn text-xs py-1.5 px-3 flex-1" onClick={(e) => { e.stopPropagation(); navigateTo('session'); }}>
+                <MapPin className="size-3" />
+                {lang === 'sw' ? 'Fuata Mwongozo' : 'Track Guide'}
+              </button>
             </div>
-            <span className="glass text-amber-700 dark:text-amber-300 text-xs font-medium px-2.5 py-1 rounded-full">
-              {t('active', lang)}
-            </span>
           </div>
         </div>
       )}
 
-      {/* Open request banner */}
+      {/* Open request banner - Active Request Card style */}
       {openRequest && !activeSession && (
         <div
-          className="glass-card gradient-border cursor-pointer"
+          className="kcard cursor-pointer"
           onClick={() => navigateTo('matching')}
         >
-          <div className="p-4 flex items-center gap-3">
-            <div className="size-10 rounded-full glass flex items-center justify-center shrink-0">
-              <Radio className="size-5 text-emerald-600 dark:text-emerald-400 animate-gentle-pulse" />
+          <div className="p-4">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="size-10 rounded-full bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center shrink-0">
+                <Radio className="size-5 text-kariako-green animate-pulse-dot" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <p className="font-semibold text-foreground text-sm">{lang === 'sw' ? 'Ombi lako lipo wazi' : 'Your request is open'}</p>
+                  <span className="kbadge kbadge-live">LIVE</span>
+                </div>
+                <p className="text-xs text-muted-foreground truncate mt-0.5">{openRequest.description}</p>
+                <p className="text-xs text-kariako-green font-medium mt-0.5">{lang === 'sw' ? 'Inatafuta waongozaji...' : 'Matching with guides...'}</p>
+              </div>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-semibold text-foreground text-sm">{lang === 'sw' ? 'Ombi lako lipo wazi' : 'Your request is open'}</p>
-              <p className="text-xs text-muted-foreground truncate">{openRequest.description}</p>
+            <div className="flex gap-2">
+              <button className="kbtn-outline text-xs py-1.5 px-3 flex-1" onClick={(e) => { e.stopPropagation(); handleCancelRequest(openRequest.id); }}>
+                {lang === 'sw' ? 'Ghairi Utafutaji' : 'Cancel Search'}
+              </button>
+              <button className="kbtn text-xs py-1.5 px-3 flex-1" onClick={(e) => { e.stopPropagation(); navigateTo('matching'); }}>
+                <Zap className="size-3" />
+                {lang === 'sw' ? 'Ongeza Mwonekano' : 'Boost Visibility'}
+              </button>
             </div>
-            <span className="glass text-emerald-700 dark:text-emerald-300 text-xs font-medium px-2.5 py-1 rounded-full">
-              {t('open', lang)}
-            </span>
           </div>
         </div>
       )}
+
+      {/* Price Radar Card - with category badges */}
+      {prices.length > 0 && (
+        <div className="kcard">
+          <div className="p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Radar className="size-5 text-kariako-green" />
+              <h3 className="font-semibold text-foreground text-sm">{lang === 'sw' ? 'Rada ya Bei' : 'Price Radar'}</h3>
+            </div>
+            <div className="space-y-3">
+              {prices.slice(0, 3).map((price) => {
+                const categoryBadgeClass = price.category.toLowerCase().includes('electronic')
+                  ? 'kbadge kbadge-electronics'
+                  : price.category.toLowerCase().includes('kitchen') || price.category.toLowerCase().includes('vyombo')
+                  ? 'kbadge kbadge-kitchenware'
+                  : price.category.toLowerCase().includes('fabric') || price.category.toLowerCase().includes('kitenge')
+                  ? 'kbadge kbadge-fabrics'
+                  : price.category.toLowerCase().includes('spice') || price.category.toLowerCase().includes('spices')
+                  ? 'kbadge kbadge-spices'
+                  : 'kbadge kbadge-wholesale';
+                const priceRange = price.maxPrice - price.minPrice;
+                const barWidth = Math.min(100, Math.max(20, (priceRange / price.maxPrice) * 100));
+                return (
+                  <div key={price.id}>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className={categoryBadgeClass}>{price.category}</span>
+                      <span className="text-xs font-medium text-foreground">
+                        {formatTZS(price.minPrice, lang)} - {formatTZS(price.maxPrice, lang)}
+                      </span>
+                    </div>
+                    <div className="kprogress">
+                      <div className="kprogress-bar" style={{ width: `${barWidth}%` }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <button className="kbtn-outline w-full mt-3 text-xs py-2" onClick={() => navigateTo('price-radar')}>
+              {lang === 'sw' ? 'Tazama Bei Zote' : 'View All Prices'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Map Section */}
+      <div className="kcard overflow-hidden">
+        <div className="relative">
+          <GoogleMap
+            zones={zones.map((z) => ({
+              id: z.id,
+              name: z.name,
+              nameKey: z.nameKey,
+            }))}
+            vendors={vendors.slice(0, 7).map((v) => ({ id: v.id, name: v.name, zoneId: v.zoneId }))}
+            guides={guides.filter((g) => g.currentStatus === 'online').slice(0, 3).map((g) => ({ id: g.id, name: g.name, rating: g.rating, isOnline: g.currentStatus === 'online' }))}
+            showUserLocation={true}
+            interactive={true}
+          />
+          {/* Map overlay badges */}
+          <div className="absolute top-3 left-3 flex gap-2 z-10">
+            <div className="kmap-badge">
+              <MapPin className="size-3.5 text-kariako-green" />
+              <span>{guides.filter((g) => g.currentStatus === 'online').length || 12} {lang === 'sw' ? 'Waongozaji' : 'Guides Nearby'}</span>
+            </div>
+            <div className="kmap-badge">
+              <ShieldCheck className="size-3.5 text-kariako-yellow" />
+              <span>{lang === 'sw' ? 'Dhamana Imethibitishwa' : 'Escrow Verified'}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Member Identity Card - Green background */}
+      <div className="kcard-green p-4">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="size-10 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+            <ShieldCheck className="size-5 text-kariako-yellow" />
+          </div>
+          <div>
+            <p className="font-semibold text-white text-sm">{lang === 'sw' ? 'Wasifu Uliothibitishwa' : 'Verified Profile'}</p>
+            <p className="text-xs text-white/70">{user?.name || 'Seeker'}</p>
+          </div>
+        </div>
+        <div className="mb-3">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-xs text-white/80">{lang === 'sw' ? 'Alama ya Kuaminiwa Escrow' : 'Escrow Trust Score'}</span>
+            <span className="text-xs font-bold text-kariako-yellow">85%</span>
+          </div>
+          <div className="ktrust-progress">
+            <div className="ktrust-progress-bar" style={{ width: '85%' }} />
+          </div>
+        </div>
+        <p className="text-xs text-white/60">
+          {lang === 'sw'
+            ? 'Wasifu wako umethibitishwa. Malipo yanalindwa na Escrow.'
+            : 'Your profile is verified. Payments are protected by Escrow.'}
+        </p>
+      </div>
 
       {/* Quick actions */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div
-          className="glass-card gradient-border cursor-pointer group"
+          className="kcard cursor-pointer group"
           onClick={() => navigateTo('post-request')}
         >
           <div className="p-4 flex flex-col items-center gap-2 text-center">
-            <div className="size-11 rounded-xl glass flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Plus className="size-5 text-emerald-600 dark:text-emerald-400" />
+            <div className="size-11 rounded-xl bg-kariako-green-light flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Plus className="size-5 text-kariako-green" />
             </div>
             <span className="text-xs font-medium text-foreground">{t('post_request', lang)}</span>
           </div>
         </div>
 
         <div
-          className="glass-card gradient-border cursor-pointer group"
+          className="kcard cursor-pointer group"
           onClick={() => navigateTo('price-radar')}
         >
           <div className="p-4 flex flex-col items-center gap-2 text-center">
-            <div className="size-11 rounded-xl glass flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Radar className="size-5 text-amber-600 dark:text-amber-400" />
+            <div className="size-11 rounded-xl bg-kariako-green-light flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Radar className="size-5 text-kariako-green" />
             </div>
             <span className="text-xs font-medium text-foreground">{t('nav_price_radar', lang)}</span>
           </div>
         </div>
 
         <div
-          className="glass-card gradient-border cursor-pointer group"
+          className="kcard cursor-pointer group"
           onClick={() => navigateTo('vendors')}
         >
           <div className="p-4 flex flex-col items-center gap-2 text-center">
-            <div className="size-11 rounded-xl glass flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Store className="size-5 text-sky-600 dark:text-sky-400" />
+            <div className="size-11 rounded-xl bg-kariako-green-light flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Store className="size-5 text-kariako-green" />
             </div>
             <span className="text-xs font-medium text-foreground">{t('nav_vendors', lang)}</span>
           </div>
         </div>
 
         <div
-          className="glass-card gradient-border cursor-pointer group"
+          className="kcard cursor-pointer group"
           onClick={() => navigateTo('my-requests')}
         >
           <div className="p-4 flex flex-col items-center gap-2 text-center">
-            <div className="size-11 rounded-xl glass flex items-center justify-center group-hover:scale-110 transition-transform">
-              <FileText className="size-5 text-rose-600 dark:text-rose-400" />
+            <div className="size-11 rounded-xl bg-kariako-green-light flex items-center justify-center group-hover:scale-110 transition-transform">
+              <FileText className="size-5 text-kariako-green" />
             </div>
             <span className="text-xs font-medium text-foreground">{t('my_requests', lang)}</span>
           </div>
         </div>
       </div>
 
+      {/* Recent Activity Card */}
+      <div className="kcard">
+        <div className="p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Clock className="size-4 text-muted-foreground" />
+            <h3 className="font-semibold text-foreground text-sm">{lang === 'sw' ? 'Shughuli za hivi karibu' : 'Recent Activity'}</h3>
+          </div>
+          <div className="space-y-2">
+            {isLoadingRequests ? (
+              Array.from({ length: 3 }, (_, i) => <Skeleton key={i} className="h-12 rounded-lg shimmer" />)
+            ) : requests.length === 0 ? (
+              <div className="text-center py-6 text-muted-foreground">
+                <Clock className="size-8 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">{t('no_requests', lang)}</p>
+              </div>
+            ) : (
+              requests.slice(0, 3).map((req) => (
+                <div
+                  key={req.id}
+                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
+                  onClick={() => {
+                    setExpandedRequest(req.id);
+                    navigateTo('my-requests');
+                  }}
+                >
+                  <div className="size-8 rounded-full bg-muted flex items-center justify-center shrink-0">
+                    <FileText className="size-4 text-muted-foreground" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">{req.description}</p>
+                    <p className="text-xs text-muted-foreground">{formatDate(req.createdAt, lang)}</p>
+                  </div>
+                  <Badge className={cn('text-[10px] h-5', statusColorMap[req.status] || '')}>
+                    {t(req.status as keyof typeof statusColorMap, lang)}
+                  </Badge>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Popular Zones Card */}
+      {zones.length > 0 && (
+        <div className="kcard">
+          <div className="p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <MapPin className="size-4 text-kariako-green" />
+              <h3 className="font-semibold text-foreground text-sm">{lang === 'sw' ? 'Maeneo Maarufu' : 'Popular Zones'}</h3>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {zones.slice(0, 4).map((zone) => {
+                const zc = zoneColorMap[zone.nameKey];
+                return (
+                  <div
+                    key={zone.id}
+                    className="rounded-lg overflow-hidden cursor-pointer hover:shadow-md transition-shadow border border-border"
+                    onClick={() => navigateTo('vendors')}
+                  >
+                    <div className={cn('h-16 flex items-center justify-center', zc?.bg || 'bg-muted')}>
+                      <MapPin className={cn('size-6', zc?.text || 'text-muted-foreground')} />
+                    </div>
+                    <div className="p-2">
+                      <p className="text-xs font-medium text-foreground truncate">
+                        {lang === 'sw' ? zone.nameSw : zone.name}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Feature quick actions */}
       <div>
-        <h2 className="text-lg font-bold gradient-text mb-3">{lang === 'sw' ? 'Vipengee Zaidi' : 'More Features'}</h2>
+        <h2 className="text-lg font-bold gradient-text-green mb-3">{lang === 'sw' ? 'Vipengee Zaidi' : 'More Features'}</h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div
-            className="glass-card gradient-border cursor-pointer group"
-            onClick={() => navigateTo('group-tour')}
-          >
+          <div className="kcard cursor-pointer group" onClick={() => navigateTo('group-tour')}>
             <div className="p-4 flex flex-col items-center gap-2 text-center">
-              <div className="size-11 rounded-xl glass flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Users className="size-5 text-violet-600 dark:text-violet-400" />
+              <div className="size-11 rounded-xl bg-kariako-green-light flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Users className="size-5 text-kariako-green" />
               </div>
               <span className="text-xs font-medium text-foreground">{lang === 'sw' ? 'Safari ya Kikundi' : 'Group Tour'}</span>
             </div>
           </div>
 
-          <div
-            className="glass-card gradient-border cursor-pointer group"
-            onClick={() => navigateTo('heatmap')}
-          >
+          <div className="kcard cursor-pointer group" onClick={() => navigateTo('heatmap')}>
             <div className="p-4 flex flex-col items-center gap-2 text-center">
-              <div className="size-11 rounded-xl glass flex items-center justify-center group-hover:scale-110 transition-transform">
-                <ThermometerSun className="size-5 text-red-600 dark:text-red-400" />
+              <div className="size-11 rounded-xl bg-kariako-green-light flex items-center justify-center group-hover:scale-110 transition-transform">
+                <ThermometerSun className="size-5 text-kariako-green" />
               </div>
               <span className="text-xs font-medium text-foreground">{lang === 'sw' ? 'Joto la Soko' : 'Market Heatmap'}</span>
             </div>
           </div>
 
-          <div
-            className="glass-card gradient-border cursor-pointer group"
-            onClick={() => navigateTo('shopping-list')}
-          >
+          <div className="kcard cursor-pointer group" onClick={() => navigateTo('shopping-list')}>
             <div className="p-4 flex flex-col items-center gap-2 text-center">
-              <div className="size-11 rounded-xl glass flex items-center justify-center group-hover:scale-110 transition-transform">
-                <ShoppingCart className="size-5 text-orange-600 dark:text-orange-400" />
+              <div className="size-11 rounded-xl bg-kariako-green-light flex items-center justify-center group-hover:scale-110 transition-transform">
+                <ShoppingCart className="size-5 text-kariako-green" />
               </div>
               <span className="text-xs font-medium text-foreground">{lang === 'sw' ? 'Orodha ya Ununuzi' : 'Shopping List'}</span>
             </div>
           </div>
 
-          <div
-            className="glass-card gradient-border cursor-pointer group"
-            onClick={() => navigateTo('packages')}
-          >
+          <div className="kcard cursor-pointer group" onClick={() => navigateTo('packages')}>
             <div className="p-4 flex flex-col items-center gap-2 text-center">
-              <div className="size-11 rounded-xl glass flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Package className="size-5 text-teal-600 dark:text-teal-400" />
+              <div className="size-11 rounded-xl bg-kariako-green-light flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Package className="size-5 text-kariako-green" />
               </div>
               <span className="text-xs font-medium text-foreground">{lang === 'sw' ? 'Vifurushi' : 'Package Deals'}</span>
             </div>
@@ -1178,116 +1375,52 @@ export function SeekerDashboard() {
 
       {/* More feature links */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div
-          className="glass-card gradient-border cursor-pointer group"
-          onClick={() => navigateTo('stories')}
-        >
+        <div className="kcard cursor-pointer group" onClick={() => navigateTo('stories')}>
           <div className="p-4 flex flex-col items-center gap-2 text-center">
-            <div className="size-11 rounded-xl glass flex items-center justify-center group-hover:scale-110 transition-transform">
-              <BookOpen className="size-5 text-pink-600 dark:text-pink-400" />
+            <div className="size-11 rounded-xl bg-kariako-green-light flex items-center justify-center group-hover:scale-110 transition-transform">
+              <BookOpen className="size-5 text-kariako-green" />
             </div>
             <span className="text-xs font-medium text-foreground">{lang === 'sw' ? 'Hadithi za Soko' : 'Market Stories'}</span>
           </div>
         </div>
 
-        <div
-          className="glass-card gradient-border cursor-pointer group"
-          onClick={() => navigateTo('calendar')}
-        >
+        <div className="kcard cursor-pointer group" onClick={() => navigateTo('calendar')}>
           <div className="p-4 flex flex-col items-center gap-2 text-center">
-            <div className="size-11 rounded-xl glass flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Calendar className="size-5 text-amber-600 dark:text-amber-400" />
+            <div className="size-11 rounded-xl bg-kariako-green-light flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Calendar className="size-5 text-kariako-green" />
             </div>
             <span className="text-xs font-medium text-foreground">{lang === 'sw' ? 'Kalenda ya Msimu' : 'Seasonal Calendar'}</span>
           </div>
         </div>
 
-        <div
-          className="glass-card gradient-border cursor-pointer group"
-          onClick={() => navigateTo('buddy')}
-        >
+        <div className="kcard cursor-pointer group" onClick={() => navigateTo('buddy')}>
           <div className="p-4 flex flex-col items-center gap-2 text-center">
-            <div className="size-11 rounded-xl glass flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Heart className="size-5 text-emerald-600 dark:text-emerald-400" />
+            <div className="size-11 rounded-xl bg-kariako-green-light flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Heart className="size-5 text-kariako-green" />
             </div>
             <span className="text-xs font-medium text-foreground">{lang === 'sw' ? 'Rafiki Pamoja' : 'Buddy System'}</span>
           </div>
         </div>
 
-        <div
-          className="glass-card gradient-border cursor-pointer group"
-          onClick={() => navigateTo('haggling')}
-        >
+        <div className="kcard cursor-pointer group" onClick={() => navigateTo('haggling')}>
           <div className="p-4 flex flex-col items-center gap-2 text-center">
-            <div className="size-11 rounded-xl glass flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Scale className="size-5 text-amber-600 dark:text-amber-400" />
+            <div className="size-11 rounded-xl bg-kariako-green-light flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Scale className="size-5 text-kariako-green" />
             </div>
             <span className="text-xs font-medium text-foreground">{lang === 'sw' ? 'Msaidizi wa Bishi' : 'Haggling Helper'}</span>
           </div>
         </div>
       </div>
 
-      {/* Map overview */}
-      <div>
-        <h2 className="text-lg font-bold gradient-text mb-3">{lang === 'sw' ? 'Ramani ya Kariakoo' : 'Kariakoo Map'}</h2>
-        <GoogleMap
-          zones={zones.map((z) => ({
-            id: z.id,
-            name: z.name,
-            nameKey: z.nameKey,
-          }))}
-          vendors={vendors.slice(0, 7).map((v) => ({ id: v.id, name: v.name, zoneId: v.zoneId }))}
-          guides={guides.filter((g) => g.currentStatus === 'online').slice(0, 3).map((g) => ({ id: g.id, name: g.name, rating: g.rating, isOnline: g.currentStatus === 'online' }))}
-          showUserLocation={true}
-          interactive={true}
-        />
-      </div>
-
-      {/* Recent activity */}
-      <div>
-        <h2 className="text-lg font-bold gradient-text mb-3">{lang === 'sw' ? 'Shughuli za hivi karibu' : 'Recent Activity'}</h2>
-        <div className="space-y-2">
-          {isLoadingRequests ? (
-            Array.from({ length: 3 }, (_, i) => <Skeleton key={i} className="h-16 rounded-xl shimmer" />)
-          ) : requests.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <Clock className="size-8 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">{t('no_requests', lang)}</p>
-            </div>
-          ) : (
-            requests.slice(0, 3).map((req) => (
-              <div
-                key={req.id}
-                className="glass-card cursor-pointer"
-                onClick={() => {
-                  setExpandedRequest(req.id);
-                  navigateTo('my-requests');
-                }}
-              >
-                <div className="p-3 flex items-center gap-3">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">{req.description}</p>
-                    <p className="text-xs text-muted-foreground">{formatDate(req.createdAt, lang)}</p>
-                  </div>
-                  <Badge className={cn('text-[10px] h-6 glass', statusColorMap[req.status] || '')}>
-                    {t(req.status as keyof typeof statusColorMap, lang)}
-                  </Badge>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      </div>
-
       {/* Guide of the Week */}
       {guideOfWeek && (
         <div>
-          <h2 className="text-lg font-bold gradient-text mb-3">{t('guide_of_week', lang)}</h2>
-          <div className="glass-card gradient-border amber-glow-sm overflow-hidden">
+          <h2 className="text-lg font-bold gradient-text-green mb-3">{t('guide_of_week', lang)}</h2>
+          <div className="kcard overflow-hidden">
             <div className="p-4">
               <div className="flex items-center gap-3">
                 <div className={cn(
-                  'size-14 rounded-full flex items-center justify-center text-white font-bold text-lg border-2 border-amber-400',
+                  'size-14 rounded-full flex items-center justify-center text-white font-bold text-lg border-2 border-kariako-yellow',
                   ['bg-emerald-600', 'bg-sky-600', 'bg-amber-600', 'bg-rose-600', 'bg-teal-600'][guideOfWeek.id.charCodeAt(0) % 5]
                 )}>
                   {guideOfWeek.name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)}
@@ -1295,14 +1428,14 @@ export function SeekerDashboard() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <h3 className="font-bold text-foreground">{guideOfWeek.name}</h3>
-                    <Crown className="size-4 text-amber-500" />
+                    <Crown className="size-4 text-kariako-yellow" />
                   </div>
                   <RatingStars rating={guideOfWeek.rating} size="sm" showNumeric />
                   <div className="flex flex-wrap gap-1 mt-1.5">
                     {guideOfWeek.zones.slice(0, 2).map((z) => {
                       const zc = zoneColorMap[z];
                       return (
-                        <Badge key={z} variant="secondary" className={cn('text-[9px] h-4 px-1.5 glass', zc?.bg, zc?.text)}>
+                        <Badge key={z} variant="secondary" className={cn('text-[9px] h-4 px-1.5', zc?.bg, zc?.text)}>
                           {t(z, lang)}
                         </Badge>
                       );
@@ -1318,18 +1451,18 @@ export function SeekerDashboard() {
       {/* Quick links */}
       <div className="grid grid-cols-2 gap-3">
         <button
-          className="glass h-12 flex items-center justify-start gap-2 px-4 rounded-xl text-sm font-medium hover:bg-[var(--glass-hover)] transition-colors"
+          className="kcard h-12 flex items-center justify-start gap-2 px-4 text-sm font-medium text-foreground hover:bg-muted/50 transition-colors"
           onClick={() => navigateTo('history')}
         >
-          <Clock className="size-4" />
+          <Clock className="size-4 text-muted-foreground" />
           {t('session_history', lang)}
         </button>
         <button
-          className="glass h-12 flex items-center justify-start gap-2 px-4 rounded-xl text-sm font-medium hover:bg-[var(--glass-hover)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="kcard h-12 flex items-center justify-start gap-2 px-4 text-sm font-medium text-foreground hover:bg-muted/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={() => navigateTo('matching')}
           disabled={!openRequest}
         >
-          <Users className="size-4" />
+          <Users className="size-4 text-muted-foreground" />
           {lang === 'sw' ? 'Waongozaji' : 'Guides'}
         </button>
       </div>
@@ -1341,11 +1474,11 @@ export function SeekerDashboard() {
     <div className="space-y-6">
       {renderBackButton()}
       <div>
-        <h1 className="text-xl font-bold gradient-text">{t('post_request', lang)}</h1>
+        <h1 className="text-xl font-bold gradient-text-green">{t('post_request', lang)}</h1>
         <p className="text-sm text-muted-foreground mt-1">{t('request_description', lang)}</p>
       </div>
 
-      <div className="glass-card gradient-border">
+      <div className="kcard">
         <div className="p-4 space-y-4">
           {/* Description */}
           <div>
@@ -1354,7 +1487,7 @@ export function SeekerDashboard() {
               value={requestDescription}
               onChange={(e) => setRequestDescription(e.target.value)}
               placeholder={t('request_description', lang)}
-              className="mt-1.5 min-h-[100px] glass-input border-0 bg-transparent focus:ring-0 focus:outline-none"
+              className="mt-1.5 min-h-[100px] kinput border-0 bg-transparent focus:ring-0 focus:outline-none"
               maxLength={500}
             />
             <p className="text-xs text-muted-foreground mt-1">{requestDescription.length}/500</p>
@@ -1369,7 +1502,6 @@ export function SeekerDashboard() {
               ) : (
                 zones.map((zone) => {
                   const isSelected = selectedZoneIds.includes(zone.id);
-                  const zc = zoneColorMap[zone.nameKey];
                   return (
                     <button
                       key={zone.id}
@@ -1380,10 +1512,8 @@ export function SeekerDashboard() {
                         );
                       }}
                       className={cn(
-                        'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors',
-                        isSelected
-                          ? `glass ${zc?.bg || 'bg-primary/10'} ${zc?.text || 'text-primary'} border-[var(--glass-border)]`
-                          : 'glass text-muted-foreground hover:bg-[var(--glass-hover)]'
+                        'ktag',
+                        isSelected ? 'ktag-active' : 'ktag-inactive'
                       )}
                     >
                       <MapPin className="size-3" />
@@ -1406,7 +1536,7 @@ export function SeekerDashboard() {
                 value={requestBudget}
                 onChange={(e) => setRequestBudget(e.target.value)}
                 placeholder="0"
-                className="pl-9 glass-input border-0 bg-transparent focus:ring-0 focus:outline-none"
+                className="pl-9 kinput border-0 bg-transparent focus:ring-0 focus:outline-none"
                 min={0}
               />
             </div>
@@ -1425,7 +1555,7 @@ export function SeekerDashboard() {
                 type="button"
                 className={cn(
                   'gap-2 flex items-center px-4 py-2 rounded-xl text-sm font-medium transition-colors',
-                  requestPhoto ? 'glass-button' : 'glass hover:bg-[var(--glass-hover)]'
+                  requestPhoto ? 'kbtn' : 'kbtn-outline'
                 )}
                 onClick={() => setRequestPhoto(!requestPhoto)}
               >
@@ -1439,7 +1569,7 @@ export function SeekerDashboard() {
 
           {/* Submit */}
           <button
-            className="glass-button w-full h-12 text-base flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="kbtn w-full h-12 text-base disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={handleCreateRequest}
             disabled={!requestDescription.trim() || isSubmitting}
           >
@@ -1459,14 +1589,14 @@ export function SeekerDashboard() {
           {/* Quick links */}
           <div className="flex gap-2 pt-2">
             <button
-              className="glass flex-1 h-9 text-xs gap-1.5 flex items-center justify-center rounded-xl font-medium hover:bg-[var(--glass-hover)] transition-colors"
+              className="kbtn-outline flex-1 h-9 text-xs gap-1.5"
               onClick={() => navigateTo('shopping-list')}
             >
               <ShoppingCart className="size-3.5" />
               {lang === 'sw' ? 'Orodha ya Ununuzi' : 'Shopping List'}
             </button>
             <button
-              className="glass flex-1 h-9 text-xs gap-1.5 flex items-center justify-center rounded-xl font-medium hover:bg-[var(--glass-hover)] transition-colors"
+              className="kbtn-outline flex-1 h-9 text-xs gap-1.5"
               onClick={() => navigateTo('buddy')}
             >
               <Heart className="size-3.5" />
@@ -1483,8 +1613,8 @@ export function SeekerDashboard() {
     <div className="space-y-4">
       {renderBackButton()}
       <div className="flex items-center justify-between gap-2">
-        <h1 className="text-xl font-bold gradient-text">{t('my_requests', lang)}</h1>
-        <button className="glass-button flex items-center gap-1.5 px-3 py-1.5 text-sm" onClick={() => navigateTo('post-request')}>
+        <h1 className="text-xl font-bold gradient-text-green">{t('my_requests', lang)}</h1>
+        <button className="kbtn flex items-center gap-1.5 px-3 py-1.5 text-sm" onClick={() => navigateTo('post-request')}>
           <Plus className="size-3.5" />
           {t('post_request', lang)}
         </button>
@@ -1496,10 +1626,10 @@ export function SeekerDashboard() {
           <button
             key={status}
             className={cn(
-              'h-8 text-xs shrink-0 px-3 rounded-xl font-medium transition-colors',
+              'h-8 text-xs shrink-0 px-3 rounded-lg font-medium transition-colors',
               requestFilter === status
-                ? 'glass-button'
-                : 'glass hover:bg-[var(--glass-hover)]'
+                ? 'kbtn'
+                : 'kbtn-outline'
             )}
             onClick={() => setRequestFilter(status)}
           >
@@ -1526,7 +1656,7 @@ export function SeekerDashboard() {
             const isExpanded = expandedRequest === req.id;
             const parsedZoneIds = typeof req.zoneIds === 'string' ? JSON.parse(req.zoneIds || '[]') : req.zoneIds;
             return (
-              <div key={req.id} className="glass-card gradient-border overflow-hidden">
+              <div key={req.id} className="kcard overflow-hidden">
                 <div
                   className="p-4 cursor-pointer"
                   onClick={() => setExpandedRequest(isExpanded ? null : req.id)}
@@ -1539,7 +1669,7 @@ export function SeekerDashboard() {
                           const zKey = `zone_${(z.name || '').toLowerCase()}`;
                           const zc = zoneColorMap[zKey];
                           return (
-                            <Badge key={z.id} variant="secondary" className={cn('text-[9px] h-4 px-1.5 glass', zc?.bg, zc?.text)}>
+                            <Badge key={z.id} variant="secondary" className={cn('text-[9px] h-4 px-1.5', zc?.bg, zc?.text)}>
                               <MapPin className="size-2.5 mr-0.5" />
                               {lang === 'sw' ? z.nameSw || z.name : z.name}
                             </Badge>
@@ -1548,7 +1678,7 @@ export function SeekerDashboard() {
                       </div>
                     </div>
                     <div className="flex flex-col items-end gap-1.5 shrink-0">
-                      <Badge className={cn('text-[10px] h-5 glass', statusColorMap[req.status] || '')}>
+                      <Badge className={cn('text-[10px] h-5', statusColorMap[req.status] || '')}>
                         {t((req.status || 'open') as 'open', lang)}
                       </Badge>
                       {isExpanded ? <ChevronUp className="size-4 text-muted-foreground" /> : <ChevronDown className="size-4 text-muted-foreground" />}
@@ -1571,10 +1701,10 @@ export function SeekerDashboard() {
 
                 {/* Expanded details */}
                 {isExpanded && (
-                  <div className="border-t border-[var(--glass-border)] px-4 py-3 bg-[var(--glass)]/30 space-y-2">
+                  <div className="border-t border-border px-4 py-3 bg-muted/30 space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-muted-foreground">{t('status', lang)}</span>
-                      <Badge className={cn('text-[10px] h-5 glass', statusColorMap[req.status] || '')}>
+                      <Badge className={cn('text-[10px] h-5', statusColorMap[req.status] || '')}>
                         {t((req.status || 'open') as 'open', lang)}
                       </Badge>
                     </div>
@@ -1589,12 +1719,12 @@ export function SeekerDashboard() {
 
                     {/* Sessions for this request */}
                     {req.sessions && req.sessions.length > 0 && (
-                      <div className="pt-2 border-t border-[var(--glass-border)] mt-2">
+                      <div className="pt-2 border-t border-border mt-2">
                         <p className="text-xs font-medium text-foreground mb-1.5">{lang === 'sw' ? 'Vikao' : 'Sessions'}</p>
                         {req.sessions.map((s) => (
                           <div key={s.id} className="flex items-center justify-between py-1 text-xs">
                             <span className="text-foreground">{s.guide?.name || 'Guide'}</span>
-                            <Badge className={cn('text-[9px] h-4 glass', escrowStatusMap[s.escrowStatus] || '')}>
+                            <Badge className={cn('text-[9px] h-4', escrowStatusMap[s.escrowStatus] || '')}>
                               {s.escrowStatus}
                             </Badge>
                           </div>
@@ -1607,7 +1737,7 @@ export function SeekerDashboard() {
                       {req.status === 'open' && (
                         <>
                           <button
-                            className="glass-button flex-1 h-8 text-xs flex items-center justify-center gap-1"
+                            className="kbtn flex-1 h-8 text-xs"
                             onClick={(e) => {
                               e.stopPropagation();
                               setMatchingRequestId(req.id);
@@ -1622,7 +1752,7 @@ export function SeekerDashboard() {
                             {lang === 'sw' ? 'Tazama waongozaji' : 'View guides'}
                           </button>
                           <button
-                            className="glass h-8 text-xs px-3 rounded-xl text-red-600 dark:text-red-400 font-medium hover:bg-red-500/10 transition-colors"
+                            className="kbtn-danger h-8 text-xs px-3"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleCancelRequest(req.id);
@@ -1634,7 +1764,7 @@ export function SeekerDashboard() {
                       )}
                       {req.status === 'matched' && (
                         <button
-                          className="glass-button flex-1 h-8 text-xs flex items-center justify-center"
+                          className="kbtn flex-1 h-8 text-xs"
                           onClick={(e) => {
                             e.stopPropagation();
                             const session = sessions.find((s) => s.requestId === req.id);
@@ -1667,7 +1797,7 @@ export function SeekerDashboard() {
       <div className="space-y-4">
         {renderBackButton()}
         <div>
-          <h1 className="text-xl font-bold gradient-text">{lang === 'sw' ? 'Kupeleleza waongozaji' : 'Finding Guides'}</h1>
+          <h1 className="text-xl font-bold gradient-text-green">{lang === 'sw' ? 'Kupeleleza waongozaji' : 'Finding Guides'}</h1>
           <p className="text-sm text-muted-foreground mt-1">
             {lang === 'sw' ? 'Wafanyakazi wanaangalia ombi lako...' : 'Guides are reviewing your request...'}
           </p>
@@ -1675,17 +1805,17 @@ export function SeekerDashboard() {
 
         {/* The open request */}
         {matchingRequest && (
-          <div className="glass-card gradient-border">
+          <div className="kcard">
             <div className="p-4">
               <div className="flex items-start gap-3">
-                <div className="size-10 rounded-full glass flex items-center justify-center shrink-0">
-                  <FileText className="size-5 text-emerald-600 dark:text-emerald-400" />
+                <div className="size-10 rounded-full bg-kariako-green-light flex items-center justify-center shrink-0">
+                  <FileText className="size-5 text-kariako-green" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-foreground">{matchingRequest.description}</p>
                   <div className="flex flex-wrap gap-1 mt-1">
                     {(matchingRequest.zones || []).map((z) => (
-                      <Badge key={z.id} variant="secondary" className="text-[9px] h-4 glass">
+                      <Badge key={z.id} variant="secondary" className="text-[9px] h-4">
                         {lang === 'sw' ? z.nameSw || z.name : z.name}
                       </Badge>
                     ))}
@@ -1703,11 +1833,11 @@ export function SeekerDashboard() {
         {isWaitingForGuides && matchedGuides.length === 0 && (
           <div className="text-center py-8">
             <div className="relative inline-block">
-              <div className="size-16 rounded-full glass flex items-center justify-center amber-glow-sm">
-                <Loader2 className="size-8 text-amber-600 dark:text-amber-400 animate-spin" />
+              <div className="size-16 rounded-full bg-kariako-green-light flex items-center justify-center">
+                <Loader2 className="size-8 text-kariako-green animate-spin" />
               </div>
-              <div className="absolute -bottom-1 -right-1 size-5 rounded-full glass flex items-center justify-center animate-gentle-pulse">
-                <Users className="size-3 text-emerald-600 dark:text-emerald-400" />
+              <div className="absolute -bottom-1 -right-1 size-5 rounded-full bg-kariako-green flex items-center justify-center animate-pulse-dot">
+                <Users className="size-3 text-white" />
               </div>
             </div>
             <p className="text-sm font-medium text-foreground mt-3">
@@ -1721,8 +1851,8 @@ export function SeekerDashboard() {
 
         {/* Zone expansion notification */}
         {zoneExpanded && (
-          <div className="glass p-3 rounded-xl flex items-center gap-2 amber-glow-sm">
-            <Bell className="size-4 text-amber-600 dark:text-amber-400 shrink-0" />
+          <div className="kcard p-3 flex items-center gap-2 border-kariako-yellow">
+            <Bell className="size-4 text-kariako-yellow shrink-0" />
             <p className="text-xs text-amber-700 dark:text-amber-300">
               {lang === 'sw' ? 'Maeneo yamepanuliwa baada ya dakika 5 kutafuta waongozaji zaidi' : 'Zones expanded after 5 min to find more guides'}
             </p>
@@ -1732,7 +1862,7 @@ export function SeekerDashboard() {
         {/* Matched guides */}
         {matchedGuides.length > 0 && (
           <div>
-            <h2 className="text-base font-bold gradient-text mb-3 flex items-center gap-2">
+            <h2 className="text-base font-bold gradient-text-green mb-3 flex items-center gap-2">
               <Users className="size-4" />
               {lang === 'sw' ? `Waongozaji ${matchedGuides.length} wamepatikana` : `${matchedGuides.length} guide${matchedGuides.length > 1 ? 's' : ''} found`}
             </h2>
@@ -1765,7 +1895,7 @@ export function SeekerDashboard() {
           <div className="text-center py-12 text-muted-foreground">
             <FileText className="size-10 mx-auto mb-2 opacity-50" />
             <p className="text-sm">{lang === 'sw' ? 'Hakuna ombi wazi' : 'No open request'}</p>
-            <button className="glass-button mt-3 px-4 py-2 text-sm" onClick={() => navigateTo('post-request')}>
+            <button className="kbtn mt-3 px-4 py-2 text-sm" onClick={() => navigateTo('post-request')}>
               {t('post_request', lang)}
             </button>
           </div>
@@ -1779,7 +1909,7 @@ export function SeekerDashboard() {
     <div className="space-y-4">
       {renderBackButton()}
       <div>
-        <h1 className="text-xl font-bold gradient-text">{t('active_session', lang)}</h1>
+        <h1 className="text-xl font-bold gradient-text-green">{t('active_session', lang)}</h1>
       </div>
 
       {!activeSessionData ? (
@@ -1826,7 +1956,7 @@ export function SeekerDashboard() {
 
           {/* Guide info */}
           {activeSessionData.guide && (
-            <div className="glass-card gradient-border">
+            <div className="kcard">
               <div className="p-4 flex items-center gap-3">
                 <div className={cn(
                   'size-11 rounded-full flex items-center justify-center text-white font-bold text-sm',
@@ -1840,8 +1970,8 @@ export function SeekerDashboard() {
                   <p className="font-semibold text-foreground text-sm">{activeSessionData.guide.name}</p>
                   <p className="text-xs text-muted-foreground">{lang === 'sw' ? 'Mwongozo wako' : 'Your guide'}</p>
                 </div>
-                <span className="glass text-emerald-700 dark:text-emerald-300 text-[10px] font-medium px-2.5 py-1 rounded-full flex items-center gap-1">
-                  <span className="size-1.5 rounded-full bg-emerald-500 animate-gentle-pulse" />
+                <span className="text-[10px] font-medium px-2.5 py-1 rounded-full flex items-center gap-1 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+                  <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse-dot" />
                   {t('online', lang)}
                 </span>
               </div>
@@ -1850,7 +1980,7 @@ export function SeekerDashboard() {
 
           {/* Request info */}
           {activeSessionData.request && (
-            <div className="glass-card">
+            <div className="kcard">
               <div className="p-4">
                 <p className="text-xs text-muted-foreground mb-1">{t('description', lang)}</p>
                 <p className="text-sm text-foreground">{activeSessionData.request.description}</p>
@@ -1877,8 +2007,8 @@ export function SeekerDashboard() {
           <div className="flex gap-2">
             <button
               className={cn(
-                'flex-1 h-10 gap-1.5 flex items-center justify-center rounded-xl text-sm font-medium transition-colors',
-                showChat ? 'glass-button' : 'glass hover:bg-[var(--glass-hover)]'
+                'flex-1 h-10 gap-1.5 flex items-center justify-center rounded-lg text-sm font-medium transition-colors',
+                showChat ? 'kbtn' : 'kbtn-outline'
               )}
               onClick={() => { setShowChat(true); setShowMap(false); setSessionSidebarTab('tools'); }}
             >
@@ -1887,8 +2017,8 @@ export function SeekerDashboard() {
             </button>
             <button
               className={cn(
-                'flex-1 h-10 gap-1.5 flex items-center justify-center rounded-xl text-sm font-medium transition-colors',
-                showMap ? 'glass-button' : 'glass hover:bg-[var(--glass-hover)]'
+                'flex-1 h-10 gap-1.5 flex items-center justify-center rounded-lg text-sm font-medium transition-colors',
+                showMap ? 'kbtn' : 'kbtn-outline'
               )}
               onClick={() => { setShowMap(true); setShowChat(false); setSessionSidebarTab('tools'); }}
             >
@@ -1897,8 +2027,8 @@ export function SeekerDashboard() {
             </button>
             <button
               className={cn(
-                'flex-1 h-10 gap-1.5 flex items-center justify-center rounded-xl text-sm font-medium transition-colors',
-                !showChat && !showMap ? 'glass-button' : 'glass hover:bg-[var(--glass-hover)]'
+                'flex-1 h-10 gap-1.5 flex items-center justify-center rounded-lg text-sm font-medium transition-colors',
+                !showChat && !showMap ? 'kbtn' : 'kbtn-outline'
               )}
               onClick={() => { setShowChat(false); setShowMap(false); }}
             >
@@ -1909,7 +2039,7 @@ export function SeekerDashboard() {
 
           {/* Chat with VoiceMessages */}
           {showChat && (
-            <div className="glass-card overflow-hidden">
+            <div className="kcard overflow-hidden">
               <SessionChat
                 sessionId={activeSessionData.id}
                 currentUserId={user?.id || ''}
@@ -1926,7 +2056,7 @@ export function SeekerDashboard() {
                 onSendMessage={handleSendMessage}
               />
               {/* Voice Messages */}
-              <div className="border-t border-[var(--glass-border)] p-3">
+              <div className="border-t border-border p-3">
                 <VoiceMessages
                   onSendVoice={(recording) => {
                     setVoiceRecordings((prev) => [...prev, recording]);
@@ -1974,10 +2104,10 @@ export function SeekerDashboard() {
                   <button
                     key={tab.id}
                     className={cn(
-                      'h-8 text-xs shrink-0 gap-1 flex items-center px-3 rounded-xl font-medium transition-colors',
+                      'h-8 text-xs shrink-0 gap-1 flex items-center px-3 rounded-lg font-medium transition-colors',
                       sessionSidebarTab === tab.id
-                        ? 'glass-button'
-                        : 'glass hover:bg-[var(--glass-hover)]'
+                        ? 'kbtn'
+                        : 'kbtn-outline'
                     )}
                     onClick={() => setSessionSidebarTab(tab.id)}
                   >
@@ -2112,11 +2242,11 @@ export function SeekerDashboard() {
     <div className="space-y-4">
       {renderBackButton()}
       <div>
-        <h1 className="text-xl font-bold gradient-text">{t('session_history', lang)}</h1>
+        <h1 className="text-xl font-bold gradient-text-green">{t('session_history', lang)}</h1>
       </div>
 
       {/* Date range filter */}
-      <div className="glass-card">
+      <div className="kcard">
         <div className="p-3 flex flex-wrap gap-3 items-end">
           <div className="flex-1 min-w-[120px]">
             <label className="text-xs text-muted-foreground">{lang === 'sw' ? 'Kutoka' : 'From'}</label>
@@ -2124,7 +2254,7 @@ export function SeekerDashboard() {
               type="date"
               value={historyDateFrom}
               onChange={(e) => setHistoryDateFrom(e.target.value)}
-              className="h-9 text-xs mt-1 glass-input border-0 bg-transparent focus:ring-0 focus:outline-none"
+              className="h-9 text-xs mt-1 kinput border-0 bg-transparent focus:ring-0 focus:outline-none"
             />
           </div>
           <div className="flex-1 min-w-[120px]">
@@ -2133,11 +2263,11 @@ export function SeekerDashboard() {
               type="date"
               value={historyDateTo}
               onChange={(e) => setHistoryDateTo(e.target.value)}
-              className="h-9 text-xs mt-1 glass-input border-0 bg-transparent focus:ring-0 focus:outline-none"
+              className="h-9 text-xs mt-1 kinput border-0 bg-transparent focus:ring-0 focus:outline-none"
             />
           </div>
           <button
-            className="glass h-9 text-xs px-3 rounded-xl font-medium hover:bg-[var(--glass-hover)] transition-colors"
+            className="kbtn-outline h-9 text-xs px-3"
             onClick={() => {
               setHistoryDateFrom('');
               setHistoryDateTo('');
@@ -2165,7 +2295,7 @@ export function SeekerDashboard() {
           {filteredHistory.map((session) => {
             const isExpanded = expandedHistory === session.id;
             return (
-              <div key={session.id} className="glass-card overflow-hidden">
+              <div key={session.id} className="kcard overflow-hidden">
                 <div
                   className="p-4 cursor-pointer"
                   onClick={() => setExpandedHistory(isExpanded ? null : session.id)}
@@ -2192,7 +2322,7 @@ export function SeekerDashboard() {
                       <span className="text-sm font-semibold text-foreground">{formatTZS(session.amount, lang)}</span>
                       {session.ratingSeeker && (
                         <div className="flex items-center gap-0.5">
-                          <Star className="size-3 text-amber-500 fill-amber-500" />
+                          <Star className="size-3 text-kariako-yellow fill-kariako-yellow" />
                           <span className="text-xs text-muted-foreground">{session.ratingSeeker}</span>
                         </div>
                       )}
@@ -2202,7 +2332,7 @@ export function SeekerDashboard() {
 
                 {/* Expanded receipt */}
                 {isExpanded && (
-                  <div className="border-t border-[var(--glass-border)] px-4 py-3 bg-[var(--glass)]/30 space-y-2">
+                  <div className="border-t border-border px-4 py-3 bg-muted/30 space-y-2">
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-muted-foreground">{t('session_code', lang)}</span>
                       <span className="font-mono font-medium text-foreground">{session.sessionCode}</span>
@@ -2229,7 +2359,7 @@ export function SeekerDashboard() {
                     </div>
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-muted-foreground">{t('payment', lang)}</span>
-                      <Badge className={cn('text-[9px] h-4 glass', escrowStatusMap[session.escrowStatus] || '')}>
+                      <Badge className={cn('text-[9px] h-4', escrowStatusMap[session.escrowStatus] || '')}>
                         {session.escrowStatus}
                       </Badge>
                     </div>
@@ -2240,13 +2370,13 @@ export function SeekerDashboard() {
                       </div>
                     )}
                     {session.reviewSeeker && (
-                      <div className="pt-2 border-t border-[var(--glass-border)]">
+                      <div className="pt-2 border-t border-border">
                         <p className="text-xs text-muted-foreground mb-1">{t('review', lang)}</p>
                         <p className="text-xs text-foreground italic">&quot;{session.reviewSeeker}&quot;</p>
                       </div>
                     )}
                     {session.request && (
-                      <div className="pt-2 border-t border-[var(--glass-border)]">
+                      <div className="pt-2 border-t border-border">
                         <p className="text-xs text-muted-foreground mb-1">{t('description', lang)}</p>
                         <p className="text-xs text-foreground">{session.request.description}</p>
                       </div>
@@ -2296,18 +2426,18 @@ export function SeekerDashboard() {
 
       {/* Negotiate button */}
       {prices.length > 0 && (
-        <div className="glass-card gradient-border amber-glow-sm">
+        <div className="kcard">
           <div className="p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="size-10 rounded-full glass flex items-center justify-center">
-                <Scale className="size-5 text-amber-600 dark:text-amber-400" />
+              <div className="size-10 rounded-full bg-kariako-green-light flex items-center justify-center">
+                <Scale className="size-5 text-kariako-green" />
               </div>
               <div>
                 <p className="text-sm font-semibold text-foreground">{lang === 'sw' ? 'Piga Bishi' : 'Negotiate Prices'}</p>
                 <p className="text-xs text-muted-foreground">{lang === 'sw' ? 'Pata bei ya haki kwa kutumia msaidizi wetu' : 'Get fair prices with our assistant'}</p>
               </div>
             </div>
-            <button className="glass-button flex items-center gap-1.5 px-3 py-1.5 text-sm" onClick={() => {
+            <button className="kbtn flex items-center gap-1.5 px-3 py-1.5 text-sm" onClick={() => {
               const firstPrice = prices[0];
               setHagglingCategory(firstPrice.category);
               setHagglingVendorPrice(firstPrice.maxPrice);
@@ -2351,7 +2481,7 @@ export function SeekerDashboard() {
       <div className="space-y-6">
         {renderBackButton('price-radar')}
         <div>
-          <h1 className="text-xl font-bold gradient-text">{lang === 'sw' ? 'Msaidizi wa Bishi' : 'Haggling Assistant'}</h1>
+          <h1 className="text-xl font-bold gradient-text-green">{lang === 'sw' ? 'Msaidizi wa Bishi' : 'Haggling Assistant'}</h1>
           <p className="text-sm text-muted-foreground mt-1">{lang === 'sw' ? 'Pata bei ya haki kwa bidhaa zako' : 'Get fair prices for your items'}</p>
         </div>
 
@@ -2361,10 +2491,10 @@ export function SeekerDashboard() {
             <button
               key={p.id}
               className={cn(
-                'h-8 text-xs px-3 rounded-xl font-medium transition-colors',
+                'h-8 text-xs px-3 rounded-lg font-medium transition-colors',
                 hagglingCategory === p.category
-                  ? 'glass-button'
-                  : 'glass hover:bg-[var(--glass-hover)]'
+                  ? 'kbtn'
+                  : 'kbtn-outline'
               )}
               onClick={() => {
                 setHagglingCategory(p.category);
@@ -2389,7 +2519,7 @@ export function SeekerDashboard() {
             }}
           />
         ) : (
-          <div className="glass-card">
+          <div className="kcard">
             <div className="p-6 text-center text-muted-foreground">
               <Scale className="size-8 mx-auto mb-2 opacity-50" />
               <p className="text-sm">{lang === 'sw' ? 'Hakuna data ya bei' : 'No price data available'}</p>
@@ -2415,7 +2545,7 @@ export function SeekerDashboard() {
       <div className="space-y-6">
         {renderBackButton()}
         <div>
-          <h1 className="text-xl font-bold gradient-text">{lang === 'sw' ? 'Safari ya Kikundi' : 'Group Tour'}</h1>
+          <h1 className="text-xl font-bold gradient-text-green">{lang === 'sw' ? 'Safari ya Kikundi' : 'Group Tour'}</h1>
           <p className="text-sm text-muted-foreground mt-1">{lang === 'sw' ? 'Onga na wengine na okoa pesa' : 'Join others and save money'}</p>
         </div>
         <GroupTour
@@ -2464,7 +2594,7 @@ export function SeekerDashboard() {
     <div className="space-y-6">
       {renderBackButton()}
       <div>
-        <h1 className="text-xl font-bold gradient-text">{lang === 'sw' ? 'Joto la Soko' : 'Market Heatmap'}</h1>
+        <h1 className="text-xl font-bold gradient-text-green">{lang === 'sw' ? 'Joto la Soko' : 'Market Heatmap'}</h1>
         <p className="text-sm text-muted-foreground mt-1">{lang === 'sw' ? 'Tazama msongamano wa maeneo' : 'See crowd density by zone'}</p>
       </div>
       <MarketHeatmap
@@ -2516,7 +2646,7 @@ export function SeekerDashboard() {
       <div className="space-y-6">
         {renderBackButton()}
         <div>
-          <h1 className="text-xl font-bold gradient-text">{lang === 'sw' ? 'Orodha ya Ununuzi' : 'Shopping List'}</h1>
+          <h1 className="text-xl font-bold gradient-text-green">{lang === 'sw' ? 'Orodha ya Ununuzi' : 'Shopping List'}</h1>
           <p className="text-sm text-muted-foreground mt-1">{lang === 'sw' ? 'Panga bidhaa zako na pata bei' : 'Organize your items and get prices'}</p>
         </div>
 
@@ -2530,7 +2660,7 @@ export function SeekerDashboard() {
         {/* Route Optimizer toggle */}
         <div className="flex gap-2">
           <button
-            className="glass flex-1 h-10 gap-2 flex items-center justify-center rounded-xl text-sm font-medium text-amber-700 dark:text-amber-400 hover:bg-[var(--glass-hover)] transition-colors"
+            className="kbtn-outline flex-1 h-10 gap-2"
             onClick={() => setShowRouteOptimizer(!showRouteOptimizer)}
           >
             <Route className="size-4" />
@@ -2582,7 +2712,7 @@ export function SeekerDashboard() {
       <div className="space-y-6">
         {renderBackButton()}
         <div>
-          <h1 className="text-xl font-bold gradient-text">{lang === 'sw' ? 'Hadithi za Soko' : 'Market Stories'}</h1>
+          <h1 className="text-xl font-bold gradient-text-green">{lang === 'sw' ? 'Hadithi za Soko' : 'Market Stories'}</h1>
           <p className="text-sm text-muted-foreground mt-1">{lang === 'sw' ? 'Sikiliza kutoka kwa waongozaji na wauzaji' : 'Hear from guides and vendors'}</p>
         </div>
         {isLoadingStories ? (
@@ -2629,7 +2759,7 @@ export function SeekerDashboard() {
       <div className="space-y-6">
         {renderBackButton()}
         <div>
-          <h1 className="text-xl font-bold gradient-text">{lang === 'sw' ? 'Kalenda ya Msimu' : 'Seasonal Calendar'}</h1>
+          <h1 className="text-xl font-bold gradient-text-green">{lang === 'sw' ? 'Kalenda ya Msimu' : 'Seasonal Calendar'}</h1>
           <p className="text-sm text-muted-foreground mt-1">{lang === 'sw' ? 'Matukio ya soko na nyakati bora' : 'Market events and best times'}</p>
         </div>
         {isLoadingEvents ? (
@@ -2672,7 +2802,7 @@ export function SeekerDashboard() {
       <div className="space-y-6">
         {renderBackButton()}
         <div>
-          <h1 className="text-xl font-bold gradient-text">{lang === 'sw' ? 'Rafiki Pamoja' : 'Buddy System'}</h1>
+          <h1 className="text-xl font-bold gradient-text-green">{lang === 'sw' ? 'Rafiki Pamoja' : 'Buddy System'}</h1>
           <p className="text-sm text-muted-foreground mt-1">{lang === 'sw' ? 'Onga na watafuta wengine kwa usalama' : 'Join other seekers for safety'}</p>
         </div>
         {isLoadingBuddies ? (
@@ -2737,7 +2867,7 @@ export function SeekerDashboard() {
       <div className="space-y-6">
         {renderBackButton()}
         <div>
-          <h1 className="text-xl font-bold gradient-text">{lang === 'sw' ? 'Vifurushi' : 'Package Deals'}</h1>
+          <h1 className="text-xl font-bold gradient-text-green">{lang === 'sw' ? 'Vifurushi' : 'Package Deals'}</h1>
           <p className="text-sm text-muted-foreground mt-1">{lang === 'sw' ? 'Vifurushi vya bei nafuu kutoka kwa waongozaji' : 'Discounted bundles from guides'}</p>
         </div>
         {isLoadingPackages ? (
@@ -2776,18 +2906,18 @@ export function SeekerDashboard() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       {/* Header */}
-      <header className="glass-nav sticky top-0 z-50">
+      <header className="knav sticky top-0 z-50">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
             {view !== 'home' && (
               <button
-                className="glass size-8 flex items-center justify-center rounded-xl hover:bg-[var(--glass-hover)] transition-colors"
+                className="size-8 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
                 onClick={() => navigateTo('home')}
               >
                 <ArrowLeft className="size-4" />
               </button>
             )}
-            <h1 className="text-base font-bold gradient-text">
+            <h1 className="text-base font-bold gradient-text-green">
               {view === 'home' && (lang === 'sw' ? 'Kariako Guide' : 'Kariako Guide')}
               {view === 'post-request' && t('post_request', lang)}
               {view === 'my-requests' && t('my_requests', lang)}
@@ -2809,7 +2939,7 @@ export function SeekerDashboard() {
           <div className="flex items-center gap-1.5">
             {activeSession && (
               <button
-                className="glass-button h-8 gap-1 text-xs flex items-center px-3"
+                className="kbtn h-8 gap-1 text-xs px-3"
                 onClick={() => {
                   setActiveSessionId(activeSession.id);
                   fetchActiveSession(activeSession.id);
@@ -2829,11 +2959,11 @@ export function SeekerDashboard() {
       <main className="flex-1 max-w-2xl mx-auto w-full px-4 py-4 pb-24">
         {/* Error banner */}
         {error && (
-          <div className="mb-4 glass p-3 rounded-xl flex items-center gap-2 border-red-200 dark:border-red-800">
+          <div className="mb-4 kcard p-3 flex items-center gap-2 border-red-200 dark:border-red-800">
             <AlertTriangle className="size-4 text-red-600 dark:text-red-400 shrink-0" />
             <p className="text-sm text-red-700 dark:text-red-300 flex-1">{error}</p>
             <button
-              className="glass h-7 text-xs px-2 rounded-lg font-medium hover:bg-[var(--glass-hover)] transition-colors"
+              className="kbtn-outline h-7 text-xs px-2"
               onClick={() => {
                 setError(null);
                 fetchZones();
@@ -2866,7 +2996,7 @@ export function SeekerDashboard() {
       </main>
 
       {/* Bottom navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 glass-nav z-50">
+      <nav className="fixed bottom-0 left-0 right-0 knav z-50">
         <div className="max-w-2xl mx-auto flex items-center justify-around py-2 px-2">
           {[
             { id: 'home' as SeekerView, icon: Home, label: t('nav_home', lang) },
@@ -2879,10 +3009,10 @@ export function SeekerDashboard() {
               key={item.id}
               onClick={() => navigateTo(item.id)}
               className={cn(
-                'flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-colors min-w-[56px]',
+                'flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg transition-colors min-w-[56px]',
                 view === item.id
-                  ? 'text-amber-600 dark:text-amber-400'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-[var(--glass-hover)]'
+                  ? 'text-kariako-green'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
               )}
             >
               <item.icon className="size-5" />
@@ -2894,9 +3024,9 @@ export function SeekerDashboard() {
 
       {/* Rating Dialog */}
       <Dialog open={ratingOpen} onOpenChange={setRatingOpen}>
-        <DialogContent className="glass-card border-[var(--glass-border)]">
+        <DialogContent className="kcard border-border">
           <DialogHeader>
-            <DialogTitle className="gradient-text">{t('rate_experience', lang)}</DialogTitle>
+            <DialogTitle className="gradient-text-green">{t('rate_experience', lang)}</DialogTitle>
             <DialogDescription>
               {lang === 'sw'
                 ? 'Tafadhali kadiria uzoefu wako na mwongozo'
@@ -2926,7 +3056,7 @@ export function SeekerDashboard() {
                 value={reviewText}
                 onChange={(e) => setReviewText(e.target.value)}
                 placeholder={lang === 'sw' ? 'Andika maoni yako hapa...' : 'Write your review here...'}
-                className="mt-1.5 glass-input border-0 bg-transparent focus:ring-0 focus:outline-none"
+                className="mt-1.5 kinput border-0 bg-transparent focus:ring-0 focus:outline-none"
                 maxLength={300}
               />
             </div>
@@ -2934,13 +3064,13 @@ export function SeekerDashboard() {
 
           <DialogFooter>
             <button
-              className="glass h-9 px-4 rounded-xl text-sm font-medium hover:bg-[var(--glass-hover)] transition-colors"
+              className="kbtn-outline h-9 px-4"
               onClick={() => setRatingOpen(false)}
             >
               {t('cancel', lang)}
             </button>
             <button
-              className="glass-button h-9 px-6 rounded-xl text-sm font-medium"
+              className="kbtn h-9 px-6"
               onClick={handleSubmitRating}
               disabled={ratingValue === 0}
             >

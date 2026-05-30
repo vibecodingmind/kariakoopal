@@ -348,36 +348,37 @@ const navItems: { key: AdminView; icon: typeof LayoutDashboard; labelKey: string
 ];
 
 // ── Admin Sidebar (declared outside render to avoid lint error) ──
-function AdminSidebar({ lang, view, onNavigate }: { lang: Language; view: AdminView; onNavigate: (v: AdminView) => void }) {
+function AdminSidebar({ lang, view, onNavigate, pendingCount }: { lang: Language; view: AdminView; onNavigate: (v: AdminView) => void; pendingCount: number }) {
   return (
-    <div className="flex flex-col h-full">
-      <div className="p-4 border-b border-[var(--glass-border)]">
-        <h2 className="font-bold text-lg flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg glass-card flex items-center justify-center amber-glow-sm">
-            <ShieldCheck className="h-4 w-4 gradient-text" />
+    <div className="flex flex-col h-full ksidebar">
+      <div className="p-4 border-b border-white/20">
+        <h2 className="font-bold text-lg flex items-center gap-2 text-white">
+          <div className="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center">
+            <ShieldCheck className="h-4 w-4 text-[var(--kariako-yellow)]" />
           </div>
-          <span className="gradient-text">{t('admin_dashboard', lang)}</span>
+          <span className="text-white">{t('admin_dashboard', lang)}</span>
         </h2>
-        <p className="text-xs text-muted-foreground mt-1">Kariako Guide Admin</p>
+        <p className="text-xs text-white/60 mt-1">Kariako Guide Admin</p>
       </div>
       <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
         {navItems.map(item => (
           <button
             key={item.key}
             onClick={() => onNavigate(item.key)}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all ${
-              view === item.key
-                ? 'glass-button font-medium'
-                : 'glass hover:bg-[var(--glass-hover)] text-muted-foreground hover:text-foreground'
-            }`}
+            className={`w-full ${view === item.key ? 'ksidebar-item-active' : 'ksidebar-item'}`}
           >
-            <item.icon className={`h-4 w-4 ${view === item.key ? '' : 'text-muted-foreground'}`} />
-            {t(item.labelKey, lang)}
+            <item.icon className={`h-4 w-4 ${view === item.key ? 'text-white' : 'text-white/60'}`} />
+            <span className="flex-1 text-left">{t(item.labelKey, lang)}</span>
+            {item.key === 'overview' && pendingCount > 0 && (
+              <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+                {pendingCount}
+              </span>
+            )}
           </button>
         ))}
       </nav>
-      <div className="p-4 border-t border-[var(--glass-border)]">
-        <div className="text-xs text-muted-foreground">
+      <div className="p-4 border-t border-white/20">
+        <div className="text-xs text-white/50">
           <p>v1.0.0 &bull; Kariako Guide</p>
         </div>
       </div>
@@ -541,39 +542,39 @@ export function AdminDashboard() {
   return (
     <div className="min-h-screen flex bg-background">
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex lg:w-64 lg:flex-col glass-strong">
-        <AdminSidebar lang={lang} view={view} onNavigate={(v) => { setView(v); setSidebarOpen(false); }} />
+      <aside className="hidden lg:flex lg:w-64 lg:flex-col ksidebar">
+        <AdminSidebar lang={lang} view={view} onNavigate={(v) => { setView(v); setSidebarOpen(false); }} pendingCount={pendingGuides.length + disputes.length} />
       </aside>
 
       {/* Mobile Sidebar */}
       <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-        <SheetContent side="left" className="w-64 p-0 glass-strong border-r-0">
+        <SheetContent side="left" className="w-64 p-0 ksidebar border-r-0">
           <SheetHeader className="sr-only">
             <SheetTitle>Navigation</SheetTitle>
           </SheetHeader>
-          <AdminSidebar lang={lang} view={view} onNavigate={(v) => { setView(v); setSidebarOpen(false); }} />
+          <AdminSidebar lang={lang} view={view} onNavigate={(v) => { setView(v); setSidebarOpen(false); }} pendingCount={pendingGuides.length + disputes.length} />
         </SheetContent>
       </Sheet>
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0">
         {/* Header */}
-        <header className="glass-nav sticky top-0 z-40">
+        <header className="knav sticky top-0 z-40">
           <div className="flex items-center gap-3 px-4 py-3">
             <button
-              className="lg:hidden glass w-9 h-9 rounded-lg flex items-center justify-center hover:bg-[var(--glass-hover)] transition-colors"
+              className="lg:hidden w-9 h-9 rounded-lg flex items-center justify-center hover:bg-[var(--kariako-green-light)] transition-colors"
               onClick={() => setSidebarOpen(true)}
             >
               <Menu className="h-5 w-5" />
             </button>
             <div className="flex-1">
-              <h1 className="font-semibold text-base gradient-text">
+              <h1 className="font-semibold text-base gradient-text-green">
                 {t(navItems.find(n => n.key === view)?.labelKey || 'admin_dashboard', lang)}
               </h1>
             </div>
             <button
               onClick={() => { fetchStats(); fetchPendingGuides(); fetchDisputes(); }}
-              className="glass flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-[var(--glass-hover)] transition-colors"
+              className="kbtn-outline flex items-center gap-1.5 px-3 py-1.5 text-sm"
             >
               <RefreshCw className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">{t('refresh', lang)}</span>
@@ -601,14 +602,14 @@ export function AdminDashboard() {
         </div>
 
         {/* Mobile Bottom Navigation */}
-        <nav className="lg:hidden glass-nav border-t-0">
+        <nav className="lg:hidden knav border-t-0">
           <div className="flex overflow-x-auto">
             {navItems.map(item => (
               <button
                 key={item.key}
                 onClick={() => setView(item.key)}
                 className={`flex-1 min-w-[60px] flex flex-col items-center gap-0.5 py-2 text-[10px] transition-all ${
-                  view === item.key ? 'gradient-text font-semibold' : 'text-muted-foreground'
+                  view === item.key ? 'gradient-text-green font-semibold' : 'text-muted-foreground'
                 }`}
               >
                 <item.icon className="h-4 w-4" />
@@ -628,15 +629,15 @@ function LoadingSkeleton() {
     <div className="space-y-4">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="glass-card gradient-border p-4"><div className="h-20 w-full shimmer rounded-lg" /></div>
+          <div key={i} className="kcard p-4"><div className="h-20 w-full shimmer rounded-lg" /></div>
         ))}
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {Array.from({ length: 2 }).map((_, i) => (
-          <div key={i} className="glass-card gradient-border p-4"><div className="h-48 w-full shimmer rounded-lg" /></div>
+          <div key={i} className="kcard p-4"><div className="h-48 w-full shimmer rounded-lg" /></div>
         ))}
       </div>
-      <div className="glass-card gradient-border p-4"><div className="h-32 w-full shimmer rounded-lg" /></div>
+      <div className="kcard p-4"><div className="h-32 w-full shimmer rounded-lg" /></div>
     </div>
   );
 }
@@ -653,12 +654,12 @@ function OverviewView({ lang, stats, zones, disputes, pendingGuides, users, onNa
   const fraudFlags = disputes.filter(d => d.emergencyFlag).length;
 
   const metrics = [
-    { label: t('total_users', lang), value: stats.users.total, icon: Users, sub: `${stats.users.seekers} S / ${stats.users.guides} G / ${stats.users.admins} A`, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-950/30' },
-    { label: t('active_sessions_a', lang), value: stats.sessions.active, icon: Activity, sub: `${onlineGuides} ${t('online', lang)}`, color: 'text-sky-600', bg: 'bg-sky-50 dark:bg-sky-950/30' },
-    { label: t('total_revenue', lang), value: formatTZS(stats.revenue.total), icon: DollarSign, sub: `${stats.sessions.total} ${t('total', lang)}`, color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-950/30' },
-    { label: t('avg_rating', lang), value: stats.rating.average.toFixed(1), icon: Star, sub: '/ 5.0', color: 'text-violet-600', bg: 'bg-violet-50 dark:bg-violet-950/30' },
-    { label: t('fraud_flags', lang), value: fraudAlerts.filter(a => a.status === 'pending').length, icon: AlertTriangle, sub: fraudAlerts.length + ' ' + (lang === 'sw' ? 'tahadhari jumla' : 'total alerts'), color: 'text-rose-600', bg: 'bg-rose-50 dark:bg-rose-950/30' },
-    { label: t('requests', lang) || 'Requests', value: stats.requests.open + stats.requests.matched, icon: FileText, sub: `${stats.requests.open} open / ${stats.requests.matched} matched`, color: 'text-teal-600', bg: 'bg-teal-50 dark:bg-teal-950/30' },
+    { label: t('total_users', lang), value: stats.users.total, icon: Users, sub: `${stats.users.seekers} S / ${stats.users.guides} G / ${stats.users.admins} A`, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-950/30', change: '+4.2%', changeColor: 'text-[var(--kariako-green)]' },
+    { label: t('active_sessions_a', lang), value: stats.sessions.active, icon: Activity, sub: `${onlineGuides} ${t('online', lang)}`, color: 'text-sky-600', bg: 'bg-sky-50 dark:bg-sky-950/30', change: '', changeColor: '' },
+    { label: t('total_revenue', lang) + ' (Escrow)', value: formatTZS(stats.revenue.total), icon: DollarSign, sub: `${stats.sessions.total} ${t('total', lang)}`, color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-950/30', change: '+12.5%', changeColor: 'text-[var(--kariako-yellow)]' },
+    { label: t('avg_rating', lang), value: stats.rating.average.toFixed(1), icon: Star, sub: '/ 5.0', color: 'text-violet-600', bg: 'bg-violet-50 dark:bg-violet-950/30', change: '', changeColor: '' },
+    { label: t('fraud_flags', lang), value: fraudAlerts.filter(a => a.status === 'pending').length, icon: AlertTriangle, sub: fraudAlerts.length + ' ' + (lang === 'sw' ? 'tahadhari jumla' : 'total alerts'), color: 'text-rose-600', bg: 'bg-rose-50 dark:bg-rose-950/30', change: '', changeColor: '' },
+    { label: t('requests', lang) || 'Requests', value: stats.requests.open + stats.requests.matched, icon: FileText, sub: `${stats.requests.open} open / ${stats.requests.matched} matched`, color: 'text-teal-600', bg: 'bg-teal-50 dark:bg-teal-950/30', change: '', changeColor: '' },
   ];
 
   // Chart data - requests per zone
@@ -678,9 +679,9 @@ function OverviewView({ lang, stats, zones, disputes, pendingGuides, users, onNa
     }
   });
   const ratingDistribution = [
-    { rating: '5 ★', count: ratingBuckets[4], fill: '#10B981' },
-    { rating: '4 ★', count: ratingBuckets[3], fill: '#0EA5E9' },
-    { rating: '3 ★', count: ratingBuckets[2], fill: '#F59E0B' },
+    { rating: '5 ★', count: ratingBuckets[4], fill: '#0B5D3A' },
+    { rating: '4 ★', count: ratingBuckets[3], fill: '#2EA77A' },
+    { rating: '3 ★', count: ratingBuckets[2], fill: '#FFD700' },
     { rating: '2 ★', count: ratingBuckets[1], fill: '#F97316' },
     { rating: '1 ★', count: ratingBuckets[0], fill: '#EF4444' },
   ];
@@ -715,11 +716,14 @@ function OverviewView({ lang, stats, zones, disputes, pendingGuides, users, onNa
       {/* Metric Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
         {metrics.map((m, i) => (
-          <div key={i} className="glass-card gradient-border p-4">
+          <div key={i} className="kcard p-4">
             <div className="flex items-center justify-between mb-2">
-              <div className={`p-2 rounded-lg glass ${m.bg}`}>
+              <div className={`p-2 rounded-lg ${m.bg}`}>
                 <m.icon className={`h-4 w-4 ${m.color}`} />
               </div>
+              {m.change && (
+                <span className={`text-xs font-bold ${m.changeColor}`}>{m.change}</span>
+              )}
             </div>
             <div className="text-2xl font-bold">{m.value}</div>
             <div className="text-xs text-muted-foreground mt-1">{m.label}</div>
@@ -731,9 +735,9 @@ function OverviewView({ lang, stats, zones, disputes, pendingGuides, users, onNa
       {/* Charts Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Requests per Zone */}
-        <div className="glass-card gradient-border">
+        <div className="kcard">
           <div className="p-4 pb-2">
-            <h3 className="text-sm font-medium gradient-text">{lang === 'sw' ? 'Maombi kwa Eneo' : 'Requests per Zone'}</h3>
+            <h3 className="text-sm font-medium gradient-text-green">{lang === 'sw' ? 'Maombi kwa Eneo' : 'Requests per Zone'}</h3>
           </div>
           <div className="p-4 pt-0">
             <div className="h-48">
@@ -755,9 +759,9 @@ function OverviewView({ lang, stats, zones, disputes, pendingGuides, users, onNa
         </div>
 
         {/* Rating Distribution */}
-        <div className="glass-card gradient-border">
+        <div className="kcard">
           <div className="p-4 pb-2">
-            <h3 className="text-sm font-medium gradient-text">{lang === 'sw' ? 'Usambazaji wa Ukadiriaji' : 'Rating Distribution'}</h3>
+            <h3 className="text-sm font-medium gradient-text-green">{lang === 'sw' ? 'Usambazaji wa Ukadiriaji' : 'Rating Distribution'}</h3>
           </div>
           <div className="p-4 pt-0">
             <div className="h-48 flex items-center">
@@ -787,9 +791,9 @@ function OverviewView({ lang, stats, zones, disputes, pendingGuides, users, onNa
       {/* Activity Feed + Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Recent Activity */}
-        <div className="glass-card gradient-border md:col-span-2">
+        <div className="kcard md:col-span-2">
           <div className="p-4 pb-2">
-            <h3 className="text-sm font-medium gradient-text">{lang === 'sw' ? 'Shughuli za Hivi Karibu' : 'Recent Activity'}</h3>
+            <h3 className="text-sm font-medium gradient-text-green">{lang === 'sw' ? 'Shughuli za Hivi Karibu' : 'Recent Activity'}</h3>
           </div>
           <div className="p-4 pt-0">
             <ScrollArea className="h-48">
@@ -801,7 +805,7 @@ function OverviewView({ lang, stats, zones, disputes, pendingGuides, users, onNa
                       <p className="font-medium">{act.text}</p>
                       <p className="text-xs text-muted-foreground">{act.time}</p>
                     </div>
-                    <span className="glass text-[10px] px-2 py-0.5 rounded-full">{act.type}</span>
+                    <span className="kbadge kbadge-silver">{act.type}</span>
                   </div>
                 ))}
                 {recentActivity.length === 0 && (
@@ -813,68 +817,68 @@ function OverviewView({ lang, stats, zones, disputes, pendingGuides, users, onNa
         </div>
 
         {/* Quick Actions */}
-        <div className="glass-card gradient-border">
+        <div className="kcard">
           <div className="p-4 pb-2">
-            <h3 className="text-sm font-medium gradient-text">{lang === 'sw' ? 'Vitendo vya Haraka' : 'Quick Actions'}</h3>
+            <h3 className="text-sm font-medium gradient-text-green">{lang === 'sw' ? 'Vitendo vya Haraka' : 'Quick Actions'}</h3>
           </div>
           <div className="p-4 pt-0 space-y-3">
             <button
               onClick={() => onNavigate('verification')}
-              className="w-full flex items-center justify-between p-3 rounded-lg glass hover:bg-[var(--glass-hover)] transition-all"
+              className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-[var(--kariako-green-light)] transition-all border border-[var(--border)]"
             >
               <div className="flex items-center gap-2">
-                <ClipboardCheck className="h-4 w-4 text-amber-500" />
+                <ClipboardCheck className="h-4 w-4 text-[var(--kariako-green)]" />
                 <span className="text-sm">{t('verification_queue', lang)}</span>
               </div>
-              <span className={`glass text-xs px-2 py-0.5 rounded-full ${pendingGuides.length > 0 ? 'amber-glow-sm text-amber-600' : ''}`}>
+              <span className={`kbadge ${pendingGuides.length > 0 ? 'kbadge-pending' : 'kbadge-silver'}`}>
                 {pendingGuides.length}
               </span>
             </button>
             <button
               onClick={() => onNavigate('disputes')}
-              className="w-full flex items-center justify-between p-3 rounded-lg glass hover:bg-[var(--glass-hover)] transition-all"
+              className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-[var(--kariako-green-light)] transition-all border border-[var(--border)]"
             >
               <div className="flex items-center gap-2">
                 <AlertTriangle className="h-4 w-4 text-rose-500" />
                 <span className="text-sm">{t('dispute_resolution', lang)}</span>
               </div>
-              <span className={`glass text-xs px-2 py-0.5 rounded-full ${disputes.length > 0 ? 'text-rose-600' : ''}`}>
+              <span className={`kbadge ${disputes.length > 0 ? 'kbadge-urgent' : 'kbadge-silver'}`}>
                 {disputes.length}
               </span>
             </button>
             <button
               onClick={() => onNavigate('zones')}
-              className="w-full flex items-center justify-between p-3 rounded-lg glass hover:bg-[var(--glass-hover)] transition-all"
+              className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-[var(--kariako-green-light)] transition-all border border-[var(--border)]"
             >
               <div className="flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-emerald-500" />
+                <MapPin className="h-4 w-4 text-[var(--kariako-green)]" />
                 <span className="text-sm">{t('zone_management', lang)}</span>
               </div>
-              <span className="glass text-xs px-2 py-0.5 rounded-full">{zones.length}</span>
+              <span className="kbadge kbadge-silver">{zones.length}</span>
             </button>
             <button
               onClick={() => onNavigate('users')}
-              className="w-full flex items-center justify-between p-3 rounded-lg glass hover:bg-[var(--glass-hover)] transition-all"
+              className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-[var(--kariako-green-light)] transition-all border border-[var(--border)]"
             >
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4 text-sky-500" />
                 <span className="text-sm">{t('user_management', lang)}</span>
               </div>
-              <span className="glass text-xs px-2 py-0.5 rounded-full">{stats.users.total}</span>
+              <span className="kbadge kbadge-silver">{stats.users.total}</span>
             </button>
           </div>
         </div>
       </div>
 
       {/* Mini Map Preview */}
-      <div className="glass-card gradient-border">
+      <div className="kcard">
         <div className="p-4 pb-2">
-          <h3 className="text-sm font-medium gradient-text">{lang === 'sw' ? 'Hali ya Soko' : 'Market Status'}</h3>
+          <h3 className="text-sm font-medium gradient-text-green">{lang === 'sw' ? 'Hali ya Soko' : 'Market Status'}</h3>
         </div>
         <div className="p-4 pt-0">
           <div className="grid grid-cols-5 gap-2">
             {zones.map(zone => (
-              <div key={zone.id} className="text-center p-3 rounded-lg glass" style={{ borderColor: zone.color }}>
+              <div key={zone.id} className="text-center p-3 rounded-lg border border-[var(--border)] bg-[var(--card)]" style={{ borderColor: zone.color + '40' }}>
                 <div className="w-8 h-8 rounded-full mx-auto mb-2 flex items-center justify-center" style={{ backgroundColor: zone.color + '20' }}>
                   <MapPin className="h-4 w-4" style={{ color: zone.color }} />
                 </div>
@@ -942,6 +946,14 @@ function VerificationView({ lang, guides, onRefresh }: {
     }
   };
 
+  const getTierBadge = (guide: PendingGuide) => {
+    const hasGold = guide.badges?.some(b => b.badgeType === 'gold' || b.badgeType === 'premium');
+    const hasSilver = guide.badges?.some(b => b.badgeType === 'silver' || b.badgeType === 'verified');
+    if (hasGold) return <span className="kbadge kbadge-gold">Gold</span>;
+    if (hasSilver) return <span className="kbadge kbadge-silver">Silver</span>;
+    return <span className="kbadge kbadge-pending">{lang === 'sw' ? 'Mwanzo' : 'Basic'}</span>;
+  };
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -951,22 +963,22 @@ function VerificationView({ lang, guides, onRefresh }: {
             type="date"
             value={dateFilter}
             onChange={e => setDateFilter(e.target.value)}
-            className="w-40 text-sm glass-input"
+            className="w-40 text-sm kinput"
             placeholder={t('date', lang)}
           />
           {dateFilter && (
-            <button className="glass px-3 py-1.5 rounded-lg text-sm hover:bg-[var(--glass-hover)] transition-colors" onClick={() => setDateFilter('')}>
+            <button className="kbtn-outline px-3 py-1.5 text-sm" onClick={() => setDateFilter('')}>
               {t('clear_filters', lang)}
             </button>
           )}
         </div>
         {filteredGuides.length > 0 && (
           <div className="flex gap-2">
-            <button onClick={approveAll} className="glass flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-emerald-600 hover:bg-[var(--glass-hover)] transition-colors">
+            <button onClick={approveAll} className="kbtn flex items-center gap-1.5 px-3 py-1.5 text-sm">
               <CheckCircle2 className="h-3.5 w-3.5" />
               {lang === 'sw' ? 'Kubali Wote' : 'Approve All'}
             </button>
-            <button onClick={rejectAll} className="glass flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-rose-600 hover:bg-[var(--glass-hover)] transition-colors">
+            <button onClick={rejectAll} className="kbtn-danger flex items-center gap-1.5 px-3 py-1.5 text-sm">
               <XCircle className="h-3.5 w-3.5" />
               {lang === 'sw' ? 'Kataa Wote' : 'Reject All'}
             </button>
@@ -974,11 +986,11 @@ function VerificationView({ lang, guides, onRefresh }: {
         )}
       </div>
 
-      {/* Guide Cards */}
+      {/* Verification Table */}
       {filteredGuides.length === 0 ? (
-        <div className="glass-card gradient-border p-12 text-center">
-          <CheckCircle2 className="h-12 w-12 text-emerald-500 mx-auto mb-3" />
-          <h3 className="font-semibold text-lg gradient-text">
+        <div className="kcard p-12 text-center">
+          <CheckCircle2 className="h-12 w-12 text-[var(--kariako-green)] mx-auto mb-3" />
+          <h3 className="font-semibold text-lg gradient-text-green">
             {lang === 'sw' ? 'Waongozaji wote wamethibitishwa!' : 'All guides verified!'}
           </h3>
           <p className="text-sm text-muted-foreground mt-1">
@@ -986,68 +998,74 @@ function VerificationView({ lang, guides, onRefresh }: {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filteredGuides.map(guide => (
-            <div key={guide.id} className="glass-card gradient-border p-4">
-              <div className="flex items-start gap-3">
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold text-sm ${getAvatarColor(guide.user.id)}`}>
-                  {getInitials(guide.user.name)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-sm">{guide.user.name}</h3>
-                  <p className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Phone className="h-3 w-3" /> {guide.user.phone}
-                  </p>
-                </div>
-                <span className="glass text-amber-600 text-xs px-2 py-0.5 rounded-full amber-glow-sm">
-                  {t('pending', lang)}
-                </span>
-              </div>
-
-              <div className="mt-3">
-                <p className="text-xs text-muted-foreground line-clamp-2">{guide.bio || (lang === 'sw' ? 'Hakuna wasifu' : 'No bio provided')}</p>
-              </div>
-
-              {guide.idDocumentUrl && (
-                <div className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
-                  <FileText className="h-3 w-3" />
-                  {lang === 'sw' ? 'Kitambulisho kimewasilishwa' : 'ID document submitted'}
-                </div>
-              )}
-
-              <div className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
-                <Calendar className="h-3 w-3" />
-                {lang === 'sw' ? 'Alituma' : 'Applied'}: {formatDate(guide.createdAt, lang)}
-              </div>
-
-              <div className="mt-3 flex gap-2">
-                <button
-                  className="flex-1 glass-button flex items-center justify-center gap-1.5 py-2 text-sm"
-                  onClick={() => approveGuide(guide.userId)}
-                  disabled={processing === guide.userId}
-                >
-                  <CheckCircle2 className="h-3.5 w-3.5" />
-                  {t('approve_guide', lang)}
-                </button>
-                <button
-                  className="flex-1 glass flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm text-rose-600 hover:bg-rose-500/10 transition-colors"
-                  onClick={() => { setRejectGuideId(guide.userId); setRejectDialogOpen(true); }}
-                  disabled={processing === guide.userId}
-                >
-                  <XCircle className="h-3.5 w-3.5" />
-                  {t('reject_guide', lang)}
-                </button>
-              </div>
-            </div>
-          ))}
+        <div className="kcard overflow-hidden">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-b border-[var(--border)] bg-[var(--muted)]">
+                  <TableHead>{lang === 'sw' ? 'Maombi' : 'Applicant'}</TableHead>
+                  <TableHead>{lang === 'sw' ? 'Hali ya NIDA' : 'NIDA ID Status'}</TableHead>
+                  <TableHead>{lang === 'sw' ? 'Daraja' : 'Tier'}</TableHead>
+                  <TableHead>{t('actions', lang)}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredGuides.map(guide => (
+                  <TableRow key={guide.id} className="border-b border-[var(--border)]">
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm ${getAvatarColor(guide.user.id)}`}>
+                          {getInitials(guide.user.name)}
+                        </div>
+                        <div>
+                          <p className="font-medium text-sm">{guide.user.name}</p>
+                          <p className="text-xs text-muted-foreground flex items-center gap-1">
+                            <Phone className="h-3 w-3" /> {guide.user.phone}
+                          </p>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {guide.idDocumentUrl ? (
+                        <span className="kbadge kbadge-verified">{lang === 'sw' ? 'Imewasilishwa' : 'Submitted'}</span>
+                      ) : (
+                        <span className="kbadge kbadge-pending">{lang === 'sw' ? 'Haijawasilishwa' : 'Not Submitted'}</span>
+                      )}
+                    </TableCell>
+                    <TableCell>{getTierBadge(guide)}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
+                        <button
+                          className="kbtn flex items-center gap-1.5 py-1.5 px-3 text-xs"
+                          onClick={() => approveGuide(guide.userId)}
+                          disabled={processing === guide.userId}
+                        >
+                          <CheckCircle2 className="h-3.5 w-3.5" />
+                          {t('approve_guide', lang)}
+                        </button>
+                        <button
+                          className="kbtn-danger flex items-center gap-1.5 py-1.5 px-3 text-xs"
+                          onClick={() => { setRejectGuideId(guide.userId); setRejectDialogOpen(true); }}
+                          disabled={processing === guide.userId}
+                        >
+                          <XCircle className="h-3.5 w-3.5" />
+                          {t('reject_guide', lang)}
+                        </button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       )}
 
       {/* Reject Dialog */}
       <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
-        <DialogContent className="glass-card border-[var(--glass-border)]">
+        <DialogContent className="kcard border-[var(--border)]">
           <DialogHeader>
-            <DialogTitle className="gradient-text">{t('reject_guide', lang)}</DialogTitle>
+            <DialogTitle className="gradient-text-green">{t('reject_guide', lang)}</DialogTitle>
             <DialogDescription>
               {lang === 'sw' ? 'Toa sababu ya kukataa mwongozo huu' : 'Provide a reason for rejecting this guide'}
             </DialogDescription>
@@ -1057,13 +1075,12 @@ function VerificationView({ lang, guides, onRefresh }: {
             onChange={e => setRejectReason(e.target.value)}
             placeholder={lang === 'sw' ? 'Sababu ya kukataa...' : 'Rejection reason...'}
             rows={3}
-            className="glass-input"
+            className="kinput"
           />
           <DialogFooter>
-            <button className="glass px-4 py-2 rounded-lg text-sm hover:bg-[var(--glass-hover)] transition-colors" onClick={() => setRejectDialogOpen(false)}>{t('cancel', lang)}</button>
+            <button className="kbtn-outline px-4 py-2 text-sm" onClick={() => setRejectDialogOpen(false)}>{t('cancel', lang)}</button>
             <button
-              className="glass-button px-4 py-2 rounded-lg text-sm bg-rose-600 hover:bg-rose-700"
-              style={{ background: processing ? undefined : 'linear-gradient(135deg, #dc2626, #b91c1c)' }}
+              className="kbtn-danger px-4 py-2 text-sm"
               onClick={() => rejectGuide(rejectGuideId, rejectReason)}
               disabled={!rejectReason.trim()}
             >
@@ -1155,7 +1172,7 @@ function ZonesView({ lang, zones, onRefresh }: {
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <button onClick={openCreate} className="glass-button flex items-center gap-1.5 px-4 py-2 text-sm">
+        <button onClick={openCreate} className="kbtn flex items-center gap-1.5 px-4 py-2 text-sm">
           <Plus className="h-4 w-4" />
           {lang === 'sw' ? 'Eneo Jipya' : 'New Zone'}
         </button>
@@ -1163,17 +1180,17 @@ function ZonesView({ lang, zones, onRefresh }: {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {zones.map(zone => (
-          <div key={zone.id} className="glass-card gradient-border p-4">
+          <div key={zone.id} className="kcard p-4">
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center gap-2">
                 <div className="w-4 h-4 rounded-full" style={{ backgroundColor: zone.color }} />
-                <h3 className="font-semibold gradient-text">{zone.name}</h3>
+                <h3 className="font-semibold gradient-text-green">{zone.name}</h3>
               </div>
               <div className="flex gap-1">
-                <button className="glass w-7 h-7 rounded-lg flex items-center justify-center hover:bg-[var(--glass-hover)] transition-colors" onClick={() => openEdit(zone)}>
+                <button className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-[var(--kariako-green-light)] transition-colors border border-[var(--border)]" onClick={() => openEdit(zone)}>
                   <Edit3 className="h-3.5 w-3.5" />
                 </button>
-                <button className="glass w-7 h-7 rounded-lg flex items-center justify-center text-rose-500 hover:bg-rose-500/10 transition-colors" onClick={() => { setDeleteZoneId(zone.id); setDeleteDialogOpen(true); }}>
+                <button className="w-7 h-7 rounded-lg flex items-center justify-center text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors border border-[var(--border)]" onClick={() => { setDeleteZoneId(zone.id); setDeleteDialogOpen(true); }}>
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
               </div>
@@ -1183,22 +1200,22 @@ function ZonesView({ lang, zones, onRefresh }: {
             {zone.description && <p className="text-xs text-muted-foreground line-clamp-2 mb-3">{zone.description}</p>}
 
             <div className="grid grid-cols-3 gap-2 text-center">
-              <div className="p-2 rounded-lg glass">
+              <div className="p-2 rounded-lg bg-[var(--muted)]">
                 <p className="text-sm font-semibold">{zone._count.vendors}</p>
                 <p className="text-[10px] text-muted-foreground">{lang === 'sw' ? 'Wauzaji' : 'Vendors'}</p>
               </div>
-              <div className="p-2 rounded-lg glass">
+              <div className="p-2 rounded-lg bg-[var(--muted)]">
                 <p className="text-sm font-semibold">{zone._count.priceRadar}</p>
                 <p className="text-[10px] text-muted-foreground">{lang === 'sw' ? 'Bei' : 'Prices'}</p>
               </div>
-              <div className="p-2 rounded-lg glass">
+              <div className="p-2 rounded-lg bg-[var(--muted)]">
                 <p className="text-sm font-semibold">{zone._count.requests}</p>
                 <p className="text-[10px] text-muted-foreground">{t('requests', lang) || 'Req.'}</p>
               </div>
             </div>
 
             {/* Mini zone boundary preview */}
-            <div className="mt-3 h-16 rounded-lg glass flex items-center justify-center relative overflow-hidden">
+            <div className="mt-3 h-16 rounded-lg bg-[var(--muted)] flex items-center justify-center relative overflow-hidden">
               <div className="absolute inset-2 rounded" style={{ backgroundColor: zone.color + '15', border: `2px dashed ${zone.color}40` }} />
               <MapPin className="h-4 w-4 relative z-10" style={{ color: zone.color }} />
             </div>
@@ -1208,34 +1225,34 @@ function ZonesView({ lang, zones, onRefresh }: {
 
       {/* Edit Zone Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="glass-card border-[var(--glass-border)]">
+        <DialogContent className="kcard border-[var(--border)]">
           <DialogHeader>
-            <DialogTitle className="gradient-text">{t('edit', lang)} {lang === 'sw' ? 'Eneo' : 'Zone'}</DialogTitle>
+            <DialogTitle className="gradient-text-green">{t('edit', lang)} {lang === 'sw' ? 'Eneo' : 'Zone'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <div>
               <Label>{lang === 'sw' ? 'Jina' : 'Name'}</Label>
-              <Input value={formName} onChange={e => setFormName(e.target.value)} className="glass-input" />
+              <Input value={formName} onChange={e => setFormName(e.target.value)} className="kinput" />
             </div>
             <div>
               <Label>{lang === 'sw' ? 'Jina (Kiswahili)' : 'Swahili Name'}</Label>
-              <Input value={formNameSw} onChange={e => setFormNameSw(e.target.value)} className="glass-input" />
+              <Input value={formNameSw} onChange={e => setFormNameSw(e.target.value)} className="kinput" />
             </div>
             <div>
               <Label>{t('description', lang)}</Label>
-              <Textarea value={formDesc} onChange={e => setFormDesc(e.target.value)} rows={2} className="glass-input" />
+              <Textarea value={formDesc} onChange={e => setFormDesc(e.target.value)} rows={2} className="kinput" />
             </div>
             <div>
               <Label>{lang === 'sw' ? 'Rangi' : 'Color'}</Label>
               <div className="flex items-center gap-2">
                 <input type="color" value={formColor} onChange={e => setFormColor(e.target.value)} className="h-8 w-8 rounded cursor-pointer" />
-                <Input value={formColor} onChange={e => setFormColor(e.target.value)} className="w-28 glass-input" />
+                <Input value={formColor} onChange={e => setFormColor(e.target.value)} className="w-28 kinput" />
               </div>
             </div>
           </div>
           <DialogFooter>
-            <button className="glass px-4 py-2 rounded-lg text-sm hover:bg-[var(--glass-hover)] transition-colors" onClick={() => setEditDialogOpen(false)}>{t('cancel', lang)}</button>
-            <button className="glass-button px-4 py-2 rounded-lg text-sm" onClick={saveEdit} disabled={saving || !formName.trim()}>
+            <button className="kbtn-outline px-4 py-2 text-sm" onClick={() => setEditDialogOpen(false)}>{t('cancel', lang)}</button>
+            <button className="kbtn px-4 py-2 text-sm" onClick={saveEdit} disabled={saving || !formName.trim()}>
               {saving ? t('loading', lang) : t('save', lang)}
             </button>
           </DialogFooter>
@@ -1244,34 +1261,34 @@ function ZonesView({ lang, zones, onRefresh }: {
 
       {/* Create Zone Dialog */}
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-        <DialogContent className="glass-card border-[var(--glass-border)]">
+        <DialogContent className="kcard border-[var(--border)]">
           <DialogHeader>
-            <DialogTitle className="gradient-text">{lang === 'sw' ? 'Unda Eneo Jipya' : 'Create New Zone'}</DialogTitle>
+            <DialogTitle className="gradient-text-green">{lang === 'sw' ? 'Unda Eneo Jipya' : 'Create New Zone'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <div>
               <Label>{lang === 'sw' ? 'Jina' : 'Name'} *</Label>
-              <Input value={formName} onChange={e => setFormName(e.target.value)} placeholder="e.g. Hardware" className="glass-input" />
+              <Input value={formName} onChange={e => setFormName(e.target.value)} placeholder="e.g. Hardware" className="kinput" />
             </div>
             <div>
               <Label>{lang === 'sw' ? 'Jina (Kiswahili)' : 'Swahili Name'}</Label>
-              <Input value={formNameSw} onChange={e => setFormNameSw(e.target.value)} placeholder="mf. Vifaa" className="glass-input" />
+              <Input value={formNameSw} onChange={e => setFormNameSw(e.target.value)} placeholder="mf. Vifaa" className="kinput" />
             </div>
             <div>
               <Label>{t('description', lang)}</Label>
-              <Textarea value={formDesc} onChange={e => setFormDesc(e.target.value)} rows={2} className="glass-input" />
+              <Textarea value={formDesc} onChange={e => setFormDesc(e.target.value)} rows={2} className="kinput" />
             </div>
             <div>
               <Label>{lang === 'sw' ? 'Rangi' : 'Color'}</Label>
               <div className="flex items-center gap-2">
                 <input type="color" value={formColor} onChange={e => setFormColor(e.target.value)} className="h-8 w-8 rounded cursor-pointer" />
-                <Input value={formColor} onChange={e => setFormColor(e.target.value)} className="w-28 glass-input" />
+                <Input value={formColor} onChange={e => setFormColor(e.target.value)} className="w-28 kinput" />
               </div>
             </div>
           </div>
           <DialogFooter>
-            <button className="glass px-4 py-2 rounded-lg text-sm hover:bg-[var(--glass-hover)] transition-colors" onClick={() => setCreateDialogOpen(false)}>{t('cancel', lang)}</button>
-            <button className="glass-button px-4 py-2 rounded-lg text-sm" onClick={createZone} disabled={saving || !formName.trim()}>
+            <button className="kbtn-outline px-4 py-2 text-sm" onClick={() => setCreateDialogOpen(false)}>{t('cancel', lang)}</button>
+            <button className="kbtn px-4 py-2 text-sm" onClick={createZone} disabled={saving || !formName.trim()}>
               {saving ? t('loading', lang) : lang === 'sw' ? 'Unda' : 'Create'}
             </button>
           </DialogFooter>
@@ -1280,16 +1297,16 @@ function ZonesView({ lang, zones, onRefresh }: {
 
       {/* Delete Confirmation */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className="glass-card border-[var(--glass-border)]">
+        <AlertDialogContent className="kcard border-[var(--border)]">
           <AlertDialogHeader>
-            <AlertDialogTitle className="gradient-text">{lang === 'sw' ? 'Futa Eneo?' : 'Delete Zone?'}</AlertDialogTitle>
+            <AlertDialogTitle className="gradient-text-green">{lang === 'sw' ? 'Futa Eneo?' : 'Delete Zone?'}</AlertDialogTitle>
             <AlertDialogDescription>
               {lang === 'sw' ? 'Kitendo hiki hakiwezi kubadilishwa. Wauzaji na bei zote zitafutwa.' : 'This cannot be undone. All vendors and prices in this zone will be deleted.'}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="glass">{t('cancel', lang)}</AlertDialogCancel>
-            <AlertDialogAction onClick={deleteZone} className="glass-button" style={{ background: 'linear-gradient(135deg, #dc2626, #b91c1c)' }}>
+            <AlertDialogCancel className="kbtn-outline">{t('cancel', lang)}</AlertDialogCancel>
+            <AlertDialogAction onClick={deleteZone} className="kbtn-danger">
               {t('delete', lang)}
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -1393,31 +1410,31 @@ function PriceRadarView({ lang, entries, zones, onRefresh }: {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2 flex-wrap">
           <Select value={filterZone} onValueChange={setFilterZone}>
-            <SelectTrigger className="w-36 text-sm glass-input"><SelectValue placeholder={t('filters', lang)} /></SelectTrigger>
+            <SelectTrigger className="w-36 text-sm kinput"><SelectValue placeholder={t('filters', lang)} /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{lang === 'sw' ? 'Maeneo yote' : 'All Zones'}</SelectItem>
               {zones.map(z => <SelectItem key={z.id} value={z.id}>{z.name}</SelectItem>)}
             </SelectContent>
           </Select>
           <Select value={filterCategory} onValueChange={setFilterCategory}>
-            <SelectTrigger className="w-36 text-sm glass-input"><SelectValue placeholder={t('category', lang)} /></SelectTrigger>
+            <SelectTrigger className="w-36 text-sm kinput"><SelectValue placeholder={t('category', lang)} /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{lang === 'sw' ? 'Aina zote' : 'All Categories'}</SelectItem>
               {categories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
             </SelectContent>
           </Select>
           {(filterZone !== 'all' || filterCategory !== 'all') && (
-            <button className="glass px-3 py-1.5 rounded-lg text-sm hover:bg-[var(--glass-hover)] transition-colors" onClick={() => { setFilterZone('all'); setFilterCategory('all'); }}>
+            <button className="kbtn-outline px-3 py-1.5 text-sm" onClick={() => { setFilterZone('all'); setFilterCategory('all'); }}>
               {t('clear_filters', lang)}
             </button>
           )}
         </div>
         <div className="flex gap-2">
-          <button className="glass flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm hover:bg-[var(--glass-hover)] transition-colors" onClick={() => toast.info(lang === 'sw' ? 'Usafirishaji unakuja' : 'Bulk import coming soon')}>
+          <button className="kbtn-outline flex items-center gap-1.5 px-3 py-1.5 text-sm" onClick={() => toast.info(lang === 'sw' ? 'Usafirishaji unakuja' : 'Bulk import coming soon')}>
             <Upload className="h-3.5 w-3.5" />
             {lang === 'sw' ? 'Liza' : 'Import'}
           </button>
-          <button onClick={openCreate} className="glass-button flex items-center gap-1.5 px-3 py-1.5 text-sm">
+          <button onClick={openCreate} className="kbtn flex items-center gap-1.5 px-3 py-1.5 text-sm">
             <Plus className="h-3.5 w-3.5" />
             {lang === 'sw' ? 'Mpya' : 'New'}
           </button>
@@ -1425,11 +1442,11 @@ function PriceRadarView({ lang, entries, zones, onRefresh }: {
       </div>
 
       {/* Table */}
-      <div className="glass-card gradient-border overflow-hidden">
+      <div className="kcard overflow-hidden">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow className="border-b border-[var(--glass-border)]">
+              <TableRow className="border-b border-[var(--border)] bg-[var(--muted)]">
                 <TableHead>{t('category', lang)}</TableHead>
                 <TableHead>{lang === 'sw' ? 'Eneo' : 'Zone'}</TableHead>
                 <TableHead>{t('min_price', lang)}</TableHead>
@@ -1448,10 +1465,10 @@ function PriceRadarView({ lang, entries, zones, onRefresh }: {
                 </TableRow>
               ) : (
                 filtered.map(entry => (
-                  <TableRow key={entry.id} className="border-b border-[var(--glass-border)]">
+                  <TableRow key={entry.id} className="border-b border-[var(--border)]">
                     <TableCell className="font-medium text-sm">{entry.category}</TableCell>
                     <TableCell>
-                      <span className="glass text-xs px-2 py-0.5 rounded-full" style={{ borderColor: entry.zone.color, color: entry.zone.color }}>
+                      <span className="kbadge kbadge-silver" style={{ borderColor: entry.zone.color, color: entry.zone.color }}>
                         {entry.zone.name}
                       </span>
                     </TableCell>
@@ -1461,10 +1478,10 @@ function PriceRadarView({ lang, entries, zones, onRefresh }: {
                     <TableCell className="text-xs text-muted-foreground">{entry.updatedBy}</TableCell>
                     <TableCell>
                       <div className="flex gap-1">
-                        <button className="glass w-7 h-7 rounded-lg flex items-center justify-center hover:bg-[var(--glass-hover)] transition-colors" onClick={() => openEdit(entry)}>
+                        <button className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-[var(--kariako-green-light)] transition-colors border border-[var(--border)]" onClick={() => openEdit(entry)}>
                           <Edit3 className="h-3.5 w-3.5" />
                         </button>
-                        <button className="glass w-7 h-7 rounded-lg flex items-center justify-center text-rose-500 hover:bg-rose-500/10 transition-colors" onClick={() => { setDeleteEntryId(entry.id); setDeleteDialogOpen(true); }}>
+                        <button className="w-7 h-7 rounded-lg flex items-center justify-center text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors border border-[var(--border)]" onClick={() => { setDeleteEntryId(entry.id); setDeleteDialogOpen(true); }}>
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
                       </div>
@@ -1479,19 +1496,19 @@ function PriceRadarView({ lang, entries, zones, onRefresh }: {
 
       {/* Edit Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="glass-card border-[var(--glass-border)]">
+        <DialogContent className="kcard border-[var(--border)]">
           <DialogHeader>
-            <DialogTitle className="gradient-text">{t('edit', lang)} {t('price_radar_title', lang)}</DialogTitle>
+            <DialogTitle className="gradient-text-green">{t('edit', lang)} {t('price_radar_title', lang)}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <div>
               <Label>{t('category', lang)}</Label>
-              <Input value={formCategory} onChange={e => setFormCategory(e.target.value)} className="glass-input" />
+              <Input value={formCategory} onChange={e => setFormCategory(e.target.value)} className="kinput" />
             </div>
             <div>
               <Label>{lang === 'sw' ? 'Eneo' : 'Zone'}</Label>
               <Select value={formZoneId} onValueChange={setFormZoneId}>
-                <SelectTrigger className="glass-input"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="kinput"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {zones.map(z => <SelectItem key={z.id} value={z.id}>{z.name}</SelectItem>)}
                 </SelectContent>
@@ -1500,36 +1517,36 @@ function PriceRadarView({ lang, entries, zones, onRefresh }: {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label>{t('min_price', lang)} (TZS)</Label>
-                <Input type="number" value={formPriceMin} onChange={e => setFormPriceMin(Number(e.target.value))} className="glass-input" />
+                <Input type="number" value={formPriceMin} onChange={e => setFormPriceMin(Number(e.target.value))} className="kinput" />
               </div>
               <div>
                 <Label>{t('max_price', lang)} (TZS)</Label>
-                <Input type="number" value={formPriceMax} onChange={e => setFormPriceMax(Number(e.target.value))} className="glass-input" />
+                <Input type="number" value={formPriceMax} onChange={e => setFormPriceMax(Number(e.target.value))} className="kinput" />
               </div>
             </div>
           </div>
           <DialogFooter>
-            <button className="glass px-4 py-2 rounded-lg text-sm hover:bg-[var(--glass-hover)] transition-colors" onClick={() => setEditDialogOpen(false)}>{t('cancel', lang)}</button>
-            <button className="glass-button px-4 py-2 rounded-lg text-sm" onClick={saveEdit} disabled={saving}>{saving ? t('loading', lang) : t('save', lang)}</button>
+            <button className="kbtn-outline px-4 py-2 text-sm" onClick={() => setEditDialogOpen(false)}>{t('cancel', lang)}</button>
+            <button className="kbtn px-4 py-2 text-sm" onClick={saveEdit} disabled={saving}>{saving ? t('loading', lang) : t('save', lang)}</button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Create Dialog */}
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-        <DialogContent className="glass-card border-[var(--glass-border)]">
+        <DialogContent className="kcard border-[var(--border)]">
           <DialogHeader>
-            <DialogTitle className="gradient-text">{lang === 'sw' ? 'Unda Bei Mpya' : 'New Price Entry'}</DialogTitle>
+            <DialogTitle className="gradient-text-green">{lang === 'sw' ? 'Unda Bei Mpya' : 'New Price Entry'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <div>
               <Label>{t('category', lang)} *</Label>
-              <Input value={formCategory} onChange={e => setFormCategory(e.target.value)} placeholder="e.g. Rice Cooker" className="glass-input" />
+              <Input value={formCategory} onChange={e => setFormCategory(e.target.value)} placeholder="e.g. Rice Cooker" className="kinput" />
             </div>
             <div>
               <Label>{lang === 'sw' ? 'Eneo' : 'Zone'} *</Label>
               <Select value={formZoneId} onValueChange={setFormZoneId}>
-                <SelectTrigger className="glass-input"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="kinput"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {zones.map(z => <SelectItem key={z.id} value={z.id}>{z.name}</SelectItem>)}
                 </SelectContent>
@@ -1538,17 +1555,17 @@ function PriceRadarView({ lang, entries, zones, onRefresh }: {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label>{t('min_price', lang)} (TZS)</Label>
-                <Input type="number" value={formPriceMin} onChange={e => setFormPriceMin(Number(e.target.value))} className="glass-input" />
+                <Input type="number" value={formPriceMin} onChange={e => setFormPriceMin(Number(e.target.value))} className="kinput" />
               </div>
               <div>
                 <Label>{t('max_price', lang)} (TZS)</Label>
-                <Input type="number" value={formPriceMax} onChange={e => setFormPriceMax(Number(e.target.value))} className="glass-input" />
+                <Input type="number" value={formPriceMax} onChange={e => setFormPriceMax(Number(e.target.value))} className="kinput" />
               </div>
             </div>
           </div>
           <DialogFooter>
-            <button className="glass px-4 py-2 rounded-lg text-sm hover:bg-[var(--glass-hover)] transition-colors" onClick={() => setCreateDialogOpen(false)}>{t('cancel', lang)}</button>
-            <button className="glass-button px-4 py-2 rounded-lg text-sm" onClick={createEntry} disabled={saving || !formCategory.trim()}>
+            <button className="kbtn-outline px-4 py-2 text-sm" onClick={() => setCreateDialogOpen(false)}>{t('cancel', lang)}</button>
+            <button className="kbtn px-4 py-2 text-sm" onClick={createEntry} disabled={saving || !formCategory.trim()}>
               {saving ? t('loading', lang) : lang === 'sw' ? 'Unda' : 'Create'}
             </button>
           </DialogFooter>
@@ -1557,16 +1574,16 @@ function PriceRadarView({ lang, entries, zones, onRefresh }: {
 
       {/* Delete Confirmation */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className="glass-card border-[var(--glass-border)]">
+        <AlertDialogContent className="kcard border-[var(--border)]">
           <AlertDialogHeader>
-            <AlertDialogTitle className="gradient-text">{lang === 'sw' ? 'Futa Bei?' : 'Delete Price Entry?'}</AlertDialogTitle>
+            <AlertDialogTitle className="gradient-text-green">{lang === 'sw' ? 'Futa Bei?' : 'Delete Price Entry?'}</AlertDialogTitle>
             <AlertDialogDescription>
               {lang === 'sw' ? 'Kitendo hiki hakiwezi kubadilishwa.' : 'This action cannot be undone.'}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="glass">{t('cancel', lang)}</AlertDialogCancel>
-            <AlertDialogAction onClick={deleteEntry} className="glass-button" style={{ background: 'linear-gradient(135deg, #dc2626, #b91c1c)' }}>
+            <AlertDialogCancel className="kbtn-outline">{t('cancel', lang)}</AlertDialogCancel>
+            <AlertDialogAction onClick={deleteEntry} className="kbtn-danger">
               {t('delete', lang)}
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -1637,9 +1654,9 @@ function AnalyticsView({ lang, stats, zones, users, sessions }: {
     }
   });
   const ratingDist = [
-    { name: '5 ★', value: ratingBucketsAnalytics[4], fill: '#10B981' },
-    { name: '4 ★', value: ratingBucketsAnalytics[3], fill: '#0EA5E9' },
-    { name: '3 ★', value: ratingBucketsAnalytics[2], fill: '#F59E0B' },
+    { name: '5 ★', value: ratingBucketsAnalytics[4], fill: '#0B5D3A' },
+    { name: '4 ★', value: ratingBucketsAnalytics[3], fill: '#2EA77A' },
+    { name: '3 ★', value: ratingBucketsAnalytics[2], fill: '#FFD700' },
     { name: '2 ★', value: ratingBucketsAnalytics[1], fill: '#F97316' },
     { name: '1 ★', value: ratingBucketsAnalytics[0], fill: '#EF4444' },
   ];
@@ -1685,13 +1702,13 @@ function AnalyticsView({ lang, stats, zones, users, sessions }: {
       {/* Date Range Picker + Export */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <Tabs value={dateRange} onValueChange={v => setDateRange(v as typeof dateRange)}>
-          <TabsList className="glass">
+          <TabsList>
             <TabsTrigger value="week">{t('this_week', lang)}</TabsTrigger>
             <TabsTrigger value="month">{t('this_month', lang)}</TabsTrigger>
             <TabsTrigger value="year">{lang === 'sw' ? 'Mwaka' : 'Year'}</TabsTrigger>
           </TabsList>
         </Tabs>
-        <button className="glass flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm hover:bg-[var(--glass-hover)] transition-colors" onClick={handleExport}>
+        <button className="kbtn-outline flex items-center gap-1.5 px-3 py-1.5 text-sm" onClick={handleExport}>
           <Download className="h-3.5 w-3.5" />
           {t('download', lang)}
         </button>
@@ -1700,9 +1717,9 @@ function AnalyticsView({ lang, stats, zones, users, sessions }: {
       {/* Charts Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Requests per Zone */}
-        <div className="glass-card gradient-border">
+        <div className="kcard">
           <div className="p-4 pb-2">
-            <h3 className="text-sm font-medium gradient-text">{lang === 'sw' ? 'Maombi kwa Eneo' : 'Requests per Zone'}</h3>
+            <h3 className="text-sm font-medium gradient-text-green">{lang === 'sw' ? 'Maombi kwa Eneo' : 'Requests per Zone'}</h3>
           </div>
           <div className="p-4 pt-0">
             <div className="h-56">
@@ -1724,9 +1741,9 @@ function AnalyticsView({ lang, stats, zones, users, sessions }: {
         </div>
 
         {/* Sessions Over Time */}
-        <div className="glass-card gradient-border">
+        <div className="kcard">
           <div className="p-4 pb-2">
-            <h3 className="text-sm font-medium gradient-text">{lang === 'sw' ? 'Vikao kwa Muda' : 'Sessions Over Time'}</h3>
+            <h3 className="text-sm font-medium gradient-text-green">{lang === 'sw' ? 'Vikao kwa Muda' : 'Sessions Over Time'}</h3>
           </div>
           <div className="p-4 pt-0">
             <div className="h-56">
@@ -1736,7 +1753,7 @@ function AnalyticsView({ lang, stats, zones, users, sessions }: {
                   <XAxis dataKey="name" tick={{ fontSize: 10 }} interval={dateRange === 'week' ? 0 : 'preserveStartEnd'} />
                   <YAxis tick={{ fontSize: 11 }} />
                   <RechartsTooltip />
-                  <Line type="monotone" dataKey="sessions" stroke="#0EA5E9" strokeWidth={2} dot={dateRange === 'week' ? true : false} />
+                  <Line type="monotone" dataKey="sessions" stroke="#0B5D3A" strokeWidth={2} dot={dateRange === 'week' ? true : false} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -1744,9 +1761,9 @@ function AnalyticsView({ lang, stats, zones, users, sessions }: {
         </div>
 
         {/* Revenue Over Time */}
-        <div className="glass-card gradient-border">
+        <div className="kcard">
           <div className="p-4 pb-2">
-            <h3 className="text-sm font-medium gradient-text">{lang === 'sw' ? 'Mapato kwa Muda' : 'Revenue Over Time'}</h3>
+            <h3 className="text-sm font-medium gradient-text-green">{lang === 'sw' ? 'Mapato kwa Muda' : 'Revenue Over Time'}</h3>
           </div>
           <div className="p-4 pt-0">
             <div className="h-56">
@@ -1756,7 +1773,7 @@ function AnalyticsView({ lang, stats, zones, users, sessions }: {
                   <XAxis dataKey="name" tick={{ fontSize: 10 }} interval={dateRange === 'week' ? 0 : 'preserveStartEnd'} />
                   <YAxis tick={{ fontSize: 11 }} tickFormatter={v => `${(v / 1000).toFixed(0)}k`} />
                   <RechartsTooltip formatter={(v: number) => formatTZS(v)} />
-                  <Line type="monotone" dataKey="revenue" stroke="#10B981" strokeWidth={2} dot={dateRange === 'week' ? true : false} />
+                  <Line type="monotone" dataKey="revenue" stroke="#FFD700" strokeWidth={2} dot={dateRange === 'week' ? true : false} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -1764,9 +1781,9 @@ function AnalyticsView({ lang, stats, zones, users, sessions }: {
         </div>
 
         {/* Rating Distribution */}
-        <div className="glass-card gradient-border">
+        <div className="kcard">
           <div className="p-4 pb-2">
-            <h3 className="text-sm font-medium gradient-text">{lang === 'sw' ? 'Usambazaji wa Ukadiriaji' : 'Rating Distribution'}</h3>
+            <h3 className="text-sm font-medium gradient-text-green">{lang === 'sw' ? 'Usambazaji wa Ukadiriaji' : 'Rating Distribution'}</h3>
           </div>
           <div className="p-4 pt-0">
             <div className="h-56 flex items-center justify-center">
@@ -1794,9 +1811,9 @@ function AnalyticsView({ lang, stats, zones, users, sessions }: {
       </div>
 
       {/* Guide Activity Heatmap */}
-      <div className="glass-card gradient-border">
+      <div className="kcard">
         <div className="p-4 pb-2">
-          <h3 className="text-sm font-medium gradient-text">{lang === 'sw' ? 'Shughuli za Waongozaji' : 'Guide Activity Heatmap'}</h3>
+          <h3 className="text-sm font-medium gradient-text-green">{lang === 'sw' ? 'Shughuli za Waongozaji' : 'Guide Activity Heatmap'}</h3>
         </div>
         <div className="p-4 pt-0">
           <div className="overflow-x-auto">
@@ -1817,7 +1834,7 @@ function AnalyticsView({ lang, stats, zones, users, sessions }: {
                       <div
                         key={`${si}-${di}`}
                         className="h-8 rounded text-xs flex items-center justify-center font-medium"
-                        style={{ backgroundColor: `rgba(16, 185, 129, ${0.1 + intensity * 0.8})`, color: intensity > 0.5 ? 'white' : 'inherit' }}
+                        style={{ backgroundColor: `rgba(11, 93, 58, ${0.1 + intensity * 0.8})`, color: intensity > 0.5 ? 'white' : 'inherit' }}
                         title={`${val} guides active`}
                       >
                         {val}
@@ -1832,7 +1849,7 @@ function AnalyticsView({ lang, stats, zones, users, sessions }: {
             <span>{lang === 'sw' ? 'Chini' : 'Low'}</span>
             <div className="flex gap-0.5">
               {[0.1, 0.3, 0.5, 0.7, 0.9].map((op, i) => (
-                <div key={i} className="w-4 h-3 rounded-sm" style={{ backgroundColor: `rgba(16, 185, 129, ${op})` }} />
+                <div key={i} className="w-4 h-3 rounded-sm" style={{ backgroundColor: `rgba(11, 93, 58, ${op})` }} />
               ))}
             </div>
             <span>{lang === 'sw' ? 'Juu' : 'High'}</span>
@@ -1910,7 +1927,7 @@ function UsersView({ lang, users, onRefresh }: {
       admin: 'text-violet-700 dark:text-violet-300',
     };
     return (
-      <span className={`glass text-xs px-2 py-0.5 rounded-full ${colors[role] || ''}`}>
+      <span className={`kbadge kbadge-silver ${colors[role] || ''}`}>
         {role}
       </span>
     );
@@ -1919,11 +1936,11 @@ function UsersView({ lang, users, onRefresh }: {
   const statusBadge = (user: UserItem) => {
     if (user.role === 'guide' && user.guideProfile) {
       const s = user.guideProfile.status;
-      if (s === 'pending') return <span className="glass text-amber-600 text-[10px] px-2 py-0.5 rounded-full amber-glow-sm">{t('pending', lang)}</span>;
-      if (s === 'suspended') return <span className="glass text-rose-600 text-[10px] px-2 py-0.5 rounded-full">{t('trust_suspended', lang)}</span>;
-      if (s === 'active') return <span className="glass text-emerald-600 text-[10px] px-2 py-0.5 rounded-full">{t('trust_verified', lang)}</span>;
+      if (s === 'pending') return <span className="kbadge kbadge-pending">{t('pending', lang)}</span>;
+      if (s === 'suspended') return <span className="kbadge kbadge-urgent">{t('trust_suspended', lang)}</span>;
+      if (s === 'active') return <span className="kbadge kbadge-verified">{t('trust_verified', lang)}</span>;
     }
-    return <span className="glass text-[10px] px-2 py-0.5 rounded-full">{t('active', lang)}</span>;
+    return <span className="kbadge kbadge-silver">{t('active', lang)}</span>;
   };
 
   return (
@@ -1937,11 +1954,11 @@ function UsersView({ lang, users, onRefresh }: {
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder={lang === 'sw' ? 'Tafuta kwa jina au simu...' : 'Search by name or phone...'}
-              className="pl-8 text-sm glass-input"
+              className="pl-8 text-sm kinput"
             />
           </div>
           <Select value={filterRole} onValueChange={setFilterRole}>
-            <SelectTrigger className="w-32 text-sm glass-input"><SelectValue placeholder={t('role', lang)} /></SelectTrigger>
+            <SelectTrigger className="w-32 text-sm kinput"><SelectValue placeholder={t('role', lang)} /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{lang === 'sw' ? 'Wote' : 'All Roles'}</SelectItem>
               <SelectItem value="seeker">Seeker</SelectItem>
@@ -1954,11 +1971,11 @@ function UsersView({ lang, users, onRefresh }: {
       </div>
 
       {/* Table */}
-      <div className="glass-card gradient-border overflow-hidden">
+      <div className="kcard overflow-hidden">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow className="border-b border-[var(--glass-border)]">
+              <TableRow className="border-b border-[var(--border)] bg-[var(--muted)]">
                 <TableHead className="cursor-pointer" onClick={() => toggleSort('name')}>
                   {t('name', lang)} <SortIcon field="name" />
                 </TableHead>
@@ -1985,7 +2002,7 @@ function UsersView({ lang, users, onRefresh }: {
                 filteredUsers.map(user => (
                   <TableRow
                     key={user.id}
-                    className="cursor-pointer hover:bg-[var(--glass-hover)] border-b border-[var(--glass-border)]"
+                    className="cursor-pointer hover:bg-[var(--kariako-green-light)] border-b border-[var(--border)]"
                     onClick={() => { setSelectedUser(user); setDetailOpen(true); }}
                   >
                     <TableCell>
@@ -2005,10 +2022,10 @@ function UsersView({ lang, users, onRefresh }: {
                     <TableCell className="text-xs text-muted-foreground">{formatDate(user.createdAt, lang)}</TableCell>
                     <TableCell>
                       <div className="flex gap-0.5" onClick={e => e.stopPropagation()}>
-                        <button className="glass w-7 h-7 rounded-lg flex items-center justify-center hover:bg-[var(--glass-hover)] transition-colors" onClick={() => handleAction(user.id, 'suspend')} disabled={actionLoading === user.id} title="Suspend">
+                        <button className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-[var(--kariako-green-light)] transition-colors border border-[var(--border)]" onClick={() => handleAction(user.id, 'suspend')} disabled={actionLoading === user.id} title="Suspend">
                           <Ban className="h-3.5 w-3.5 text-amber-500" />
                         </button>
-                        <button className="glass w-7 h-7 rounded-lg flex items-center justify-center hover:bg-[var(--glass-hover)] transition-colors" onClick={() => handleAction(user.id, 'message')} disabled={actionLoading === user.id} title="Message">
+                        <button className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-[var(--kariako-green-light)] transition-colors border border-[var(--border)]" onClick={() => handleAction(user.id, 'message')} disabled={actionLoading === user.id} title="Message">
                           <Mail className="h-3.5 w-3.5 text-sky-500" />
                         </button>
                       </div>
@@ -2023,7 +2040,7 @@ function UsersView({ lang, users, onRefresh }: {
 
       {/* User Detail Dialog */}
       <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
-        <DialogContent className="glass-card border-[var(--glass-border)] max-w-md">
+        <DialogContent className="kcard border-[var(--border)] max-w-md">
           {selectedUser && (
             <>
               <DialogHeader>
@@ -2031,7 +2048,7 @@ function UsersView({ lang, users, onRefresh }: {
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold ${getAvatarColor(selectedUser.id)}`}>
                     {getInitials(selectedUser.name)}
                   </div>
-                  <span className="gradient-text">{selectedUser.name}</span>
+                  <span className="gradient-text-green">{selectedUser.name}</span>
                 </DialogTitle>
                 <DialogDescription>{roleBadge(selectedUser.role)} {statusBadge(selectedUser)}</DialogDescription>
               </DialogHeader>
@@ -2068,10 +2085,10 @@ function UsersView({ lang, users, onRefresh }: {
                 </div>
               </div>
               <DialogFooter className="flex gap-2">
-                <button className="glass flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm hover:bg-[var(--glass-hover)] transition-colors" onClick={() => handleAction(selectedUser.id, 'message')}>
+                <button className="kbtn-outline flex items-center gap-1.5 px-3 py-1.5 text-sm" onClick={() => handleAction(selectedUser.id, 'message')}>
                   <Send className="h-3.5 w-3.5" /> {lang === 'sw' ? 'Ujumbe' : 'Message'}
                 </button>
-                <button className="glass flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-amber-600 hover:bg-amber-500/10 transition-colors" onClick={() => handleAction(selectedUser.id, 'suspend')}>
+                <button className="kbtn-danger flex items-center gap-1.5 px-3 py-1.5 text-sm" onClick={() => handleAction(selectedUser.id, 'suspend')}>
                   <Ban className="h-3.5 w-3.5" /> {lang === 'sw' ? 'Simamisha' : 'Suspend'}
                 </button>
               </DialogFooter>
@@ -2124,10 +2141,16 @@ function DisputesView({ lang, disputes, onRefresh }: {
 
   return (
     <div className="space-y-4">
+      {/* Section Header */}
+      <div className="flex items-center gap-2">
+        <AlertTriangle className="h-5 w-5 text-rose-500" />
+        <h2 className="font-semibold text-base">{lang === 'sw' ? 'Vikao Vilivyotajwa (Migogoro)' : 'Flagged Sessions (Disputes)'}</h2>
+      </div>
+
       {disputes.length === 0 ? (
-        <div className="glass-card gradient-border p-12 text-center">
-          <CheckCircle2 className="h-12 w-12 text-emerald-500 mx-auto mb-3" />
-          <h3 className="font-semibold text-lg gradient-text">
+        <div className="kcard p-12 text-center">
+          <CheckCircle2 className="h-12 w-12 text-[var(--kariako-green)] mx-auto mb-3" />
+          <h3 className="font-semibold text-lg gradient-text-green">
             {lang === 'sw' ? 'Hakuna migogoro!' : 'No disputes!'}
           </h3>
           <p className="text-sm text-muted-foreground mt-1">
@@ -2137,17 +2160,17 @@ function DisputesView({ lang, disputes, onRefresh }: {
       ) : (
         <div className="space-y-3">
           {disputes.map(dispute => (
-            <div key={dispute.id} className="glass-card gradient-border p-4">
+            <div key={dispute.id} className="kcard p-4">
               {/* Header */}
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="font-mono text-xs text-muted-foreground">#{dispute.sessionCode || dispute.id.slice(-6)}</span>
-                    <span className={`glass text-[10px] px-2 py-0.5 rounded-full ${statusColor(dispute)}`}>
+                    <span className={`kbadge ${dispute.escrowStatus === 'disputed' ? 'kbadge-urgent' : dispute.escrowStatus === 'released' ? 'kbadge-verified' : 'kbadge-pending'}`}>
                       {statusLabel(dispute)}
                     </span>
                     {dispute.emergencyFlag && (
-                      <span className="glass text-[10px] px-2 py-0.5 rounded-full text-rose-600 flex items-center gap-1 amber-glow-sm">
+                      <span className="kbadge kbadge-urgent flex items-center gap-1">
                         <AlertTriangle className="h-2.5 w-2.5" />
                         {t('trust_emergency', lang)}
                       </span>
@@ -2169,7 +2192,7 @@ function DisputesView({ lang, disputes, onRefresh }: {
               </div>
 
               {/* Dispute Reason */}
-              <div className="mb-3 p-2 rounded-lg glass text-rose-700 dark:text-rose-400">
+              <div className="mb-3 p-2 rounded-lg bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/30 text-rose-700 dark:text-rose-400">
                 <p className="text-xs font-medium">{lang === 'sw' ? 'Sababu ya mgogoro:' : 'Dispute reason:'}</p>
                 <p className="text-xs text-rose-600 dark:text-rose-300 mt-0.5">
                   {dispute.disputeReason || (lang === 'sw' ? 'Hakuna sababu iliyotolewa' : 'No reason provided')}
@@ -2184,7 +2207,7 @@ function DisputesView({ lang, disputes, onRefresh }: {
               {/* Expand/Collapse */}
               <button
                 onClick={() => setExpandedId(expandedId === dispute.id ? null : dispute.id)}
-                className="text-xs gradient-text font-medium hover:underline flex items-center gap-1"
+                className="text-xs gradient-text-green font-medium hover:underline flex items-center gap-1"
               >
                 {expandedId === dispute.id ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
                 {expandedId === dispute.id
@@ -2202,7 +2225,7 @@ function DisputesView({ lang, disputes, onRefresh }: {
                       <p className="text-xs font-medium mb-1.5">{lang === 'sw' ? 'Ujumbe wa hivi karibu' : 'Recent Messages'}</p>
                       <div className="max-h-32 overflow-y-auto space-y-1.5">
                         {dispute.messages.slice(0, 5).map(msg => (
-                          <div key={msg.id} className="text-xs p-2 rounded-lg glass">
+                          <div key={msg.id} className="text-xs p-2 rounded-lg bg-[var(--muted)]">
                             <span className="font-medium">{msg.sender.name}:</span> {msg.content}
                             <span className="text-[10px] text-muted-foreground ml-2">{formatDateTime(msg.createdAt, lang)}</span>
                           </div>
@@ -2219,21 +2242,21 @@ function DisputesView({ lang, disputes, onRefresh }: {
                       onChange={e => setAdminNotes(prev => ({ ...prev, [dispute.id]: e.target.value }))}
                       placeholder={lang === 'sw' ? 'Andika maoni yako...' : 'Write your notes...'}
                       rows={2}
-                      className="text-xs glass-input"
+                      className="text-xs kinput"
                     />
                   </div>
 
                   {/* Session Details */}
                   <div className="grid grid-cols-3 gap-2 text-xs">
-                    <div className="p-2 rounded-lg glass">
+                    <div className="p-2 rounded-lg bg-[var(--muted)]">
                       <p className="text-muted-foreground">{t('amount', lang)}</p>
                       <p className="font-medium">{formatTZS(dispute.amount)}</p>
                     </div>
-                    <div className="p-2 rounded-lg glass">
+                    <div className="p-2 rounded-lg bg-[var(--muted)]">
                       <p className="text-muted-foreground">{lang === 'sw' ? 'Ada ya Jukwaa' : 'Platform Fee'}</p>
                       <p className="font-medium">{formatTZS(dispute.amount * 0.12)}</p>
                     </div>
-                    <div className="p-2 rounded-lg glass">
+                    <div className="p-2 rounded-lg bg-[var(--muted)]">
                       <p className="text-muted-foreground">{t('escrow_held', lang)}</p>
                       <p className="font-medium">{dispute.escrowStatus}</p>
                     </div>
@@ -2242,9 +2265,9 @@ function DisputesView({ lang, disputes, onRefresh }: {
               )}
 
               {/* Action Buttons */}
-              <div className="mt-3 flex gap-2 pt-3 border-t border-[var(--glass-border)]">
+              <div className="mt-3 flex gap-2 pt-3 border-t border-[var(--border)]">
                 <button
-                  className="glass-button flex items-center gap-1.5 py-2 px-3 text-sm flex-1"
+                  className="kbtn flex items-center gap-1.5 py-2 px-3 text-sm flex-1"
                   onClick={() => {
                     setConfirmAction({ sessionId: dispute.id, action: 'release' });
                     setConfirmDialogOpen(true);
@@ -2252,10 +2275,10 @@ function DisputesView({ lang, disputes, onRefresh }: {
                   disabled={processing === dispute.id}
                 >
                   <DollarSign className="h-3.5 w-3.5" />
-                  {lang === 'sw' ? 'Tolea Mwongozo' : 'Release to Guide'}
+                  {lang === 'sw' ? 'Tolea Mwongozo' : 'Force Release'}
                 </button>
                 <button
-                  className="glass flex items-center gap-1.5 py-2 px-3 rounded-lg text-sm flex-1 text-sky-600 hover:bg-sky-500/10 transition-colors"
+                  className="kbtn-danger flex items-center gap-1.5 py-2 px-3 text-sm flex-1"
                   onClick={() => {
                     setConfirmAction({ sessionId: dispute.id, action: 'refund' });
                     setConfirmDialogOpen(true);
@@ -2263,10 +2286,10 @@ function DisputesView({ lang, disputes, onRefresh }: {
                   disabled={processing === dispute.id}
                 >
                   <RotateCcw className="h-3.5 w-3.5" />
-                  {lang === 'sw' ? 'Rudisha Mtafuta' : 'Refund Seeker'}
+                  {lang === 'sw' ? 'Rudisha Mtafuta' : 'Force Refund'}
                 </button>
                 <button
-                  className="glass flex items-center gap-1.5 py-2 px-3 rounded-lg text-sm hover:bg-[var(--glass-hover)] transition-colors"
+                  className="kbtn-outline flex items-center gap-1.5 py-2 px-3 text-sm"
                   onClick={() => toast.info(lang === 'sw' ? 'Maombi ya maelezo zaidi yametumwa' : 'More info requested')}
                 >
                   <Info className="h-3.5 w-3.5" />
@@ -2280,9 +2303,9 @@ function DisputesView({ lang, disputes, onRefresh }: {
 
       {/* Confirm Action Dialog */}
       <AlertDialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
-        <AlertDialogContent className="glass-card border-[var(--glass-border)]">
+        <AlertDialogContent className="kcard border-[var(--border)]">
           <AlertDialogHeader>
-            <AlertDialogTitle className="gradient-text">
+            <AlertDialogTitle className="gradient-text-green">
               {confirmAction?.action === 'release'
                 ? (lang === 'sw' ? 'Tolea Mwongozo Escrow?' : 'Release Escrow to Guide?')
                 : (lang === 'sw' ? 'Rudisha Pesa kwa Mtafuta?' : 'Refund to Seeker?')
@@ -2296,11 +2319,10 @@ function DisputesView({ lang, disputes, onRefresh }: {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="glass">{t('cancel', lang)}</AlertDialogCancel>
+            <AlertDialogCancel className="kbtn-outline">{t('cancel', lang)}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => confirmAction && resolveDispute(confirmAction.sessionId, confirmAction.action)}
-              className="glass-button"
-              style={{ background: confirmAction?.action === 'release' ? 'linear-gradient(135deg, #059669, #047857)' : 'linear-gradient(135deg, #0284c7, #0369a1)' }}
+              className={confirmAction?.action === 'release' ? 'kbtn' : 'kbtn-danger'}
             >
               {confirmAction?.action === 'release'
                 ? (lang === 'sw' ? 'Tolea Mwongozo' : 'Release to Guide')
@@ -2345,11 +2367,17 @@ function FraudView({ lang, alerts, onRefresh }: {
     return 'text-sky-600';
   };
 
+  const confidenceBadge = (c: number) => {
+    if (c >= 0.8) return 'kbadge-urgent';
+    if (c >= 0.5) return 'kbadge-pending';
+    return 'kbadge-silver';
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
         <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger className="w-36 text-sm glass-input"><SelectValue placeholder={t('status', lang)} /></SelectTrigger>
+          <SelectTrigger className="w-36 text-sm kinput"><SelectValue placeholder={t('status', lang)} /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">{lang === 'sw' ? 'Zote' : 'All Status'}</SelectItem>
             <SelectItem value="pending">{t('pending', lang)}</SelectItem>
@@ -2360,29 +2388,29 @@ function FraudView({ lang, alerts, onRefresh }: {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="glass-card gradient-border p-12 text-center">
-          <ShieldCheck className="h-12 w-12 text-emerald-500 mx-auto mb-3" />
-          <h3 className="font-semibold text-lg gradient-text">{lang === 'sw' ? 'Hakuna tahadhari!' : 'No fraud alerts!'}</h3>
+        <div className="kcard p-12 text-center">
+          <ShieldCheck className="h-12 w-12 text-[var(--kariako-green)] mx-auto mb-3" />
+          <h3 className="font-semibold text-lg gradient-text-green">{lang === 'sw' ? 'Hakuna tahadhari!' : 'No fraud alerts!'}</h3>
           <p className="text-sm text-muted-foreground mt-1">{lang === 'sw' ? 'Jukwaa ni salama' : 'Platform is secure'}</p>
         </div>
       ) : (
         <div className="space-y-3">
           {filtered.map(alert => (
-            <div key={alert.id} className="glass-card gradient-border p-4">
+            <div key={alert.id} className="kcard p-4">
               <div className="flex items-start justify-between mb-2">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <ShieldAlert className={`h-4 w-4 ${confidenceColor(alert.confidence)}`} />
                     <span className="font-semibold text-sm">{alert.alertType}</span>
-                    <span className={`glass text-[10px] px-2 py-0.5 rounded-full ${confidenceColor(alert.confidence)}`}>
+                    <span className={`kbadge ${confidenceBadge(alert.confidence)}`}>
                       {Math.round(alert.confidence * 100)}%
                     </span>
                   </div>
                   <p className="text-xs text-muted-foreground">{alert.details}</p>
                 </div>
-                <span className={`glass text-[10px] px-2 py-0.5 rounded-full ${
-                  alert.status === 'pending' ? 'text-amber-600 amber-glow-sm' :
-                  alert.status === 'escalated' ? 'text-rose-600' : 'text-muted-foreground'
+                <span className={`kbadge ${
+                  alert.status === 'pending' ? 'kbadge-pending' :
+                  alert.status === 'escalated' ? 'kbadge-urgent' : 'kbadge-silver'
                 }`}>
                   {alert.status}
                 </span>
@@ -2394,7 +2422,7 @@ function FraudView({ lang, alerts, onRefresh }: {
               {alert.status === 'pending' && (
                 <div className="flex gap-2">
                   <button
-                    className="glass-button flex items-center gap-1.5 py-1.5 px-3 text-xs"
+                    className="kbtn flex items-center gap-1.5 py-1.5 px-3 text-xs"
                     onClick={() => reviewAlert(alert.id, 'escalate')}
                     disabled={processing === alert.id}
                   >
@@ -2402,7 +2430,7 @@ function FraudView({ lang, alerts, onRefresh }: {
                     {lang === 'sw' ? 'Pandisha' : 'Escalate'}
                   </button>
                   <button
-                    className="glass flex items-center gap-1.5 py-1.5 px-3 rounded-lg text-xs hover:bg-[var(--glass-hover)] transition-colors"
+                    className="kbtn-outline flex items-center gap-1.5 py-1.5 px-3 text-xs"
                     onClick={() => reviewAlert(alert.id, 'dismiss')}
                     disabled={processing === alert.id}
                   >
@@ -2442,10 +2470,10 @@ function VendorsView({ lang, vendors, zones, onRefresh }: {
         <div className="flex items-center gap-2 flex-1">
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input value={search} onChange={e => setSearch(e.target.value)} placeholder={lang === 'sw' ? 'Tafuta muuzaji...' : 'Search vendors...'} className="pl-8 text-sm glass-input" />
+            <Input value={search} onChange={e => setSearch(e.target.value)} placeholder={lang === 'sw' ? 'Tafuta muuzaji...' : 'Search vendors...'} className="pl-8 text-sm kinput" />
           </div>
           <Select value={filterZone} onValueChange={setFilterZone}>
-            <SelectTrigger className="w-36 text-sm glass-input"><SelectValue placeholder={lang === 'sw' ? 'Eneo' : 'Zone'} /></SelectTrigger>
+            <SelectTrigger className="w-36 text-sm kinput"><SelectValue placeholder={lang === 'sw' ? 'Eneo' : 'Zone'} /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{lang === 'sw' ? 'Maeneo yote' : 'All Zones'}</SelectItem>
               {zones.map(z => <SelectItem key={z.id} value={z.id}>{z.name}</SelectItem>)}
@@ -2455,22 +2483,20 @@ function VendorsView({ lang, vendors, zones, onRefresh }: {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="glass-card gradient-border p-12 text-center">
-          <Store className="h-12 w-12 text-amber-500 mx-auto mb-3" />
-          <h3 className="font-semibold text-lg gradient-text">{lang === 'sw' ? 'Hakuna wauzaji' : 'No vendors found'}</h3>
+        <div className="kcard p-12 text-center">
+          <Store className="h-12 w-12 text-[var(--kariako-yellow)] mx-auto mb-3" />
+          <h3 className="font-semibold text-lg gradient-text-green">{lang === 'sw' ? 'Hakuna wauzaji' : 'No vendors found'}</h3>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map(vendor => (
-            <div key={vendor.id} className="glass-card gradient-border p-4">
+            <div key={vendor.id} className="kcard p-4">
               <div className="flex items-start justify-between mb-2">
                 <div>
-                  <h3 className="font-semibold text-sm gradient-text">{vendor.name}</h3>
+                  <h3 className="font-semibold text-sm gradient-text-green">{vendor.name}</h3>
                   <p className="text-xs text-muted-foreground">{vendor.stallNumber} &bull; {vendor.contact}</p>
                 </div>
-                <span className={`glass text-[10px] px-2 py-0.5 rounded-full ${
-                  vendor.verification?.isVerified ? 'text-emerald-600' : 'text-amber-600 amber-glow-sm'
-                }`}>
+                <span className={`kbadge ${vendor.verification?.isVerified ? 'kbadge-verified' : 'kbadge-pending'}`}>
                   {vendor.verification?.isVerified ? (lang === 'sw' ? 'Thibitishwa' : 'Verified') : (lang === 'sw' ? 'Haijathibitishwa' : 'Unverified')}
                 </span>
               </div>
@@ -2480,11 +2506,11 @@ function VendorsView({ lang, vendors, zones, onRefresh }: {
                 <span>{vendor.zone.name}</span>
               </div>
               <div className="grid grid-cols-2 gap-2 mt-3">
-                <div className="p-2 rounded-lg glass text-center">
+                <div className="p-2 rounded-lg bg-[var(--muted)] text-center">
                   <p className="text-sm font-semibold">{vendor.recommendations}</p>
                   <p className="text-[10px] text-muted-foreground">{lang === 'sw' ? 'Mapendekezo' : 'Recs'}</p>
                 </div>
-                <div className="p-2 rounded-lg glass text-center">
+                <div className="p-2 rounded-lg bg-[var(--muted)] text-center">
                   <p className="text-sm font-semibold">{vendor.approved ? '\u2713' : '\u2717'}</p>
                   <p className="text-[10px] text-muted-foreground">{lang === 'sw' ? 'Idhini' : 'Approved'}</p>
                 </div>
@@ -2543,29 +2569,29 @@ function CalendarView({ lang, events, zones, onRefresh }: {
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <button onClick={() => setCreateDialogOpen(true)} className="glass-button flex items-center gap-1.5 px-4 py-2 text-sm">
+        <button onClick={() => setCreateDialogOpen(true)} className="kbtn flex items-center gap-1.5 px-4 py-2 text-sm">
           <Plus className="h-4 w-4" />
           {lang === 'sw' ? 'Tukio Jipya' : 'New Event'}
         </button>
       </div>
 
       {events.length === 0 ? (
-        <div className="glass-card gradient-border p-12 text-center">
-          <Calendar className="h-12 w-12 text-amber-500 mx-auto mb-3" />
-          <h3 className="font-semibold text-lg gradient-text">{lang === 'sw' ? 'Hakuna matukio' : 'No seasonal events'}</h3>
+        <div className="kcard p-12 text-center">
+          <Calendar className="h-12 w-12 text-[var(--kariako-yellow)] mx-auto mb-3" />
+          <h3 className="font-semibold text-lg gradient-text-green">{lang === 'sw' ? 'Hakuna matukio' : 'No seasonal events'}</h3>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {events.map(event => {
             const Icon = typeIcon(event.type);
             return (
-              <div key={event.id} className="glass-card gradient-border p-4">
+              <div key={event.id} className="kcard p-4">
                 <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-lg glass flex items-center justify-center flex-shrink-0">
-                    <Icon className="h-5 w-5 text-amber-500" />
+                  <div className="w-10 h-10 rounded-lg bg-[var(--kariako-green-light)] flex items-center justify-center flex-shrink-0">
+                    <Icon className="h-5 w-5 text-[var(--kariako-green)]" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-sm gradient-text">{event.title}</h3>
+                    <h3 className="font-semibold text-sm gradient-text-green">{event.title}</h3>
                     {event.titleSw && <p className="text-xs text-muted-foreground">{event.titleSw}</p>}
                     <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{event.description}</p>
                     <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
@@ -2573,7 +2599,7 @@ function CalendarView({ lang, events, zones, onRefresh }: {
                       <span>{formatDate(event.startDate, lang)}{event.endDate ? ` - ${formatDate(event.endDate, lang)}` : ''}</span>
                     </div>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="glass text-[10px] px-2 py-0.5 rounded-full">{event.type}</span>
+                      <span className="kbadge kbadge-silver">{event.type}</span>
                     </div>
                   </div>
                 </div>
@@ -2584,27 +2610,27 @@ function CalendarView({ lang, events, zones, onRefresh }: {
       )}
 
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-        <DialogContent className="glass-card border-[var(--glass-border)]">
+        <DialogContent className="kcard border-[var(--border)]">
           <DialogHeader>
-            <DialogTitle className="gradient-text">{lang === 'sw' ? 'Unda Tukio Jipya' : 'Create New Event'}</DialogTitle>
+            <DialogTitle className="gradient-text-green">{lang === 'sw' ? 'Unda Tukio Jipya' : 'Create New Event'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <div>
               <Label>{lang === 'sw' ? 'Kichwa' : 'Title'} *</Label>
-              <Input value={formTitle} onChange={e => setFormTitle(e.target.value)} className="glass-input" />
+              <Input value={formTitle} onChange={e => setFormTitle(e.target.value)} className="kinput" />
             </div>
             <div>
               <Label>{lang === 'sw' ? 'Kichwa (Kiswahili)' : 'Swahili Title'}</Label>
-              <Input value={formTitleSw} onChange={e => setFormTitleSw(e.target.value)} className="glass-input" />
+              <Input value={formTitleSw} onChange={e => setFormTitleSw(e.target.value)} className="kinput" />
             </div>
             <div>
               <Label>{t('description', lang)}</Label>
-              <Textarea value={formDesc} onChange={e => setFormDesc(e.target.value)} rows={2} className="glass-input" />
+              <Textarea value={formDesc} onChange={e => setFormDesc(e.target.value)} rows={2} className="kinput" />
             </div>
             <div>
               <Label>{lang === 'sw' ? 'Aina' : 'Type'}</Label>
               <Select value={formType} onValueChange={setFormType}>
-                <SelectTrigger className="glass-input"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="kinput"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="festival">Festival</SelectItem>
                   <SelectItem value="holiday">Holiday</SelectItem>
@@ -2615,12 +2641,12 @@ function CalendarView({ lang, events, zones, onRefresh }: {
             </div>
             <div>
               <Label>{lang === 'sw' ? 'Tarehe ya Kuanza' : 'Start Date'} *</Label>
-              <Input type="date" value={formStartDate} onChange={e => setFormStartDate(e.target.value)} className="glass-input" />
+              <Input type="date" value={formStartDate} onChange={e => setFormStartDate(e.target.value)} className="kinput" />
             </div>
           </div>
           <DialogFooter>
-            <button className="glass px-4 py-2 rounded-lg text-sm hover:bg-[var(--glass-hover)] transition-colors" onClick={() => setCreateDialogOpen(false)}>{t('cancel', lang)}</button>
-            <button className="glass-button px-4 py-2 rounded-lg text-sm" onClick={createEvent} disabled={saving || !formTitle.trim()}>
+            <button className="kbtn-outline px-4 py-2 text-sm" onClick={() => setCreateDialogOpen(false)}>{t('cancel', lang)}</button>
+            <button className="kbtn px-4 py-2 text-sm" onClick={createEvent} disabled={saving || !formTitle.trim()}>
               {saving ? t('loading', lang) : lang === 'sw' ? 'Unda' : 'Create'}
             </button>
           </DialogFooter>
@@ -2637,38 +2663,38 @@ function PackagesView({ lang, deals, onRefresh }: {
   return (
     <div className="space-y-4">
       {deals.length === 0 ? (
-        <div className="glass-card gradient-border p-12 text-center">
-          <Package className="h-12 w-12 text-amber-500 mx-auto mb-3" />
-          <h3 className="font-semibold text-lg gradient-text">{lang === 'sw' ? 'Hakuna vifurushi' : 'No package deals'}</h3>
+        <div className="kcard p-12 text-center">
+          <Package className="h-12 w-12 text-[var(--kariako-yellow)] mx-auto mb-3" />
+          <h3 className="font-semibold text-lg gradient-text-green">{lang === 'sw' ? 'Hakuna vifurushi' : 'No package deals'}</h3>
           <p className="text-sm text-muted-foreground mt-1">{lang === 'sw' ? 'Waongozaji bado hawajaunda vifurushi' : 'Guides haven\'t created packages yet'}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {deals.map(deal => (
-            <div key={deal.id} className="glass-card gradient-border p-4">
+            <div key={deal.id} className="kcard p-4">
               <div className="flex items-start justify-between mb-2">
-                <h3 className="font-semibold text-sm gradient-text">{deal.title}</h3>
-                <span className={`glass text-[10px] px-2 py-0.5 rounded-full ${deal.isActive ? 'text-emerald-600' : 'text-muted-foreground'}`}>
+                <h3 className="font-semibold text-sm gradient-text-green">{deal.title}</h3>
+                <span className={`kbadge ${deal.isActive ? 'kbadge-verified' : 'kbadge-silver'}`}>
                   {deal.isActive ? (lang === 'sw' ? 'Hai' : 'Active') : (lang === 'sw' ? 'Haitumiki' : 'Inactive')}
                 </span>
               </div>
               <p className="text-xs text-muted-foreground line-clamp-2 mb-3">{deal.description}</p>
               <div className="grid grid-cols-3 gap-2 text-center">
-                <div className="p-2 rounded-lg glass">
+                <div className="p-2 rounded-lg bg-[var(--muted)]">
                   <p className="text-sm font-semibold">{deal.duration}h</p>
                   <p className="text-[10px] text-muted-foreground">{lang === 'sw' ? 'Muda' : 'Hours'}</p>
                 </div>
-                <div className="p-2 rounded-lg glass">
+                <div className="p-2 rounded-lg bg-[var(--muted)]">
                   <p className="text-sm font-semibold">{deal.sessionsCompleted}</p>
                   <p className="text-[10px] text-muted-foreground">{lang === 'sw' ? 'Vikao' : 'Sessions'}</p>
                 </div>
-                <div className="p-2 rounded-lg glass">
+                <div className="p-2 rounded-lg bg-[var(--muted)]">
                   <p className="text-sm font-semibold">{formatTZS(deal.price)}</p>
                   <p className="text-[10px] text-muted-foreground">{t('price', lang)}</p>
                 </div>
               </div>
               {deal.includesDelivery && (
-                <div className="flex items-center gap-1 mt-2 text-xs text-emerald-600">
+                <div className="flex items-center gap-1 mt-2 text-xs text-[var(--kariako-green)]">
                   <Truck className="h-3 w-3" />
                   {lang === 'sw' ? 'Inajumuisha usafirishaji' : 'Includes delivery'}
                 </div>
