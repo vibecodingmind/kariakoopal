@@ -51,7 +51,7 @@ interface AuthState {
   isLoading: boolean;
 
   // Actions
-  login: (phone: string) => Promise<void>;
+  login: (phone: string, role?: string, name?: string) => Promise<void>;
   socialLogin: (provider: string, providerId: string, email: string, name: string, avatarUrl?: string) => Promise<void>;
   logout: () => void;
   setUser: (user: User) => void;
@@ -73,13 +73,13 @@ export const useAuthStore = create<AuthState>()(
       currentView: 'home',
       isLoading: false,
 
-      login: async (phone: string) => {
+      login: async (phone: string, role?: string, name?: string) => {
         set({ isLoading: true });
         try {
           const res = await fetch('/api/auth', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ phone }),
+            body: JSON.stringify({ phone, role, name }),
           });
 
           if (!res.ok) {
@@ -90,6 +90,8 @@ export const useAuthStore = create<AuthState>()(
 
           set({
             user: data.user,
+            guideProfile: data.guideProfile || null,
+            badges: data.badges || [],
             isAuthenticated: true,
             language: (data.user?.languagePref as Language) || 'sw',
             currentView: data.user?.role === 'admin' ? 'admin' : 'home',

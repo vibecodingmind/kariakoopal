@@ -13,10 +13,14 @@ declare module 'next-auth' {
       id?: string;
       /** The user's database ID from our custom JWT */
       dbId?: string;
-      /** The user's role */
+      /** The user's role: seeker, guide, or admin */
       role?: string;
       /** The user's phone number */
       phone?: string;
+      /** The user's language preference */
+      languagePref?: string;
+      /** The user's avatar URL */
+      avatarUrl?: string | null;
     };
   }
 }

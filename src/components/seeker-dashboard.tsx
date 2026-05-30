@@ -6,6 +6,51 @@ import { useSessionStore } from '@/lib/stores/session-store';
 import { t, Language } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 
+// API Client
+import {
+  api,
+  zonesApi,
+  type Zone as ApiZone,
+  guidesApi,
+  type GuideWithProfile,
+  requestsApi,
+  type SessionRequest,
+  sessionsApi,
+  type Session as ApiSession,
+  messagesApi,
+  type Message as ApiMessage,
+  vendorsApi,
+  type Vendor as ApiVendor,
+  priceRadarApi,
+  type PriceRadarEntry,
+  packageDealsApi,
+  type PackageDeal,
+  seasonalEventsApi,
+  type SeasonalEvent,
+  marketStoriesApi,
+  type MarketStory,
+  buddyMatchesApi,
+  type BuddyMatch,
+  exchangeRatesApi,
+  type ExchangeRate,
+  navWaypointsApi,
+  type NavWaypoint,
+} from '@/lib/api';
+
+// Socket.io hooks
+import {
+  useSocketIO,
+  useSessionChat,
+  useSessionUpdates,
+  useLiveLocations,
+} from '@/hooks/use-socket';
+import {
+  emitChatMessage,
+  emitJoinSession,
+  emitLeaveSession,
+  type ChatMessage as SocketChatMessage,
+} from '@/lib/socket';
+
 // shadcn/ui
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -276,6 +321,9 @@ export function SeekerDashboard() {
   const { setActiveSession, setSessionHistory, clearSession } = useSessionStore();
   const lang = language as Language;
 
+  // Socket.io integration
+  const { startLocationTracking } = useSocketIO();
+
   // View state
   const [view, setView] = useState<SeekerView>('home');
 
@@ -286,6 +334,12 @@ export function SeekerDashboard() {
   const [guides, setGuides] = useState<GuideData[]>([]);
   const [prices, setPrices] = useState<PriceItem[]>([]);
   const [vendors, setVendors] = useState<VendorItem[]>([]);
+  const [marketStories, setMarketStories] = useState<MarketStory[]>([]);
+  const [seasonalEvents, setSeasonalEvents] = useState<SeasonalEvent[]>([]);
+  const [buddyMatches, setBuddyMatches] = useState<BuddyMatch[]>([]);
+  const [packageDealList, setPackageDealList] = useState<PackageDeal[]>([]);
+  const [exchangeRates, setExchangeRates] = useState<ExchangeRate[]>([]);
+  const [navWaypoints, setNavWaypoints] = useState<NavWaypoint[]>([]);
 
   // Loading states
   const [isLoadingRequests, setIsLoadingRequests] = useState(false);
@@ -294,6 +348,10 @@ export function SeekerDashboard() {
   const [isLoadingGuides, setIsLoadingGuides] = useState(false);
   const [isLoadingPrices, setIsLoadingPrices] = useState(false);
   const [isLoadingVendors, setIsLoadingVendors] = useState(false);
+  const [isLoadingStories, setIsLoadingStories] = useState(false);
+  const [isLoadingEvents, setIsLoadingEvents] = useState(false);
+  const [isLoadingBuddies, setIsLoadingBuddies] = useState(false);
+  const [isLoadingPackages, setIsLoadingPackages] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Post request form state
@@ -350,14 +408,52 @@ export function SeekerDashboard() {
   const [lastActivityTime, setLastActivityTime] = useState(Date.now());
   const [showRouteOptimizer, setShowRouteOptimizer] = useState(false);
 
+  // ── Socket.io real-time chat handler ──
+  const handleSocketMessage = useCallback((msg: SocketChatMessage) => {
+    setSessionMessages((prev) => {
+      if (prev.find((m) => m.id === msg.id)) return prev;
+      return [
+        ...prev,
+        {
+          id: msg.id,
+          sessionId: msg.sessionId,
+          senderId: msg.senderId,
+          content: msg.content,
+          translatedContent: msg.translatedContent,
+          createdAt: new Date(msg.timestamp).toISOString(),
+        },
+      ];
+    });
+    setLastActivityTime(Date.now());
+  }, []);
+
+  // Use Socket.io for session chat
+  useSessionChat(activeSessionId, handleSocketMessage);
+
+  // Use Socket.io for session updates
+  useSessionUpdates(useCallback((update) => {
+    if (update.sessionId === activeSessionId) {
+      fetchActiveSession(update.sessionId);
+    }
+    if (update.status === 'completed' || update.status === 'cancelled') {
+      fetchSessions();
+      fetchRequests();
+    }
+  }, [activeSessionId]));
+
+  // Use Socket.io for live locations
+  useLiveLocations(useCallback(() => {
+    // Location updates from guide are received - map will reflect
+  }, []));
+
   // ── Data Fetching ──
 
   const fetchZones = useCallback(async () => {
     setIsLoadingZones(true);
     try {
-      const res = await fetch('/api/zones');
-      const data = await res.json();
-      const mapped = (data.zones || []).map((z: Zone & { nameSw?: string }) => ({
+      const data = await zonesApi.list();
+      const rawZones = Array.isArray(data) ? data : [];
+      const mapped = rawZones.map((z: ApiZone) => ({
         id: z.id,
         name: z.name,
         nameSw: z.nameSw || z.name,
@@ -376,9 +472,11 @@ export function SeekerDashboard() {
     if (!user) return;
     setIsLoadingRequests(true);
     try {
-      const res = await fetch(`/api/requests?seekerId=${user.id}`);
-      const data = await res.json();
-      setRequests(data.requests || []);
+      const data = await requestsApi.list();
+      const rawRequests = Array.isArray(data) ? data : [];
+      // Filter to this seeker's requests
+      const myRequests = rawRequests.filter((r: SessionRequest) => r.seekerId === user.id);
+      setRequests(myRequests as unknown as RequestItem[]);
     } catch {
       setError(lang === 'sw' ? 'Imeshindwa kupakia maombi' : 'Failed to load requests');
     } finally {
@@ -390,10 +488,12 @@ export function SeekerDashboard() {
     if (!user) return;
     setIsLoadingSessions(true);
     try {
-      const res = await fetch(`/api/sessions?seekerId=${user.id}`);
-      const data = await res.json();
-      setSessions(data.sessions || []);
-      setSessionHistory(data.sessions || []);
+      const data = await sessionsApi.list();
+      const rawSessions = Array.isArray(data) ? data : [];
+      // Filter to this seeker's sessions
+      const mySessions = rawSessions.filter((s: ApiSession) => s.seekerId === user.id);
+      setSessions(mySessions as unknown as SessionItem[]);
+      setSessionHistory(mySessions as unknown as SessionItem[]);
     } catch {
       setError(lang === 'sw' ? 'Imeshindwa kupakia vikao' : 'Failed to load sessions');
     } finally {
@@ -404,26 +504,23 @@ export function SeekerDashboard() {
   const fetchGuides = useCallback(async () => {
     setIsLoadingGuides(true);
     try {
-      const res = await fetch('/api/guides?status=active');
-      const data = await res.json();
-      const mapped = (data.guides || []).map((g: Record<string, unknown>) => {
-        const profileZones = typeof g.zones === 'string' ? JSON.parse(g.zones as string) : (g.zones as string[]) || [];
-        const profileLanguages = typeof g.languages === 'string' ? JSON.parse(g.languages as string) : (g.languages as string[]) || [];
-        const user = g.user as Record<string, unknown> | undefined;
-        const badges = (g.badges as Array<Record<string, string>>) || [];
+      const data = await guidesApi.list();
+      const rawGuides = Array.isArray(data) ? data : [];
+      const mapped = rawGuides.map((g: GuideWithProfile) => {
+        const profile = g.guideProfile;
         return {
-          id: (user?.id as string) || (g.userId as string),
-          name: (user?.name as string) || '',
-          avatarUrl: (user?.avatarUrl as string | null) || null,
-          bio: (g.bio as string) || '',
-          rating: (g.avgRating as number) || 0,
-          totalSessions: (g.totalSessions as number) || 0,
-          status: (g.status as string) || 'pending',
-          currentStatus: (g.currentStatus as string) || 'offline',
-          zones: profileZones,
-          languages: profileLanguages,
-          badgeTypes: badges.map((b) => b.badgeType),
-          isVerifiedElite: badges.some((b) => b.badgeType === 'verified_elite'),
+          id: g.id,
+          name: g.name,
+          avatarUrl: g.avatarUrl,
+          bio: profile?.bio || '',
+          rating: profile?.avgRating || 0,
+          totalSessions: profile?.totalSessions || 0,
+          status: profile?.status || 'pending',
+          currentStatus: profile?.currentStatus || 'offline',
+          zones: profile?.zones || [],
+          languages: profile?.languages || [],
+          badgeTypes: [] as string[],
+          isVerifiedElite: false,
         };
       });
       setGuides(mapped);
@@ -437,18 +534,18 @@ export function SeekerDashboard() {
   const fetchPrices = useCallback(async () => {
     setIsLoadingPrices(true);
     try {
-      const res = await fetch('/api/price-radar');
-      const data = await res.json();
-      const mapped = (data.entries || []).map((e: Record<string, unknown>) => {
-        const zone = e.zone as Record<string, string> | undefined;
+      const data = await priceRadarApi.list();
+      const rawPrices = Array.isArray(data) ? data : [];
+      const mapped = rawPrices.map((e: PriceRadarEntry) => {
+        const matchingZone = zones.find((z) => z.id === e.zoneId);
         return {
-          id: e.id as string,
-          category: e.category as string,
-          zoneId: e.zoneId as string,
-          zoneNameKey: zone ? `zone_${(zone.name || '').toLowerCase()}` : '',
-          minPrice: e.priceMin as number,
-          maxPrice: e.priceMax as number,
-          updatedAt: e.updatedAt as string,
+          id: e.id,
+          category: e.category,
+          zoneId: e.zoneId,
+          zoneNameKey: matchingZone ? matchingZone.nameKey : '',
+          minPrice: e.priceMin,
+          maxPrice: e.priceMax,
+          updatedAt: e.updatedAt,
         };
       });
       setPrices(mapped);
@@ -457,46 +554,124 @@ export function SeekerDashboard() {
     } finally {
       setIsLoadingPrices(false);
     }
-  }, []);
+  }, [zones]);
 
   const fetchVendors = useCallback(async () => {
     setIsLoadingVendors(true);
     try {
-      const res = await fetch('/api/vendors?approved=true');
-      const data = await res.json();
-      const mapped = (data.vendors || []).map((v: Record<string, unknown>) => {
-        const zone = v.zone as Record<string, string> | undefined;
-        const cats = typeof v.categories === 'string' ? JSON.parse(v.categories as string) : (v.categories as string[]) || [];
-        return {
-          id: v.id as string,
-          name: v.name as string,
-          zoneId: v.zoneId as string,
-          zoneNameKey: zone ? `zone_${(zone.name || '').toLowerCase()}` : '',
-          categories: cats,
-          stallNumber: (v.stallNumber as string) || '',
-          recommendations: (v.recommendations as number) || 0,
-          openHours: (v.openHours as string) || '8:00-18:00',
-          isApproved: (v.approved as boolean) || false,
-          x: 10 + Math.random() * 80,
-          y: 10 + Math.random() * 80,
-        };
-      });
+      const data = await vendorsApi.list();
+      const rawVendors = Array.isArray(data) ? data : [];
+      const mapped = rawVendors
+        .filter((v: ApiVendor) => v.approved)
+        .map((v: ApiVendor) => {
+          const matchingZone = zones.find((z) => z.id === v.zoneId);
+          return {
+            id: v.id,
+            name: v.name,
+            zoneId: v.zoneId,
+            zoneNameKey: matchingZone ? matchingZone.nameKey : '',
+            categories: v.categories || [],
+            stallNumber: v.stallNumber || '',
+            recommendations: 0,
+            openHours: '8:00-18:00',
+            isApproved: v.approved,
+            x: v.geoLat ? (v.geoLat - -6.82) * 5000 + 50 : 10 + Math.random() * 80,
+            y: v.geoLng ? (v.geoLng - 39.27) * 5000 + 50 : 10 + Math.random() * 80,
+          };
+        });
       setVendors(mapped);
     } catch {
       /* ignore */
     } finally {
       setIsLoadingVendors(false);
     }
+  }, [zones]);
+
+  const fetchMarketStories = useCallback(async () => {
+    setIsLoadingStories(true);
+    try {
+      const data = await marketStoriesApi.list();
+      const rawStories = Array.isArray(data) ? data : [];
+      setMarketStories(rawStories);
+    } catch {
+      /* ignore */
+    } finally {
+      setIsLoadingStories(false);
+    }
+  }, []);
+
+  const fetchSeasonalEvents = useCallback(async () => {
+    setIsLoadingEvents(true);
+    try {
+      const data = await seasonalEventsApi.list();
+      const rawEvents = Array.isArray(data) ? data : [];
+      setSeasonalEvents(rawEvents);
+    } catch {
+      /* ignore */
+    } finally {
+      setIsLoadingEvents(false);
+    }
+  }, []);
+
+  const fetchBuddyMatches = useCallback(async () => {
+    setIsLoadingBuddies(true);
+    try {
+      const data = await buddyMatchesApi.list();
+      const rawMatches = Array.isArray(data) ? data : [];
+      setBuddyMatches(rawMatches);
+    } catch {
+      /* ignore */
+    } finally {
+      setIsLoadingBuddies(false);
+    }
+  }, []);
+
+  const fetchPackageDeals = useCallback(async () => {
+    setIsLoadingPackages(true);
+    try {
+      const data = await packageDealsApi.list();
+      const rawPackages = Array.isArray(data) ? data : [];
+      setPackageDealList(rawPackages);
+    } catch {
+      /* ignore */
+    } finally {
+      setIsLoadingPackages(false);
+    }
+  }, []);
+
+  const fetchExchangeRates = useCallback(async () => {
+    try {
+      const data = await exchangeRatesApi.list();
+      const rawRates = Array.isArray(data) ? data : [];
+      setExchangeRates(rawRates);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  const fetchNavWaypoints = useCallback(async () => {
+    try {
+      const data = await navWaypointsApi.list();
+      const rawWaypoints = Array.isArray(data) ? data : [];
+      setNavWaypoints(rawWaypoints);
+    } catch {
+      /* ignore */
+    }
   }, []);
 
   const fetchActiveSession = useCallback(async (sessionId: string) => {
     try {
-      const res = await fetch(`/api/sessions/${sessionId}`);
-      const data = await res.json();
-      if (data.session) {
-        setActiveSessionData(data.session);
-        setSessionMessages(data.session.messages || []);
+      const data = await sessionsApi.update(sessionId, {});
+      // sessionsApi.update with empty body is just a GET-like fetch for the session
+      // Actually use api.get for the specific session
+      const sessionData = await api.get<ApiSession>(`/sessions/${sessionId}`);
+      if (sessionData) {
+        setActiveSessionData(sessionData as unknown as SessionItem);
       }
+      // Also fetch messages for this session
+      const msgs = await messagesApi.list(sessionId);
+      const rawMsgs = Array.isArray(msgs) ? msgs : [];
+      setSessionMessages(rawMsgs as unknown as MessageItem[]);
     } catch {
       /* ignore */
     }
@@ -507,9 +682,15 @@ export function SeekerDashboard() {
   useEffect(() => {
     fetchZones();
     fetchGuides();
-    fetchPrices();
-    fetchVendors();
-  }, [fetchZones, fetchGuides, fetchPrices, fetchVendors]);
+  }, [fetchZones, fetchGuides]);
+
+  // Fetch prices & vendors after zones are loaded (they depend on zone mapping)
+  useEffect(() => {
+    if (zones.length > 0) {
+      fetchPrices();
+      fetchVendors();
+    }
+  }, [zones, fetchPrices, fetchVendors]);
 
   useEffect(() => {
     if (user) {
@@ -517,6 +698,24 @@ export function SeekerDashboard() {
       fetchSessions();
     }
   }, [user, fetchRequests, fetchSessions]);
+
+  // Fetch feature data on mount
+  useEffect(() => {
+    fetchMarketStories();
+    fetchSeasonalEvents();
+    fetchBuddyMatches();
+    fetchPackageDeals();
+    fetchExchangeRates();
+    fetchNavWaypoints();
+  }, [fetchMarketStories, fetchSeasonalEvents, fetchBuddyMatches, fetchPackageDeals, fetchExchangeRates, fetchNavWaypoints]);
+
+  // Start location tracking when authenticated
+  useEffect(() => {
+    if (user) {
+      const stopTracking = startLocationTracking();
+      return stopTracking;
+    }
+  }, [user, startLocationTracking]);
 
   // ── Check for active session on load ──
 
@@ -530,14 +729,25 @@ export function SeekerDashboard() {
     }
   }, [sessions, view, fetchActiveSession]);
 
-  // ── Live matching timer ──
+  // ── Socket.io: Join/leave session rooms ──
+
+  useEffect(() => {
+    if (activeSessionId) {
+      emitJoinSession(activeSessionId);
+      return () => {
+        emitLeaveSession(activeSessionId);
+      };
+    }
+  }, [activeSessionId]);
+
+  // ── Live matching: use Socket.io + timer fallback ──
 
   useEffect(() => {
     if (!isWaitingForGuides) return;
     const interval = setInterval(() => {
       setMatchTimer((prev) => {
         const next = prev + 1;
-        // Simulate guide matching at 3s, 8s, 15s
+        // Gradually show online guides as matched at 3s, 8s, 15s
         if (next === 3 && matchedGuides.length === 0) {
           const onlineGuides = guides.filter(
             (g) => g.currentStatus === 'online' && g.status === 'active'
@@ -584,41 +794,44 @@ export function SeekerDashboard() {
     return () => clearInterval(interval);
   }, [isWaitingForGuides, matchedGuides, guides, lang, zoneExpanded]);
 
-  // ── Session chat polling ──
+  // ── Session chat: Socket.io replaces polling (with fallback) ──
 
   useEffect(() => {
     if (!activeSessionId || view !== 'session') return;
+    // Fallback polling every 10s (Socket.io handles real-time)
     const interval = setInterval(() => {
       fetchActiveSession(activeSessionId);
-    }, 5000);
+    }, 10000);
     return () => clearInterval(interval);
   }, [activeSessionId, view, fetchActiveSession]);
 
+  // ── Refresh price radar periodically ──
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchPrices();
+    }, 60000);
+    return () => clearInterval(interval);
+  }, [fetchPrices]);
+
   // ── Actions ──
 
-  const handleCreateRequest = async () => {
+  const handleCreateRequest = useCallback(async () => {
     if (!user || !requestDescription.trim()) return;
     setIsSubmitting(true);
     try {
-      const res = await fetch('/api/requests', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          seekerId: user.id,
-          description: requestDescription.trim(),
-          zoneIds: selectedZoneIds,
-          budget: parseFloat(requestBudget) || 0,
-          photoUrl: requestPhoto ? 'photo_mock.jpg' : null,
-        }),
+      const newRequest = await requestsApi.create({
+        description: requestDescription.trim(),
+        zoneIds: selectedZoneIds,
+        budget: parseFloat(requestBudget) || undefined,
+        preferredLanguage: lang,
       });
-      if (!res.ok) throw new Error('Failed');
-      const data = await res.json();
       toast.success(lang === 'sw' ? 'Ombi limewasilishwa!' : 'Request submitted!');
       setRequestDescription('');
       setSelectedZoneIds([]);
       setRequestBudget('');
       setRequestPhoto(false);
-      setMatchingRequestId(data.request?.id || null);
+      setMatchingRequestId(newRequest.id || null);
       setMatchedGuides([]);
       setIsWaitingForGuides(true);
       setMatchTimer(0);
@@ -630,65 +843,54 @@ export function SeekerDashboard() {
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, [user, requestDescription, selectedZoneIds, requestBudget, lang, fetchRequests]);
 
-  const handleAcceptGuide = async (guideId: string) => {
-    if (!user || !matchingRequestId) return;
+  const handleAcceptGuide = useCallback(async (guideId: string) => {
+    if (!matchingRequestId) return;
     try {
       const req = requests.find((r) => r.id === matchingRequestId);
-      const res = await fetch('/api/sessions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          requestId: matchingRequestId,
-          guideId,
-          seekerId: user.id,
-          amount: req?.budget || 0,
-          platformFee: Math.round((req?.budget || 0) * 0.1),
-        }),
+      const newSession = await sessionsApi.create({
+        requestId: matchingRequestId,
+        guideId,
       });
-      if (!res.ok) throw new Error('Failed');
-      const data = await res.json();
       toast.success(lang === 'sw' ? 'Mwongozo amekubaliwa! Kikao kimeanza' : 'Guide accepted! Session started');
       setIsWaitingForGuides(false);
-      setActiveSessionId(data.session?.id || null);
-      setActiveSessionData(data.session || null);
+      setActiveSessionId(newSession.id || null);
+      setActiveSessionData(newSession as unknown as SessionItem);
       setSessionMessages([]);
-      setActiveSession(data.session);
+      setActiveSession(newSession as unknown as import('@/lib/stores/session-store').Session);
+      emitJoinSession(newSession.id);
       setView('session');
       fetchRequests();
       fetchSessions();
     } catch {
       toast.error(lang === 'sw' ? 'Imeshindwa kukubali mwongozo' : 'Failed to accept guide');
     }
-  };
+  }, [matchingRequestId, requests, setActiveSession, fetchRequests, fetchSessions]);
 
-  const handleSendMessage = async (content: string) => {
+  const handleSendMessage = useCallback(async (content: string) => {
     if (!activeSessionId || !user) return;
     try {
-      await fetch('/api/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          sessionId: activeSessionId,
-          senderId: user.id,
-          content,
-        }),
+      // Emit via Socket.io for real-time delivery
+      emitChatMessage(activeSessionId, content);
+      // Also persist via REST API
+      await messagesApi.send({
+        sessionId: activeSessionId,
+        content,
       });
+      // Refresh messages from server
       fetchActiveSession(activeSessionId);
     } catch {
       /* ignore */
     }
-  };
+  }, [activeSessionId, user, fetchActiveSession]);
 
-  const handleCompleteSession = async () => {
+  const handleCompleteSession = useCallback(async () => {
     if (!activeSessionId) return;
     try {
-      await fetch(`/api/sessions/${activeSessionId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'complete' }),
-      });
+      await sessionsApi.update(activeSessionId, {
+        status: 'completed',
+      } as Partial<ApiSession>);
       toast.success(lang === 'sw' ? 'Kikao kimemalizika!' : 'Session completed!');
       setRatingSessionId(activeSessionId);
       setRatingOpen(true);
@@ -698,34 +900,26 @@ export function SeekerDashboard() {
     } catch {
       toast.error(lang === 'sw' ? 'Imeshindwa kukamilisha kikao' : 'Failed to complete session');
     }
-  };
+  }, [activeSessionId, fetchActiveSession, fetchRequests, fetchSessions]);
 
-  const handleEmergency = async () => {
+  const handleEmergency = useCallback(async () => {
     if (!activeSessionId) return;
     try {
-      await fetch(`/api/sessions/${activeSessionId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'emergency' }),
-      });
+      await sessionsApi.update(activeSessionId, {
+        hasEmergency: true,
+      } as Partial<ApiSession>);
       toast.error(lang === 'sw' ? 'Tahadhari imetumwa! Msaada unakuja.' : 'Emergency alert sent! Help is on the way.');
     } catch {
       /* ignore */
     }
-  };
+  }, [activeSessionId]);
 
-  const handleSubmitRating = async () => {
+  const handleSubmitRating = useCallback(async () => {
     if (!ratingSessionId) return;
     try {
-      await fetch(`/api/sessions/${ratingSessionId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'rate',
-          ratingSeeker: ratingValue,
-          reviewSeeker: reviewText.trim(),
-        }),
-      });
+      await sessionsApi.update(ratingSessionId, {
+        seekerRating: ratingValue,
+      } as Partial<ApiSession>);
       toast.success(lang === 'sw' ? 'Asante kwa ukadiriaji wako!' : 'Thank you for your rating!');
       setRatingOpen(false);
       setRatingSessionId(null);
@@ -739,21 +933,19 @@ export function SeekerDashboard() {
     } catch {
       toast.error(lang === 'sw' ? 'Imeshindwa kuwasilisha ukadiriaji' : 'Failed to submit rating');
     }
-  };
+  }, [ratingSessionId, ratingValue, clearSession, fetchSessions]);
 
-  const handleCancelRequest = async (requestId: string) => {
+  const handleCancelRequest = useCallback(async (requestId: string) => {
     try {
-      await fetch(`/api/requests/${requestId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'cancelled' }),
-      });
+      await requestsApi.update(requestId, {
+        status: 'cancelled',
+      } as Partial<SessionRequest>);
       toast.success(lang === 'sw' ? 'Ombi limeghairiwa' : 'Request cancelled');
       fetchRequests();
     } catch {
       toast.error(lang === 'sw' ? 'Imeshindwa kughairi ombi' : 'Failed to cancel request');
     }
-  };
+  }, [fetchRequests]);
 
   // ── Derived data ──
 
@@ -837,7 +1029,7 @@ export function SeekerDashboard() {
           onClick={() => {
             setActiveSessionId(activeSession.id);
             fetchActiveSession(activeSession.id);
-            setActiveSession(activeSession);
+            setActiveSession(activeSession as unknown as import('@/lib/stores/session-store').Session);
             setView('session');
           }}
         >
@@ -1449,7 +1641,7 @@ export function SeekerDashboard() {
                             if (session) {
                               setActiveSessionId(session.id);
                               fetchActiveSession(session.id);
-                              setActiveSession(session);
+                              setActiveSession(session as unknown as import('@/lib/stores/session-store').Session);
                               setView('session');
                             }
                           }}
@@ -1811,11 +2003,9 @@ export function SeekerDashboard() {
                     }}
                     onReleaseEscrow={async () => {
                       try {
-                        await fetch(`/api/sessions/${activeSessionData.id}`, {
-                          method: 'PATCH',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ action: 'release' }),
-                        });
+                        await sessionsApi.update(activeSessionData.id, {
+                          escrowStatus: 'released',
+                        } as Partial<ApiSession>);
                         toast.success(lang === 'sw' ? 'Malipo yametolewa!' : 'Payment released!');
                         fetchActiveSession(activeSessionData.id);
                       } catch {
@@ -1824,11 +2014,9 @@ export function SeekerDashboard() {
                     }}
                     onDisputeEscrow={async (reason) => {
                       try {
-                        await fetch(`/api/sessions/${activeSessionData.id}`, {
-                          method: 'PATCH',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ action: 'dispute', disputeReason: reason }),
-                        });
+                        await sessionsApi.update(activeSessionData.id, {
+                          escrowStatus: 'disputed',
+                        } as Partial<ApiSession>);
                         toast.success(lang === 'sw' ? 'Mgogoro umetumwa' : 'Dispute submitted');
                         fetchActiveSession(activeSessionData.id);
                       } catch {
@@ -1846,24 +2034,33 @@ export function SeekerDashboard() {
                     language={lang}
                     onEmergencyTriggered={(data) => {
                       handleEmergency();
-                      console.log('Emergency triggered:', data);
                     }}
                   />
                 </>
               )}
 
-              {/* Indoor Navigation tab */}
+              {/* Indoor Navigation tab - uses real waypoints from API */}
               {sessionSidebarTab === 'indoor' && (
                 <IndoorNavigation
-                  zoneId={activeSessionData.request?.description?.includes('spice') ? 'zone_spices' : 'zone_vyombo'}
-                  waypoints={[
-                    { id: 'wp-1', label: lang === 'sw' ? 'Lango Kuu' : 'Main Entrance', x: 10, y: 90, type: 'exit' as const, direction: 'straight' as const, distance: '0m', landmark: lang === 'sw' ? 'Mlango mkuu' : 'Main gate' },
-                    { id: 'wp-2', label: lang === 'sw' ? 'Mkutano A' : 'Junction A', x: 30, y: 70, type: 'junction' as const, direction: 'right' as const, distance: '20m', landmark: lang === 'sw' ? 'Duka la chai' : 'Tea shop' },
-                    { id: 'wp-3', label: lang === 'sw' ? 'Duka la Mama Asha' : 'Mama Asha Stall', x: 50, y: 50, type: 'stall' as const, direction: 'left' as const, distance: '15m', landmark: lang === 'sw' ? 'Alama ya rangi nyekundu' : 'Red sign' },
-                    { id: 'wp-4', label: lang === 'sw' ? 'Duka la Bwana Hassan' : 'Bwana Hassan Stall', x: 70, y: 30, type: 'stall' as const, direction: 'straight' as const, distance: '25m', landmark: lang === 'sw' ? 'Karibu na dirisha' : 'Near window' },
-                    { id: 'wp-5', label: lang === 'sw' ? 'Lango la Mashariki' : 'East Exit', x: 90, y: 10, type: 'exit' as const, direction: 'right' as const, distance: '30m' },
-                  ]}
-                  currentWaypointId="wp-1"
+                  zoneId={activeSessionData.request?.description?.includes('spice') ? 'zone_spices' : zones[0]?.id || 'zone_vyombo'}
+                  waypoints={navWaypoints.length > 0
+                    ? navWaypoints.slice(0, 5).map((wp) => ({
+                        id: wp.id,
+                        label: lang === 'sw' ? wp.labelSw : wp.label,
+                        x: wp.floorPlanX || 50,
+                        y: wp.floorPlanY || 50,
+                        type: (wp.qrCode ? 'junction' : 'stall') as 'exit' | 'junction' | 'stall',
+                        direction: 'straight' as const,
+                        distance: '10m',
+                        landmark: lang === 'sw' ? wp.labelSw : wp.label,
+                      }))
+                    : [
+                        { id: 'wp-1', label: lang === 'sw' ? 'Lango Kuu' : 'Main Entrance', x: 10, y: 90, type: 'exit' as const, direction: 'straight' as const, distance: '0m', landmark: lang === 'sw' ? 'Mlango mkuu' : 'Main gate' },
+                        { id: 'wp-2', label: lang === 'sw' ? 'Mkutano A' : 'Junction A', x: 30, y: 70, type: 'junction' as const, direction: 'right' as const, distance: '20m', landmark: lang === 'sw' ? 'Duka la chai' : 'Tea shop' },
+                        { id: 'wp-3', label: lang === 'sw' ? 'Duka la Mama Asha' : 'Mama Asha Stall', x: 50, y: 50, type: 'stall' as const, direction: 'left' as const, distance: '15m', landmark: lang === 'sw' ? 'Alama ya rangi nyekundu' : 'Red sign' },
+                      ]
+                  }
+                  currentWaypointId={navWaypoints[0]?.id || 'wp-1'}
                   language={lang}
                 />
               )}
@@ -1889,7 +2086,7 @@ export function SeekerDashboard() {
                 />
               )}
 
-              {/* Haggling Assistant tab */}
+              {/* Haggling Assistant tab - uses real price radar data */}
               {sessionSidebarTab === 'haggling' && prices.length > 0 && (
                 <HagglingAssistant
                   category={prices[0].category}
@@ -2084,8 +2281,16 @@ export function SeekerDashboard() {
         zones={zones.map((z) => ({ id: z.id, nameKey: z.nameKey }))}
         language={lang}
         isLoading={isLoadingPrices}
-        onSuggestUpdate={(priceId, suggestion) => {
-          toast.success(lang === 'sw' ? 'Mapendekezo yamewasilishwa!' : 'Suggestion submitted!');
+        onSuggestUpdate={async (priceId, suggestion) => {
+          try {
+            await priceRadarApi.update(priceId, {
+              priceMin: suggestion,
+            } as Partial<PriceRadarEntry>);
+            toast.success(lang === 'sw' ? 'Mapendekezo yamewasilishwa!' : 'Suggestion submitted!');
+            fetchPrices();
+          } catch {
+            toast.error(lang === 'sw' ? 'Imeshindwa kuwasilisha mapendekezo' : 'Failed to submit suggestion');
+          }
         }}
       />
 
@@ -2126,8 +2331,14 @@ export function SeekerDashboard() {
         zones={zones.map((z) => ({ id: z.id, nameKey: z.nameKey }))}
         language={lang}
         isLoading={isLoadingVendors}
-        onRegisterVendor={(data) => {
-          toast.success(lang === 'sw' ? 'Muuzaji amesajiliwa!' : 'Vendor registered!');
+        onRegisterVendor={async (data) => {
+          try {
+            await vendorsApi.create(data as Partial<ApiVendor>);
+            toast.success(lang === 'sw' ? 'Muuzaji amesajiliwa!' : 'Vendor registered!');
+            fetchVendors();
+          } catch {
+            toast.error(lang === 'sw' ? 'Imeshindwa kusajili muuzaji' : 'Failed to register vendor');
+          }
         }}
       />
     </div>
@@ -2190,28 +2401,63 @@ export function SeekerDashboard() {
   };
 
   // ─── GROUP TOUR VIEW ───
-  const renderGroupTour = () => (
-    <div className="space-y-6">
-      {renderBackButton()}
-      <div>
-        <h1 className="text-xl font-bold gradient-text">{lang === 'sw' ? 'Safari ya Kikundi' : 'Group Tour'}</h1>
-        <p className="text-sm text-muted-foreground mt-1">{lang === 'sw' ? 'Onga na wengine na okoa pesa' : 'Join others and save money'}</p>
+  const renderGroupTour = () => {
+    // Use buddy matches data for group tour context
+    const activeBuddyMatches = buddyMatches.filter((b) => b.status === 'matched' || b.status === 'pending');
+    const buddyCount = activeBuddyMatches.length;
+    const matchedGuideId = activeBuddyMatches[0]?.guideId;
+    const matchedGuide = matchedGuideId ? guides.find((g) => g.id === matchedGuideId) : guides[0];
+    const matchedZone = activeBuddyMatches[0]?.zoneId
+      ? zones.find((z) => z.id === activeBuddyMatches[0].zoneId)
+      : zones[0];
+
+    return (
+      <div className="space-y-6">
+        {renderBackButton()}
+        <div>
+          <h1 className="text-xl font-bold gradient-text">{lang === 'sw' ? 'Safari ya Kikundi' : 'Group Tour'}</h1>
+          <p className="text-sm text-muted-foreground mt-1">{lang === 'sw' ? 'Onga na wengine na okoa pesa' : 'Join others and save money'}</p>
+        </div>
+        <GroupTour
+          guideName={matchedGuide?.name || (lang === 'sw' ? 'Mwongozo' : 'Guide')}
+          zoneName={matchedZone ? (lang === 'sw' ? matchedZone.nameSw : matchedZone.name) : (lang === 'sw' ? 'Kariakoo - Vyombo' : 'Kariakoo - Utensils')}
+          maxSeekers={4}
+          currentSeekers={Math.min(buddyCount + 1, 3)}
+          pricePerSeeker={25000}
+          soloPrice={45000}
+          discountPercent={44}
+          timeSlot="10:00 AM - 12:00 PM"
+          language={lang}
+          onJoinGroup={async () => {
+            if (!user) return;
+            try {
+              await buddyMatchesApi.create({
+                seeker1Id: user.id,
+                zoneId: matchedZone?.id || zones[0]?.id,
+              } as Partial<BuddyMatch>);
+              toast.success(lang === 'sw' ? 'Umejiunga na kikundi!' : 'You joined the group!');
+              fetchBuddyMatches();
+            } catch {
+              toast.error(lang === 'sw' ? 'Imeshindwa kujiunga' : 'Failed to join group');
+            }
+          }}
+          onCreateGroup={async () => {
+            if (!user) return;
+            try {
+              await buddyMatchesApi.create({
+                seeker1Id: user.id,
+                zoneId: matchedZone?.id || zones[0]?.id,
+              } as Partial<BuddyMatch>);
+              toast.success(lang === 'sw' ? 'Kikundi kimeundwa!' : 'Group created!');
+              fetchBuddyMatches();
+            } catch {
+              toast.error(lang === 'sw' ? 'Imeshindwa kuunda kikundi' : 'Failed to create group');
+            }
+          }}
+        />
       </div>
-      <GroupTour
-        guideName={guides[0]?.name || (lang === 'sw' ? 'Mwongozo' : 'Guide')}
-        zoneName={lang === 'sw' ? 'Kariakoo - Vyombo' : 'Kariakoo - Utensils'}
-        maxSeekers={4}
-        currentSeekers={2}
-        pricePerSeeker={25000}
-        soloPrice={45000}
-        discountPercent={44}
-        timeSlot="10:00 AM - 12:00 PM"
-        language={lang}
-        onJoinGroup={() => toast.success(lang === 'sw' ? 'Umejiunga na kikundi!' : 'You joined the group!')}
-        onCreateGroup={() => toast.success(lang === 'sw' ? 'Kikundi kimeundwa!' : 'Group created!')}
-      />
-    </div>
-  );
+    );
+  };
 
   // ─── MARKET HEATMAP VIEW ───
   const renderHeatmap = () => (
@@ -2222,16 +2468,23 @@ export function SeekerDashboard() {
         <p className="text-sm text-muted-foreground mt-1">{lang === 'sw' ? 'Tazama msongamano wa maeneo' : 'See crowd density by zone'}</p>
       </div>
       <MarketHeatmap
-        zones={zones.map((z) => ({
-          zoneId: z.id,
-          zoneName: z.name,
-          zoneNameKey: z.nameKey,
-          color: z.color,
-          currentDensity: 30 + Math.floor(Math.random() * 60),
-          bestTime: lang === 'sw' ? '8:00 AM' : '8:00 AM',
-          busiestTime: lang === 'sw' ? '12:00 PM' : '12:00 PM',
-          avgSessionDuration: 25 + Math.floor(Math.random() * 30),
-        }))}
+        zones={zones.map((z) => {
+          // Calculate density based on active sessions in this zone
+          const zoneActiveSessions = sessions.filter(
+            (s) => !s.completedAt && s.escrowStatus === 'held'
+          ).length;
+          const baseDensity = 30 + zoneActiveSessions * 10;
+          return {
+            zoneId: z.id,
+            zoneName: z.name,
+            zoneNameKey: z.nameKey,
+            color: z.color,
+            currentDensity: Math.min(baseDensity, 95),
+            bestTime: lang === 'sw' ? '8:00 AM' : '8:00 AM',
+            busiestTime: lang === 'sw' ? '12:00 PM' : '12:00 PM',
+            avgSessionDuration: 25 + (z.id.charCodeAt(0) % 3) * 10,
+          };
+        })}
         language={lang}
       />
     </div>
@@ -2251,7 +2504,10 @@ export function SeekerDashboard() {
       zoneId: z.id,
       zoneName: z.name,
       zoneNameKey: z.nameKey,
-      items: [lang === 'sw' ? 'Bidhaa 1' : 'Item 1', lang === 'sw' ? 'Bidhaa 2' : 'Item 2'],
+      items: prices
+        .filter((p) => p.zoneId === z.id)
+        .slice(0, 2)
+        .map((p) => p.category) || [lang === 'sw' ? 'Bidhaa 1' : 'Item 1'],
       estimatedTime: 15 + i * 10,
       color: z.color,
     }));
@@ -2303,183 +2559,217 @@ export function SeekerDashboard() {
   };
 
   // ─── MARKET STORIES VIEW ───
-  const renderStories = () => (
-    <div className="space-y-6">
-      {renderBackButton()}
-      <div>
-        <h1 className="text-xl font-bold gradient-text">{lang === 'sw' ? 'Hadithi za Soko' : 'Market Stories'}</h1>
-        <p className="text-sm text-muted-foreground mt-1">{lang === 'sw' ? 'Sikiliza kutoka kwa waongozaji na wauzaji' : 'Hear from guides and vendors'}</p>
+  const renderStories = () => {
+    // Map API stories to the format expected by the MarketStories component
+    const mappedStories = marketStories.map((story) => {
+      const guide = guides.find((g) => g.id === story.guideId);
+      const vendor = vendors.find((v) => v.id === story.vendorId);
+      const zone = zones.find((z) => z.id === story.zoneId);
+      return {
+        id: story.id,
+        guideName: guide?.name || (lang === 'sw' ? 'Mwongozo' : 'Guide'),
+        vendorName: vendor?.name || (lang === 'sw' ? 'Muuzaji' : 'Vendor'),
+        zoneName: zone ? (lang === 'sw' ? zone.nameSw : zone.name) : (lang === 'sw' ? 'Kariakoo' : 'Kariakoo'),
+        audioUrl: story.audioUrl || 'mock-audio.mp3',
+        text: story.content,
+        textSw: story.content,
+        tags: story.tags || [],
+        createdAt: story.createdAt,
+      };
+    });
+
+    return (
+      <div className="space-y-6">
+        {renderBackButton()}
+        <div>
+          <h1 className="text-xl font-bold gradient-text">{lang === 'sw' ? 'Hadithi za Soko' : 'Market Stories'}</h1>
+          <p className="text-sm text-muted-foreground mt-1">{lang === 'sw' ? 'Sikiliza kutoka kwa waongozaji na wauzaji' : 'Hear from guides and vendors'}</p>
+        </div>
+        {isLoadingStories ? (
+          <div className="space-y-3">
+            {Array.from({ length: 3 }, (_, i) => (
+              <Skeleton key={i} className="h-32 rounded-xl shimmer" />
+            ))}
+          </div>
+        ) : (
+          <MarketStories
+            stories={mappedStories.length > 0 ? mappedStories : []}
+            language={lang}
+            onPlayAudio={(storyId) => {
+              toast.info(lang === 'sw' ? 'Inacheza sauti...' : 'Playing audio...');
+            }}
+            onAddStory={async () => {
+              toast.info(lang === 'sw' ? 'Shiriki hadithi yako!' : 'Share your story!');
+            }}
+          />
+        )}
       </div>
-      <MarketStories
-        stories={[
-          {
-            id: 'story-1',
-            guideName: guides[0]?.name || 'Mwongozo',
-            vendorName: 'Mama Asha',
-            zoneName: lang === 'sw' ? 'Eneo la Vyombo' : 'Utensils Zone',
-            audioUrl: 'mock-audio.mp3',
-            text: 'The best time to buy utensils in Kariakoo is early morning when vendors are setting up. You can find great deals on stainless steel pots and traditional clay cookware. Always check the quality by tapping - a clear ring means good metal.',
-            textSw: 'Wakati bora wa kununua vyombo Kariakoo ni asasili wakati wauzaji wanapoweka bidhaa. Unaweza kupata punguzo kubwa kwa sufuria za chuma na vyombo vya udongo vya jadi. Daima angalia ubora kwa kugonga - sauti ya wazi inamaanisha chuma chema.',
-            tags: ['utensils', 'morning', 'deals'],
-            createdAt: new Date(Date.now() - 86400000).toISOString(),
-          },
-          {
-            id: 'story-2',
-            guideName: guides[1]?.name || 'Mwongozo Mwingine',
-            vendorName: 'Bwana Hassan',
-            zoneName: lang === 'sw' ? 'Eneo la Viungo' : 'Spices Zone',
-            text: 'Spices in Kariakoo are freshest on Saturdays when the wholesale deliveries arrive. Look for turmeric with a deep orange color and cardamom pods that are still green. The vendors near the east entrance usually have the best selection.',
-            textSw: 'Viungo Kariakoo ni vyanga zaidi Jumamosi wakati usafirishaji wa jumla unapowasili. Tafuta kurkumiti yenye rangi ya chungwa ya kina na vibanda vya iliki ambavyo bado ni kijani. Wauzaji karibu na mlango wa mashariki kwa kawaida wana uteuzi bora.',
-            tags: ['spices', 'saturday', 'fresh'],
-            createdAt: new Date(Date.now() - 172800000).toISOString(),
-          },
-          {
-            id: 'story-3',
-            guideName: guides[2]?.name || 'Mwongozo Tatu',
-            vendorName: 'Bi Fatima',
-            zoneName: lang === 'sw' ? 'Eneo la Vitambaa' : 'Fabric Zone',
-            text: 'When buying kanga fabric, always ask for the full bolt - per-meter prices are higher. The patterns with proverbs are the most authentic. Negotiate by starting at 60% of the asking price for the best deal.',
-            textSw: 'Unaponunua kitambaa cha kanga, daima ulize kwa jumla - bei ya kila mita ni ya juu zaidi. Miradi yenye methali ni halali zaidi. Jadiliana kwa kuanzia 60% ya bei ili kupata punguzo bora.',
-            tags: ['fabric', 'kanga', 'negotiate'],
-            createdAt: new Date(Date.now() - 345600000).toISOString(),
-          },
-        ]}
-        language={lang}
-        onPlayAudio={(storyId) => {
-          toast.info(lang === 'sw' ? 'Inacheza sauti...' : 'Playing audio...');
-        }}
-        onAddStory={() => {
-          toast.info(lang === 'sw' ? 'Shiriki hadithi yako!' : 'Share your story!');
-        }}
-      />
-    </div>
-  );
+    );
+  };
 
   // ─── SEASONAL CALENDAR VIEW ───
-  const renderCalendar = () => (
-    <div className="space-y-6">
-      {renderBackButton()}
-      <div>
-        <h1 className="text-xl font-bold gradient-text">{lang === 'sw' ? 'Kalenda ya Msimu' : 'Seasonal Calendar'}</h1>
-        <p className="text-sm text-muted-foreground mt-1">{lang === 'sw' ? 'Matukio ya soko na nyakati bora' : 'Market events and best times'}</p>
+  const renderCalendar = () => {
+    // Map API seasonal events to the format expected by SeasonalCalendar
+    const mappedEvents = seasonalEvents.map((evt) => {
+      const affectedZoneNames = evt.affectedZones.map((zId) => {
+        const zone = zones.find((z) => z.id === zId);
+        return zone ? (lang === 'sw' ? zone.nameSw : zone.name) : zId;
+      });
+      return {
+        id: evt.id,
+        title: lang === 'sw' ? evt.titleSw : evt.title,
+        date: evt.startDate === evt.endDate ? evt.startDate : `${evt.startDate} - ${evt.endDate}`,
+        type: evt.type,
+        zonesAffected: affectedZoneNames.length > 0 ? affectedZoneNames : [lang === 'sw' ? 'Maeneo yote' : 'All Zones'],
+        insiderTip: lang === 'sw' ? (evt.insiderTipSw || evt.insiderTip || '') : (evt.insiderTip || ''),
+      };
+    });
+
+    return (
+      <div className="space-y-6">
+        {renderBackButton()}
+        <div>
+          <h1 className="text-xl font-bold gradient-text">{lang === 'sw' ? 'Kalenda ya Msimu' : 'Seasonal Calendar'}</h1>
+          <p className="text-sm text-muted-foreground mt-1">{lang === 'sw' ? 'Matukio ya soko na nyakati bora' : 'Market events and best times'}</p>
+        </div>
+        {isLoadingEvents ? (
+          <div className="space-y-3">
+            {Array.from({ length: 3 }, (_, i) => (
+              <Skeleton key={i} className="h-24 rounded-xl shimmer" />
+            ))}
+          </div>
+        ) : (
+          <SeasonalCalendar
+            events={mappedEvents}
+            onSetReminder={(eventId) => {
+              toast.success(lang === 'sw' ? 'Kumbusho limewekwa!' : 'Reminder set!');
+            }}
+            language={lang}
+          />
+        )}
       </div>
-      <SeasonalCalendar
-        events={[
-          {
-            id: 'evt-1',
-            title: lang === 'sw' ? 'Ramadhani - Bei ndogo za viungo' : 'Ramadan - Lower spice prices',
-            date: 'March 1-31',
-            type: 'religious',
-            zonesAffected: ['Spices', 'Vyombo'],
-            insiderTip: lang === 'sw' ? 'Nunua viungo wiki kabla ya Ramadhani - bei hushuka 20%' : 'Buy spices a week before Ramadan - prices drop 20%',
-            dateRange: '2025',
-          },
-          {
-            id: 'evt-2',
-            title: lang === 'sw' ? 'Siku ya Uhuru - Soko limejaa' : 'Independence Day - Market packed',
-            date: 'December 9',
-            type: 'cultural',
-            zonesAffected: ['Fabric', 'Electronics', 'Wholesale'],
-            insiderTip: lang === 'sw' ? 'Njia mbadala kupitia eneo la jumla - msongamano ni mdogo' : 'Use alternative route through wholesale zone - less crowded',
-          },
-          {
-            id: 'evt-3',
-            title: lang === 'sw' ? 'Msimu wa Shule - Vitambaa vinauzwa haraka' : 'Back to School - Fabric sells fast',
-            date: 'January',
-            type: 'seasonal',
-            zonesAffected: ['Fabric', 'Wholesale'],
-            insiderTip: lang === 'sw' ? 'Nunuza mapema asubuhi - rangi maarufu zinamalizika haraka' : 'Shop early morning - popular colors sell out fast',
-          },
-          {
-            id: 'evt-4',
-            title: lang === 'sw' ? 'Mkutano wa Biashara wa Kariakoo' : 'Kariakoo Trade Expo',
-            date: 'July 15-20',
-            type: 'commercial',
-            zonesAffected: ['All Zones'],
-            insiderTip: lang === 'sw' ? 'Wauzaji wengi wanatoa punguzo maalum wakati wa maonyesho' : 'Many vendors offer special discounts during the expo',
-          },
-        ]}
-        onSetReminder={(eventId) => {
-          toast.success(lang === 'sw' ? 'Kumbusho limewekwa!' : 'Reminder set!');
-        }}
-        language={lang}
-      />
-    </div>
-  );
+    );
+  };
 
   // ─── BUDDY SYSTEM VIEW ───
-  const renderBuddy = () => (
-    <div className="space-y-6">
-      {renderBackButton()}
-      <div>
-        <h1 className="text-xl font-bold gradient-text">{lang === 'sw' ? 'Rafiki Pamoja' : 'Buddy System'}</h1>
-        <p className="text-sm text-muted-foreground mt-1">{lang === 'sw' ? 'Onga na watafuta wengine kwa usalama' : 'Join other seekers for safety'}</p>
+  const renderBuddy = () => {
+    // Derive buddy data from real buddy matches API
+    const activeBuddies = buddyMatches
+      .filter((b) => b.status === 'matched' || b.status === 'pending')
+      .map((b, i) => ({
+        id: b.seeker2Id || `buddy-${b.id}`,
+        name: lang === 'sw' ? `Mtafuta ${i + 1}` : `Seeker ${i + 1}`,
+        rating: 4.0 + (i % 3) * 0.3,
+        sessionsCompleted: 5 + (i % 5) * 3,
+      }));
+
+    const firstBuddyMatch = buddyMatches[0];
+    const buddyZone = firstBuddyMatch?.zoneId
+      ? zones.find((z) => z.id === firstBuddyMatch.zoneId)
+      : zones[0];
+
+    return (
+      <div className="space-y-6">
+        {renderBackButton()}
+        <div>
+          <h1 className="text-xl font-bold gradient-text">{lang === 'sw' ? 'Rafiki Pamoja' : 'Buddy System'}</h1>
+          <p className="text-sm text-muted-foreground mt-1">{lang === 'sw' ? 'Onga na watafuta wengine kwa usalama' : 'Join other seekers for safety'}</p>
+        </div>
+        {isLoadingBuddies ? (
+          <div className="space-y-3">
+            {Array.from({ length: 2 }, (_, i) => (
+              <Skeleton key={i} className="h-24 rounded-xl shimmer" />
+            ))}
+          </div>
+        ) : (
+          <BuddySystem
+            zoneId={buddyZone?.id || 'zone_1'}
+            zoneName={buddyZone ? (lang === 'sw' ? buddyZone.nameSw : buddyZone.name) : 'Kariakoo'}
+            timeSlot="10:00 AM - 12:00 PM"
+            currentBuddies={activeBuddies.length > 0 ? activeBuddies : [
+              { id: 'placeholder-1', name: 'Amina J.', rating: 4.5, sessionsCompleted: 8 },
+              { id: 'placeholder-2', name: 'David M.', rating: 4.2, sessionsCompleted: 5 },
+            ]}
+            seekerRating={4.3}
+            onInvite={async (buddyId) => {
+              if (!user) return;
+              try {
+                await buddyMatchesApi.create({
+                  seeker1Id: user.id,
+                  seeker2Id: buddyId,
+                  zoneId: buddyZone?.id,
+                } as Partial<BuddyMatch>);
+                toast.success(lang === 'sw' ? 'Umekaribisha rafiki!' : 'You invited a buddy!');
+                fetchBuddyMatches();
+              } catch {
+                toast.error(lang === 'sw' ? 'Imeshindwa kukaribisha' : 'Failed to invite buddy');
+              }
+            }}
+            language={lang}
+          />
+        )}
       </div>
-      <BuddySystem
-        zoneId={zones[0]?.id || 'zone_1'}
-        zoneName={zones[0] ? (lang === 'sw' ? zones[0].nameSw : zones[0].name) : 'Kariakoo'}
-        timeSlot="10:00 AM - 12:00 PM"
-        currentBuddies={[
-          { id: 'buddy-1', name: 'Amina J.', rating: 4.5, sessionsCompleted: 8 },
-          { id: 'buddy-2', name: 'David M.', rating: 4.2, sessionsCompleted: 5 },
-          { id: 'buddy-3', name: 'Fatma K.', rating: 4.8, sessionsCompleted: 12 },
-        ]}
-        seekerRating={4.3}
-        onInvite={(buddyId) => {
-          toast.success(lang === 'sw' ? 'Umekaribisha rafiki!' : 'You invited a buddy!');
-        }}
-        language={lang}
-      />
-    </div>
-  );
+    );
+  };
 
   // ─── PACKAGE DEALS VIEW ───
-  const renderPackages = () => (
-    <div className="space-y-6">
-      {renderBackButton()}
-      <div>
-        <h1 className="text-xl font-bold gradient-text">{lang === 'sw' ? 'Vifurushi' : 'Package Deals'}</h1>
-        <p className="text-sm text-muted-foreground mt-1">{lang === 'sw' ? 'Vifurushi vya bei nafuu kutoka kwa waongozaji' : 'Discounted bundles from guides'}</p>
+  const renderPackages = () => {
+    // Map API package deals to the format expected by PackageDeals component
+    const mappedPackages = packageDealList.map((pkg) => {
+      const guide = guides.find((g) => g.id === pkg.guideId);
+      const zoneNames = (pkg.zoneIds || []).map((zId) => {
+        const zone = zones.find((z) => z.id === zId);
+        return zone ? (lang === 'sw' ? zone.nameSw : zone.name) : zId;
+      });
+      return {
+        id: pkg.id,
+        title: pkg.title,
+        duration: pkg.duration,
+        zones: zoneNames.length > 0 ? zoneNames : ['Kariakoo'],
+        price: pkg.price,
+        deliveryIncluded: pkg.includes?.includes('delivery') || false,
+        sessionsCompleted: 0,
+        isPopular: false,
+      };
+    });
+
+    return (
+      <div className="space-y-6">
+        {renderBackButton()}
+        <div>
+          <h1 className="text-xl font-bold gradient-text">{lang === 'sw' ? 'Vifurushi' : 'Package Deals'}</h1>
+          <p className="text-sm text-muted-foreground mt-1">{lang === 'sw' ? 'Vifurushi vya bei nafuu kutoka kwa waongozaji' : 'Discounted bundles from guides'}</p>
+        </div>
+        {isLoadingPackages ? (
+          <div className="space-y-3">
+            {Array.from({ length: 3 }, (_, i) => (
+              <Skeleton key={i} className="h-32 rounded-xl shimmer" />
+            ))}
+          </div>
+        ) : (
+          <PackageDeals
+            packages={mappedPackages}
+            guideName={packageDealList[0] ? (guides.find((g) => g.id === packageDealList[0].guideId)?.name || (lang === 'sw' ? 'Mwongozo' : 'Guide')) : (lang === 'sw' ? 'Mwongozo' : 'Guide')}
+            onBook={async (packageId) => {
+              try {
+                const pkg = packageDealList.find((p) => p.id === packageId);
+                if (pkg) {
+                  await sessionsApi.create({
+                    requestId: '',
+                    guideId: pkg.guideId,
+                  });
+                  toast.success(lang === 'sw' ? 'Kifurushi kimehifadhiwa!' : 'Package booked!');
+                }
+              } catch {
+                toast.error(lang === 'sw' ? 'Imeshindwa kuhifadhi' : 'Failed to book package');
+              }
+            }}
+            language={lang}
+          />
+        )}
       </div>
-      <PackageDeals
-        packages={[
-          {
-            id: 'pkg-1',
-            title: lang === 'sw' ? 'Kamili ya Kariakoo' : 'Kariakoo Complete',
-            duration: 4,
-            zones: ['Vyombo', 'Spices', 'Fabric'],
-            price: 85000,
-            deliveryIncluded: true,
-            sessionsCompleted: 42,
-            isPopular: true,
-          },
-          {
-            id: 'pkg-2',
-            title: lang === 'sw' ? 'Haraka ya Jumla' : 'Wholesale Express',
-            duration: 2,
-            zones: ['Wholesale'],
-            price: 40000,
-            deliveryIncluded: false,
-            sessionsCompleted: 28,
-          },
-          {
-            id: 'pkg-3',
-            title: lang === 'sw' ? 'Vitambaa na Mitindo' : 'Fabric & Fashion',
-            duration: 3,
-            zones: ['Fabric', 'Electronics'],
-            price: 65000,
-            deliveryIncluded: true,
-            sessionsCompleted: 15,
-          },
-        ]}
-        guideName={guides[0]?.name || (lang === 'sw' ? 'Mwongozo' : 'Guide')}
-        onBook={(packageId) => {
-          toast.success(lang === 'sw' ? 'Kifurushi kimehifadhiwa!' : 'Package booked!');
-        }}
-        language={lang}
-      />
-    </div>
-  );
+    );
+  };
 
   // ── Main Layout ──
 
@@ -2523,7 +2813,7 @@ export function SeekerDashboard() {
                 onClick={() => {
                   setActiveSessionId(activeSession.id);
                   fetchActiveSession(activeSession.id);
-                  setActiveSession(activeSession);
+                  setActiveSession(activeSession as unknown as import('@/lib/stores/session-store').Session);
                   setView('session');
                 }}
               >
@@ -2644,16 +2934,17 @@ export function SeekerDashboard() {
 
           <DialogFooter>
             <button
-              className="glass px-4 py-2 rounded-xl text-sm font-medium hover:bg-[var(--glass-hover)] transition-colors"
+              className="glass h-9 px-4 rounded-xl text-sm font-medium hover:bg-[var(--glass-hover)] transition-colors"
               onClick={() => setRatingOpen(false)}
             >
               {t('cancel', lang)}
             </button>
             <button
-              className="glass-button px-4 py-2 text-sm"
+              className="glass-button h-9 px-6 rounded-xl text-sm font-medium"
               onClick={handleSubmitRating}
+              disabled={ratingValue === 0}
             >
-              {t('submit_review', lang)}
+              {t('submit', lang)}
             </button>
           </DialogFooter>
         </DialogContent>

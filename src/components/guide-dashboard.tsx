@@ -7,6 +7,33 @@ import { useSessionStore } from '@/lib/stores/session-store';
 import { t, Language } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 
+// API client
+import {
+  api,
+  guidesApi,
+  requestsApi,
+  sessionsApi,
+  messagesApi,
+  payoutsApi,
+  badgesApi,
+  seasonalEventsApi,
+  marketStoriesApi,
+  mentorshipsApi,
+  sessionRecordingsApi,
+  guideSubscriptionsApi,
+  exchangeRatesApi,
+  type GuideSubscription,
+  type SeasonalEvent,
+  type MarketStory,
+  type Mentorship,
+  type SessionRecording as SessionRecordingType,
+  type ExchangeRate,
+} from '@/lib/api';
+
+// Socket.io hooks
+import { useSocketIO, useSessionChat, useGuideRequests, useSessionUpdates, useLiveLocations } from '@/hooks/use-socket';
+import { emitGuideStatus, emitChatMessage, emitJoinSession, emitLeaveSession } from '@/lib/socket';
+
 // shadcn/ui
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -291,45 +318,7 @@ const langLabelMap: Record<string, string> = {
   de: 'Deutsch', zh: '中文', it: 'Italiano',
 };
 
-// ── Simulated request data for demo ──
-const simulatedRequests: RequestItem[] = [
-  {
-    id: 'sim_req_1',
-    seekerId: 'seeker_1',
-    description: 'Nahitaji kutafuta vyombo vya chakula vya bei nzuri',
-    zoneIds: '[]',
-    budget: 35000,
-    photoUrl: null,
-    status: 'open',
-    createdAt: new Date(Date.now() - 30000).toISOString(),
-    updatedAt: new Date(Date.now() - 30000).toISOString(),
-    seeker: { id: 'seeker_1', name: 'Sarah Johnson', phone: '+12501234567', avatarUrl: null },
-  },
-  {
-    id: 'sim_req_2',
-    seekerId: 'seeker_2',
-    description: 'Looking for wholesale electronics bulk pricing',
-    zoneIds: '[]',
-    budget: 150000,
-    photoUrl: null,
-    status: 'open',
-    createdAt: new Date(Date.now() - 180000).toISOString(),
-    updatedAt: new Date(Date.now() - 180000).toISOString(),
-    seeker: { id: 'seeker_2', name: 'Marco Rossi', phone: '+39123456789', avatarUrl: null },
-  },
-  {
-    id: 'sim_req_3',
-    seekerId: 'seeker_3',
-    description: 'Ninataka kununua kitenge cha aina mbalimbali',
-    zoneIds: '[]',
-    budget: 25000,
-    photoUrl: null,
-    status: 'open',
-    createdAt: new Date(Date.now() - 420000).toISOString(),
-    updatedAt: new Date(Date.now() - 420000).toISOString(),
-    seeker: { id: 'seeker_3', name: 'Li Wei', phone: '+861234567890', avatarUrl: null },
-  },
-];
+// Simulated request data removed — all data comes from real API + Socket.io
 
 // ── Component ──
 
@@ -338,6 +327,9 @@ export function GuideDashboard() {
   const guideStore = useGuideStore();
   const { setActiveSession, clearSession, setSessionHistory } = useSessionStore();
   const lang = language as Language;
+
+  // Socket.io hooks
+  const { startLocationTracking } = useSocketIO();
 
   // View state
   const [view, setView] = useState<GuideView>('home');
@@ -353,12 +345,25 @@ export function GuideDashboard() {
   const [payouts, setPayouts] = useState<PayoutItem[]>([]);
   const [leaderboardGuides, setLeaderboardGuides] = useState<LeaderboardGuideData[]>([]);
 
+  // Additional data from API
+  const [subscriptions, setSubscriptions] = useState<GuideSubscription[]>([]);
+  const [mentorshipsData, setMentorshipsData] = useState<Mentorship[]>([]);
+  const [seasonalEvents, setSeasonalEvents] = useState<SeasonalEvent[]>([]);
+  const [marketStories, setMarketStories] = useState<MarketStory[]>([]);
+  const [sessionRecordings, setSessionRecordings] = useState<SessionRecordingType[]>([]);
+  const [exchangeRates, setExchangeRates] = useState<ExchangeRate[]>([]);
+  const [seekerLocation, setSeekerLocation] = useState<{ lat: number; lng: number } | null>(null);
+
   // Loading states
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
   const [isLoadingRequests, setIsLoadingRequests] = useState(false);
   const [isLoadingSession, setIsLoadingSession] = useState(false);
   const [isLoadingPayouts, setIsLoadingPayouts] = useState(false);
   const [isLoadingZones, setIsLoadingZones] = useState(false);
+  const [isLoadingSubscriptions, setIsLoadingSubscriptions] = useState(false);
+  const [isLoadingMentorships, setIsLoadingMentorships] = useState(false);
+  const [isLoadingEvents, setIsLoadingEvents] = useState(false);
+  const [isLoadingStories, setIsLoadingStories] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Status toggle
@@ -400,9 +405,8 @@ export function GuideDashboard() {
   // Error state
   const [error, setError] = useState<string | null>(null);
 
-  // Simulated request timer ref
-  const simRequestTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const simRequestIndexRef = useRef(0);
+  // Location tracking cleanup ref
+  const locationCleanupRef = useRef<(() => void) | null>(null);
 
   // ── Data Fetching ──
 
@@ -410,26 +414,26 @@ export function GuideDashboard() {
     if (!user) return;
     setIsLoadingProfile(true);
     try {
-      const res = await fetch(`/api/guides/${user.id}`);
-      const data = await res.json();
-      if (data.guide) {
-        const g = data.guide;
-        const profileZones = typeof g.zones === 'string' ? JSON.parse(g.zones) : g.zones || [];
-        const profileLanguages = typeof g.languages === 'string' ? JSON.parse(g.languages) : g.languages || [];
+      const data = await api.get<Record<string, unknown>>(`/guides/${user.id}`);
+      const raw = (data as Record<string, unknown>).guide || data;
+      const g = ((raw as Record<string, unknown>).guideProfile || raw) as Record<string, unknown>;
+      if (g) {
+        const profileZones = typeof g.zones === 'string' ? JSON.parse(g.zones as string) : (g.zones as string[]) || [];
+        const profileLanguages = typeof g.languages === 'string' ? JSON.parse(g.languages as string) : (g.languages as string[]) || [];
         const profileData: GuideProfileData = {
-          id: g.id,
-          userId: g.userId,
-          bio: g.bio || '',
-          idDocumentUrl: g.idDocumentUrl || null,
-          status: g.status || 'pending',
+          id: g.id as string,
+          userId: (g.userId as string) || user.id,
+          bio: (g.bio as string) || '',
+          idDocumentUrl: (g.idDocumentUrl as string | null) || null,
+          status: (g.status as 'pending' | 'active' | 'suspended') || 'pending',
           zones: profileZones,
           languages: profileLanguages,
-          avgRating: g.avgRating || 0,
-          totalSessions: g.totalSessions || 0,
-          isOnline: g.isOnline || false,
-          currentStatus: g.currentStatus || 'offline',
-          createdAt: g.createdAt,
-          updatedAt: g.updatedAt,
+          avgRating: (g.avgRating as number) || 0,
+          totalSessions: (g.totalSessions as number) || 0,
+          isOnline: (g.isOnline as boolean) || false,
+          currentStatus: (g.currentStatus as 'online' | 'offline' | 'busy') || 'offline',
+          createdAt: (g.createdAt as string) || '',
+          updatedAt: (g.updatedAt as string) || '',
         };
         setProfile(profileData);
         setGuideProfile(profileData);
@@ -439,12 +443,17 @@ export function GuideDashboard() {
         guideStore.setOnline(profileData.isOnline);
         guideStore.setStatus(profileData.currentStatus);
         guideStore.setCurrentZoneIds(profileData.zones);
+      }
 
-        // Set badges
-        if (g.badges) {
-          setMyBadges(g.badges);
-          setBadges(g.badges);
-        }
+      // Fetch badges separately via badges API
+      try {
+        const badgesList = await badgesApi.list();
+        const rawBadges = Array.isArray(badgesList) ? badgesList : [];
+        const guideBadges = rawBadges.filter((b: { guideId: string }) => b.guideId === (g?.id || user.id));
+        setMyBadges(guideBadges);
+        setBadges(guideBadges);
+      } catch {
+        // Badges fetch is non-critical
       }
     } catch {
       setError(lang === 'sw' ? 'Imeshindwa kupakia wasifu' : 'Failed to load profile');
@@ -456,14 +465,14 @@ export function GuideDashboard() {
   const fetchZones = useCallback(async () => {
     setIsLoadingZones(true);
     try {
-      const res = await fetch('/api/zones');
-      const data = await res.json();
-      const mapped = (data.zones || []).map((z: Zone & { nameSw?: string }) => ({
-        id: z.id,
-        name: z.name,
-        nameSw: z.nameSw || z.name,
-        color: z.color,
-        nameKey: `zone_${z.name.toLowerCase()}`,
+      const zonesList = await api.get<unknown>('/zones');
+      const raw = (Array.isArray(zonesList) ? zonesList : (zonesList as Record<string, unknown[] & Record<string, unknown>>).zones || []) as Array<Record<string, unknown>>;
+      const mapped: Zone[] = raw.map((z) => ({
+        id: z.id as string,
+        name: z.name as string,
+        nameSw: (z.nameSw as string) || (z.name as string),
+        color: z.color as string,
+        nameKey: `zone_${(z.name as string).toLowerCase()}`,
       }));
       setZones(mapped);
     } catch {
@@ -477,14 +486,12 @@ export function GuideDashboard() {
     if (!user) return;
     setIsLoadingRequests(true);
     try {
-      const res = await fetch('/api/requests?status=open');
-      const data = await res.json();
-      const apiRequests: RequestItem[] = data.requests || [];
+      const data = await requestsApi.list();
+      const raw = Array.isArray(data) ? data : ((data as Record<string, unknown>).requests || []) as unknown[];
+      const apiRequests = raw as RequestItem[];
 
-      // Combine with simulated requests for demo
-      const combined = [...simulatedRequests, ...apiRequests];
-      setLiveRequests(combined);
-      guideStore.setLiveRequests(combined.map((r) => ({
+      setLiveRequests(apiRequests);
+      guideStore.setLiveRequests(apiRequests.map((r) => ({
         id: r.id,
         seekerId: r.seekerId,
         description: r.description,
@@ -508,12 +515,10 @@ export function GuideDashboard() {
   const fetchActiveSession = useCallback(async (sessionId: string) => {
     setIsLoadingSession(true);
     try {
-      const res = await fetch(`/api/sessions/${sessionId}`);
-      const data = await res.json();
-      if (data.session) {
-        setActiveSessionData(data.session);
-        setSessionMessages(data.session.messages || []);
-      }
+      const data = await api.get<Record<string, unknown>>(`/sessions/${sessionId}`);
+      const session = (data as Record<string, unknown>).session || data;
+      setActiveSessionData(session as SessionItem);
+      setSessionMessages(((session as SessionItem).messages || []) as MessageItem[]);
     } catch {
       /* ignore */
     } finally {
@@ -524,18 +529,20 @@ export function GuideDashboard() {
   const fetchSessions = useCallback(async () => {
     if (!user) return;
     try {
-      const res = await fetch(`/api/sessions?guideId=${user.id}`);
-      const data = await res.json();
-      setSessions(data.sessions || []);
-      setSessionHistory(data.sessions || []);
+      const data = await sessionsApi.list();
+      const raw = Array.isArray(data) ? data : ((data as Record<string, unknown>).sessions || []) as unknown[];
+      const sessionsList = raw as SessionItem[];
+      setSessions(sessionsList);
+      setSessionHistory(sessionsList as unknown as import('@/lib/stores/session-store').Session[]);
 
       // Check for active session
-      const active = (data.sessions || []).find(
-        (s: SessionItem) => s.escrowStatus === 'held' && !s.completedAt
+      const active = sessionsList.find(
+        (s) => s.escrowStatus === 'held' && !s.completedAt
       );
       if (active) {
         setActiveSessionId(active.id);
         fetchActiveSession(active.id);
+        emitJoinSession(active.id);
       }
     } catch {
       /* ignore */
@@ -546,9 +553,9 @@ export function GuideDashboard() {
     if (!user) return;
     setIsLoadingPayouts(true);
     try {
-      const res = await fetch(`/api/payouts?guideId=${user.id}`);
-      const data = await res.json();
-      setPayouts(data.payouts || []);
+      const data = await payoutsApi.list();
+      const raw = Array.isArray(data) ? data : ((data as Record<string, unknown>).payouts || []) as unknown[];
+      setPayouts(raw as PayoutItem[]);
     } catch {
       /* ignore */
     } finally {
@@ -558,50 +565,184 @@ export function GuideDashboard() {
 
   const fetchLeaderboard = useCallback(async () => {
     try {
-      const res = await fetch('/api/guides?status=active');
-      const data = await res.json();
-      const mapped = (data.guides || []).map((g: Record<string, unknown>) => {
-        const profileZones = typeof g.zones === 'string' ? JSON.parse(g.zones as string) : (g.zones as string[]) || [];
-        const u = g.user as Record<string, unknown> | undefined;
-        const b = (g.badges as Array<Record<string, string>>) || [];
+      const data = await guidesApi.list();
+      const raw = Array.isArray(data) ? data : ((data as Record<string, unknown>).guides || []) as unknown[];
+      const guidesList = raw as Array<Record<string, unknown>>;
+      const mapped = guidesList.map((g) => {
+        const gp = (g.guideProfile || g) as Record<string, unknown>;
+        const profileZones = typeof gp.zones === 'string' ? JSON.parse(gp.zones as string) : (gp.zones as string[]) || [];
+        const u = (g.user || g) as Record<string, unknown>;
+        const b = (gp.badges || g.badges || []) as Array<Record<string, string>>;
         return {
-          id: (u?.id as string) || (g.userId as string),
+          id: (u?.id as string) || (gp.userId as string),
           name: (u?.name as string) || '',
           avatarUrl: (u?.avatarUrl as string | null) || null,
-          rating: (g.avgRating as number) || 0,
-          totalSessions: (g.totalSessions as number) || 0,
-          sessionsThisWeek: Math.floor((g.totalSessions as number || 0) * 0.1),
+          rating: (gp.avgRating as number) || 0,
+          totalSessions: (gp.totalSessions as number) || 0,
+          sessionsThisWeek: Math.floor((gp.totalSessions as number || 0) * 0.1),
           zones: profileZones,
           isVerifiedElite: b.some((badge) => badge.badgeType === 'verified_elite'),
         };
-      }).sort((a: LeaderboardGuideData, b: LeaderboardGuideData) => b.rating - a.rating);
+      }).sort((a, b) => b.rating - a.rating);
       setLeaderboardGuides(mapped);
     } catch {
       /* ignore */
     }
   }, []);
 
+  // ── Additional fetch functions ──
+
+  const fetchSubscriptions = useCallback(async () => {
+    if (!user) return;
+    setIsLoadingSubscriptions(true);
+    try {
+      const data = await guideSubscriptionsApi.list();
+      setSubscriptions(Array.isArray(data) ? data : []);
+    } catch {
+      /* ignore */
+    } finally {
+      setIsLoadingSubscriptions(false);
+    }
+  }, [user]);
+
+  const fetchMentorships = useCallback(async () => {
+    if (!user) return;
+    setIsLoadingMentorships(true);
+    try {
+      const data = await mentorshipsApi.list();
+      setMentorshipsData(Array.isArray(data) ? data : []);
+    } catch {
+      /* ignore */
+    } finally {
+      setIsLoadingMentorships(false);
+    }
+  }, [user]);
+
+  const fetchSeasonalEvents = useCallback(async () => {
+    setIsLoadingEvents(true);
+    try {
+      const data = await seasonalEventsApi.list();
+      setSeasonalEvents(Array.isArray(data) ? data : []);
+    } catch {
+      /* ignore */
+    } finally {
+      setIsLoadingEvents(false);
+    }
+  }, []);
+
+  const fetchMarketStories = useCallback(async () => {
+    setIsLoadingStories(true);
+    try {
+      const data = await marketStoriesApi.list();
+      setMarketStories(Array.isArray(data) ? data : []);
+    } catch {
+      /* ignore */
+    } finally {
+      setIsLoadingStories(false);
+    }
+  }, []);
+
+  const fetchSessionRecordings = useCallback(async () => {
+    try {
+      const data = await sessionRecordingsApi.list();
+      setSessionRecordings(Array.isArray(data) ? data : []);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  const fetchExchangeRates = useCallback(async () => {
+    try {
+      const data = await exchangeRatesApi.list();
+      setExchangeRates(Array.isArray(data) ? data : []);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  // ── Socket.io real-time hooks ──
+
+  // Receive new guide requests via Socket.io
+  useGuideRequests(useCallback((req) => {
+    setLiveRequests((prev) => {
+      const newReq: RequestItem = {
+        id: req.requestId,
+        seekerId: req.seekerId,
+        description: req.description,
+        zoneIds: JSON.stringify(req.zoneIds),
+        budget: req.budget || 0,
+        photoUrl: null,
+        status: 'open',
+        createdAt: new Date(req.timestamp).toISOString(),
+        updatedAt: new Date(req.timestamp).toISOString(),
+        seeker: { id: req.seekerId, name: req.seekerName, phone: '', avatarUrl: null },
+      };
+      if (prev.some((r) => r.id === newReq.id)) return prev;
+      return [newReq, ...prev.slice(0, 19)];
+    });
+    toast.info(lang === 'sw' ? 'Ombi jipya limeingia!' : 'New request just came in!');
+  }, [lang]));
+
+  // Receive real-time chat messages via Socket.io
+  useSessionChat(activeSessionId, useCallback((msg) => {
+    setSessionMessages((prev) => {
+      if (prev.some((m) => m.id === msg.id)) return prev;
+      return [...prev, {
+        id: msg.id,
+        sessionId: msg.sessionId,
+        senderId: msg.senderId,
+        content: msg.content,
+        translatedContent: msg.translatedContent,
+        createdAt: new Date(msg.timestamp).toISOString(),
+        sender: undefined,
+      }];
+    });
+  }, []));
+
+  // Receive session status updates via Socket.io
+  useSessionUpdates(useCallback((update) => {
+    if (update.sessionId === activeSessionId) {
+      fetchActiveSession(update.sessionId);
+    }
+    if (update.status === 'completed' || update.status === 'cancelled') {
+      fetchSessions();
+    }
+  }, [activeSessionId, fetchActiveSession, fetchSessions]));
+
+  // Receive live location updates from seeker during session
+  useLiveLocations(useCallback((loc) => {
+    if (activeSessionId && loc.userId !== user?.id) {
+      setSeekerLocation({ lat: loc.lat, lng: loc.lng });
+    }
+  }, [activeSessionId, user?.id]));
+
   // ── Initial data loading ──
 
   useEffect(() => {
     fetchZones();
     fetchLeaderboard();
-  }, [fetchZones, fetchLeaderboard]);
+    fetchSeasonalEvents();
+    fetchMarketStories();
+    fetchSessionRecordings();
+    fetchExchangeRates();
+  }, [fetchZones, fetchLeaderboard, fetchSeasonalEvents, fetchMarketStories, fetchSessionRecordings, fetchExchangeRates]);
 
   useEffect(() => {
     if (user) {
       fetchProfile();
       fetchSessions();
       fetchPayouts();
+      fetchSubscriptions();
+      fetchMentorships();
     }
-  }, [user, fetchProfile, fetchSessions, fetchPayouts]);
+  }, [user, fetchProfile, fetchSessions, fetchPayouts, fetchSubscriptions, fetchMentorships]);
 
   // ── Fetch requests when online ──
 
   useEffect(() => {
     if (guideStore.isOnline && user) {
       fetchRequests();
-      // Poll every 10 seconds when online
+      // Poll every 10 seconds when online as a fallback alongside Socket.io
       const interval = setInterval(fetchRequests, 10000);
       return () => clearInterval(interval);
     } else {
@@ -609,59 +750,40 @@ export function GuideDashboard() {
     }
   }, [guideStore.isOnline, user, fetchRequests]);
 
-  // ── Simulate incoming requests every 15-30 seconds for demo ──
+  // ── Start location tracking when in active session ──
 
   useEffect(() => {
-    if (!guideStore.isOnline || view !== 'requests') return;
+    if (activeSessionId && guideStore.isOnline) {
+      const cleanup = startLocationTracking();
+      locationCleanupRef.current = cleanup;
+      return () => {
+        cleanup();
+        locationCleanupRef.current = null;
+      };
+    }
+  }, [activeSessionId, guideStore.isOnline, startLocationTracking]);
 
-    const scheduleNext = () => {
-      const delay = 15000 + Math.random() * 15000; // 15-30 seconds
-      simRequestTimerRef.current = setTimeout(() => {
-        simRequestIndexRef.current = (simRequestIndexRef.current + 1) % simulatedRequests.length;
-        const simReq = {
-          ...simulatedRequests[simRequestIndexRef.current],
-          id: `sim_req_${Date.now()}`,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-        setLiveRequests((prev) => [simReq, ...prev.slice(0, 9)]);
-        toast.info(lang === 'sw' ? 'Ombi jipya limeingia!' : 'New request just came in!');
-        scheduleNext();
-      }, delay);
-    };
-    scheduleNext();
-
-    return () => {
-      if (simRequestTimerRef.current) {
-        clearTimeout(simRequestTimerRef.current);
-      }
-    };
-  }, [guideStore.isOnline, view, lang]);
-
-  // ── Session chat polling ──
+  // ── Session chat polling (fallback alongside Socket.io) ──
 
   useEffect(() => {
     if (!activeSessionId || view !== 'session') return;
     const interval = setInterval(() => {
       fetchActiveSession(activeSessionId);
-    }, 5000);
+    }, 15000); // Reduced frequency since Socket.io handles real-time
     return () => clearInterval(interval);
   }, [activeSessionId, view, fetchActiveSession]);
 
   // ── Actions ──
 
-  const handleToggleStatus = async (newStatus: 'online' | 'offline' | 'busy') => {
+  const handleToggleStatus = useCallback(async (newStatus: 'online' | 'offline' | 'busy') => {
     if (!user) return;
     setStatusToggleLoading(true);
     try {
-      await fetch(`/api/guides/${user.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          currentStatus: newStatus,
-          isOnline: newStatus === 'online',
-        }),
+      await api.patch(`/guides/${user.id}`, {
+        currentStatus: newStatus,
+        isOnline: newStatus === 'online',
       });
+      emitGuideStatus(newStatus);
       guideStore.setStatus(newStatus);
       if (profile) {
         setProfile({ ...profile, currentStatus: newStatus, isOnline: newStatus === 'online' });
@@ -678,9 +800,9 @@ export function GuideDashboard() {
     } finally {
       setStatusToggleLoading(false);
     }
-  };
+  }, [user, lang, profile, guideStore]);
 
-  const handleAcceptRequest = async (request: RequestItem) => {
+  const handleAcceptRequest = useCallback(async (request: RequestItem) => {
     if (!user) return;
 
     // Enforce one active session at a time
@@ -691,30 +813,27 @@ export function GuideDashboard() {
 
     setIsSubmitting(true);
     try {
-      const res = await fetch('/api/sessions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          requestId: request.id,
-          guideId: user.id,
-          seekerId: request.seekerId,
-          amount: request.budget,
-        }),
+      const data = await api.post<unknown>('/sessions', {
+        requestId: request.id,
+        guideId: user.id,
       });
-      if (!res.ok) throw new Error('Failed');
-      const data = await res.json();
+      const session = ((data as Record<string, unknown>).session || data) as SessionItem;
       toast.success(lang === 'sw' ? 'Ombi limekubaliwa! Kikao kimeanza' : 'Request accepted! Session started');
 
       // Update status to busy
+      emitGuideStatus('busy');
       guideStore.setStatus('busy');
       if (profile) {
         setProfile({ ...profile, currentStatus: 'busy' });
       }
 
-      setActiveSessionId(data.session?.id || null);
-      setActiveSessionData(data.session || null);
+      setActiveSessionId((session as SessionItem).id || null);
+      setActiveSessionData(session as SessionItem);
       setSessionMessages([]);
-      setActiveSession(data.session);
+      setActiveSession(session as unknown as import('@/lib/stores/session-store').Session);
+
+      // Join the session room via Socket.io
+      emitJoinSession(session.id);
 
       // Remove accepted request from list
       setLiveRequests((prev) => prev.filter((r) => r.id !== request.id));
@@ -726,38 +845,33 @@ export function GuideDashboard() {
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, [user, activeSessionId, lang, profile, guideStore, fetchSessions]);
 
-  const handleSendMessage = async (content: string) => {
+  const handleSendMessage = useCallback(async (content: string) => {
     if (!activeSessionId || !user) return;
     try {
-      await fetch('/api/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          sessionId: activeSessionId,
-          senderId: user.id,
-          content,
-        }),
+      await messagesApi.send({
+        sessionId: activeSessionId,
+        content,
       });
+      emitChatMessage(activeSessionId, content);
       fetchActiveSession(activeSessionId);
     } catch {
       /* ignore */
     }
-  };
+  }, [activeSessionId, user, fetchActiveSession]);
 
-  const handleCompleteSession = async () => {
+  const handleCompleteSession = useCallback(async () => {
     if (!activeSessionId) return;
     try {
-      await fetch(`/api/sessions/${activeSessionId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'complete' }),
-      });
+      await api.patch(`/sessions/${activeSessionId}`, { action: 'complete' });
+      emitLeaveSession(activeSessionId);
       toast.success(lang === 'sw' ? 'Kikao kimemalizika!' : 'Session completed!');
       clearSession();
       setActiveSessionId(null);
       setActiveSessionData(null);
+      setSeekerLocation(null);
+      emitGuideStatus('online');
       guideStore.setStatus('online');
       if (profile) {
         setProfile({ ...profile, currentStatus: 'online', isOnline: true });
@@ -769,51 +883,38 @@ export function GuideDashboard() {
     } catch {
       toast.error(lang === 'sw' ? 'Imeshindwa kukamilisha kikao' : 'Failed to complete session');
     }
-  };
+  }, [activeSessionId, lang, profile, guideStore, clearSession, fetchSessions, fetchPayouts, fetchProfile]);
 
-  const handleConfirmSession = async () => {
+  const handleConfirmSession = useCallback(async () => {
     if (!activeSessionId) return;
     try {
-      await fetch(`/api/sessions/${activeSessionId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'confirm', guideConfirmed: true }),
-      });
+      await api.patch(`/sessions/${activeSessionId}`, { action: 'confirm', guideConfirmed: true });
       toast.success(lang === 'sw' ? 'Umethibitisha kikao!' : 'You confirmed the session!');
       fetchActiveSession(activeSessionId);
     } catch {
       toast.error(lang === 'sw' ? 'Imeshindwa kuthibitisha' : 'Failed to confirm');
     }
-  };
+  }, [activeSessionId, lang, fetchActiveSession]);
 
-  const handleEmergency = async () => {
+  const handleEmergency = useCallback(async () => {
     if (!activeSessionId) return;
     try {
-      await fetch(`/api/sessions/${activeSessionId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'emergency' }),
-      });
+      await api.patch(`/sessions/${activeSessionId}`, { action: 'emergency' });
       toast.error(lang === 'sw' ? 'Tahadhari imetumwa! Msaada unakuja.' : 'Emergency alert sent! Help is on the way.');
     } catch {
       /* ignore */
     }
-  };
+  }, [activeSessionId, lang]);
 
-  const handleRequestPayout = async () => {
+  const handleRequestPayout = useCallback(async () => {
     if (!user || !payoutMobileNumber.trim()) return;
     setIsSubmitting(true);
     try {
-      const res = await fetch('/api/payouts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          guideId: user.id,
-          amount: parseFloat(payoutAmount) || 0,
-          mobileMoneyNumber: payoutMobileNumber.trim(),
-        }),
+      await payoutsApi.create({
+        guideId: user.id,
+        amount: parseFloat(payoutAmount) || 0,
+        mobileMoneyNumber: payoutMobileNumber.trim(),
       });
-      if (!res.ok) throw new Error('Failed');
       toast.success(lang === 'sw' ? 'Ombi la malipo limewasilishwa!' : 'Payout request submitted!');
       setPayoutDialogOpen(false);
       setPayoutMobileNumber('');
@@ -824,20 +925,16 @@ export function GuideDashboard() {
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, [user, payoutMobileNumber, payoutAmount, lang, fetchPayouts]);
 
-  const handleSaveProfile = async () => {
+  const handleSaveProfile = useCallback(async () => {
     if (!user) return;
     setIsProfileSaving(true);
     try {
-      await fetch(`/api/guides/${user.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          bio: editBio.trim(),
-          zones: editZones,
-          languages: editLanguages,
-        }),
+      await api.patch(`/guides/${user.id}`, {
+        bio: editBio.trim(),
+        zones: editZones,
+        languages: editLanguages,
       });
       toast.success(lang === 'sw' ? 'Wasifu umehifadhiwa!' : 'Profile saved!');
       setIsProfileEditing(false);
@@ -847,7 +944,7 @@ export function GuideDashboard() {
     } finally {
       setIsProfileSaving(false);
     }
-  };
+  }, [user, editBio, editZones, editLanguages, lang, fetchProfile]);
 
   const handleToggleChecklist = (itemId: string) => {
     setChecklist((prev) =>
@@ -865,13 +962,13 @@ export function GuideDashboard() {
   // ── Derived data ──
 
   const earningsData = useMemo(() => {
-    const pending = payouts
+    const pending = (payouts as PayoutItem[])
       .filter((p) => p.status === 'pending')
       .reduce((sum, p) => sum + p.amount, 0);
-    const released = payouts
+    const released = (payouts as PayoutItem[])
       .filter((p) => p.status === 'processed')
       .reduce((sum, p) => sum + p.amount, 0);
-    const thisWeek = sessions
+    const thisWeek = (sessions as SessionItem[])
       .filter((s) => {
         if (!s.completedAt) return false;
         const d = new Date(s.completedAt);
@@ -880,7 +977,7 @@ export function GuideDashboard() {
         return d >= weekAgo;
       })
       .reduce((sum, s) => sum + (s.amount - s.platformFee), 0);
-    const totalEarned = sessions
+    const totalEarned = (sessions as SessionItem[])
       .filter((s) => s.completedAt)
       .reduce((sum, s) => sum + (s.amount - s.platformFee), 0);
 
@@ -889,7 +986,7 @@ export function GuideDashboard() {
 
   const weeklyEarningsData = useMemo(() => {
     // Generate last 7 days of earnings
-    const days = [];
+    const days: Array<{ label: string; amount: number }> = [];
     for (let i = 6; i >= 0; i--) {
       const date = new Date();
       date.setDate(date.getDate() - i);
@@ -1157,9 +1254,15 @@ export function GuideDashboard() {
           </div>
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-foreground text-sm">{lang === 'sw' ? 'Usajili wako' : 'Your Subscription'}</p>
-            <p className="text-xs text-muted-foreground">{lang === 'sw' ? 'Starter - Boresha hadi Pro' : 'Starter - Upgrade to Pro'}</p>
+            <p className="text-xs text-muted-foreground">{(() => {
+              const tier = subscriptions.length > 0 ? subscriptions[0].tier : 'starter';
+              if (lang === 'sw') {
+                return tier === 'pro' ? 'Pro - Bure zaidi!' : tier === 'elite' ? 'Elite - Viwango vya juu!' : 'Starter - Boresha hadi Pro';
+              }
+              return tier === 'pro' ? 'Pro - More features!' : tier === 'elite' ? 'Elite - Top tier!' : 'Starter - Upgrade to Pro';
+            })()}</p>
           </div>
-          <Badge className="glass text-amber-800 dark:text-amber-200 text-xs px-2 py-0.5 rounded-full">Starter</Badge>
+          <Badge className="glass text-amber-800 dark:text-amber-200 text-xs px-2 py-0.5 rounded-full">{subscriptions.length > 0 ? subscriptions[0].tier.charAt(0).toUpperCase() + subscriptions[0].tier.slice(1) : 'Starter'}</Badge>
         </CardContent>
       </Card>
 
@@ -1603,10 +1706,22 @@ export function GuideDashboard() {
               name: z.name,
               nameKey: z.nameKey,
             }))}
-            guides={[{ id: user?.id || 'me', name: user?.name || 'You', isOnline: true }]}
+            guides={[{ id: user?.id || 'me', name: user?.name || 'You', isOnline: true, ...(seekerLocation ? {} : {}) }]}
             showUserLocation={true}
             interactive={true}
           />
+        )}
+
+        {/* Seeker live location indicator */}
+        {seekerLocation && sessionTab === 'map' && (
+          <Card className="glass-card">
+            <CardContent className="p-3 flex items-center gap-2">
+              <div className="size-3 rounded-full bg-blue-500 animate-pulse" />
+              <span className="text-xs text-muted-foreground">
+                {lang === 'sw' ? 'Mahali pa muombaji:' : 'Seeker location:'} {seekerLocation.lat.toFixed(4)}, {seekerLocation.lng.toFixed(4)}
+              </span>
+            </CardContent>
+          </Card>
         )}
 
         {/* Indoor Navigation tab */}
@@ -1632,8 +1747,26 @@ export function GuideDashboard() {
           isRecording={isSessionRecording}
           duration={sessionRecordingDuration}
           onGrantConsent={() => setGuideRecordingConsent(true)}
-          onStartRecording={() => setIsSessionRecording(true)}
-          onStopRecording={() => setIsSessionRecording(false)}
+          onStartRecording={async () => {
+            setIsSessionRecording(true);
+            try {
+              await sessionRecordingsApi.create({
+                sessionId: activeSessionData.id,
+                guideConsent: true,
+                seekerConsent: seekerRecordingConsent,
+              });
+            } catch {
+              // Recording start attempt is non-critical
+            }
+          }}
+          onStopRecording={async () => {
+            setIsSessionRecording(false);
+            try {
+              fetchSessionRecordings();
+            } catch {
+              // Recording stop is non-critical
+            }
+          }}
           language={lang}
           className="!p-3"
         />
@@ -1660,11 +1793,7 @@ export function GuideDashboard() {
           }}
           onReleaseEscrow={async () => {
             try {
-              await fetch(`/api/sessions/${activeSessionData.id}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'release' }),
-              });
+              await api.patch(`/sessions/${activeSessionData.id}`, { action: 'release' });
               toast.success(lang === 'sw' ? 'Malipo yametolewa!' : 'Payment released!');
               fetchActiveSession(activeSessionData.id);
             } catch {
@@ -2102,9 +2231,20 @@ export function GuideDashboard() {
     <div className="space-y-6 p-4">
       {renderBackButton()}
       <SubscriptionTiers
-        currentTier="starter"
-        onUpgrade={(tier) => {
-          toast.success(lang === 'sw' ? `Umehamia ${tier}!` : `Upgraded to ${tier}!`);
+        currentTier={subscriptions.length > 0 ? subscriptions[0].tier : 'starter'}
+        onUpgrade={async (tier) => {
+          if (!user) return;
+          try {
+            await guideSubscriptionsApi.create({
+              guideId: user.id,
+              tier,
+              autoRenew: true,
+            });
+            toast.success(lang === 'sw' ? `Umehamia ${tier}!` : `Upgraded to ${tier}!`);
+            fetchSubscriptions();
+          } catch {
+            toast.error(lang === 'sw' ? 'Imeshindwa kubadilisha usajili' : 'Failed to upgrade subscription');
+          }
         }}
         language={lang}
       />
@@ -2138,13 +2278,24 @@ export function GuideDashboard() {
         menteeSessionsCompleted={profile?.totalSessions || 0}
         menteeSessionsRequired={10}
         isEligible={(profile?.totalSessions || 0) >= 10 && (profile?.avgRating || 0) >= 4.0}
-        isMentee={false}
+        isMentee={mentorshipsData.some((m) => m.menteeId === user?.id && m.status === 'active')}
         availableMentors={[
           { id: 'mentor1', name: 'Mama Asha', rating: 4.9, specialties: [lang === 'sw' ? 'Vyombo' : 'Utensils', lang === 'sw' ? 'Vyakula' : 'Spices'], totalSessions: 250, menteesCount: 5 },
           { id: 'mentor2', name: 'Uncle Juma', rating: 4.8, specialties: [lang === 'sw' ? 'Elektroniki' : 'Electronics'], totalSessions: 180, menteesCount: 3 },
         ]}
-        onRequestMentor={(mentorId) => {
-          toast.success(lang === 'sw' ? 'Ombi la ushauri limetumwa!' : 'Mentorship request sent!');
+        onRequestMentor={async (mentorId) => {
+          if (!user) return;
+          try {
+            await mentorshipsApi.create({
+              mentorId,
+              menteeId: user.id,
+              sessionsRequired: 10,
+            });
+            toast.success(lang === 'sw' ? 'Ombi la ushauri limetumwa!' : 'Mentorship request sent!');
+            fetchMentorships();
+          } catch {
+            toast.error(lang === 'sw' ? 'Imeshindwa kutuma ombi' : 'Failed to send request');
+          }
         }}
         language={lang}
       />
@@ -2156,11 +2307,19 @@ export function GuideDashboard() {
     <div className="space-y-6 p-4">
       {renderBackButton()}
       <SeasonalCalendar
-        events={[
-          { id: 'evt1', title: lang === 'sw' ? 'Siku ya Wafanyabiashara' : 'Traders Day', date: '2026-06-15', type: 'commercial', zonesAffected: [lang === 'sw' ? 'Vyombo' : 'Utensils', lang === 'sw' ? 'Elektroniki' : 'Electronics'], insiderTip: lang === 'sw' ? 'Bei zinashuka asubuhi' : 'Prices drop in the morning' },
-          { id: 'evt2', title: lang === 'sw' ? 'Idd el Fitr' : 'Eid al-Fitr', date: '2026-06-28', type: 'religious', zonesAffected: [lang === 'sw' ? 'Vyakula' : 'Spices'], insiderTip: lang === 'sw' ? 'Soko hufungwa mapema' : 'Market closes early', dateRange: '3 days' },
-          { id: 'evt3', title: lang === 'sw' ? 'Mashujaa Day' : 'Heroes Day', date: '2026-07-01', type: 'cultural', zonesAffected: [lang === 'sw' ? 'Jumla' : 'Wholesale'], insiderTip: lang === 'sw' ? 'Watu wengi wanakuja' : 'Large crowds expected' },
-          { id: 'evt4', title: lang === 'sw' ? 'Msimu wa Matunda' : 'Fruit Season Peak', date: '2026-07-15', type: 'seasonal', zonesAffected: [lang === 'sw' ? 'Vyakula' : 'Spices'], insiderTip: lang === 'sw' ? 'Matunda ya bei chini' : 'Best fruit prices' },
+        events={seasonalEvents.length > 0 ? seasonalEvents.map((evt) => ({
+          id: evt.id,
+          title: lang === 'sw' ? evt.titleSw : evt.title,
+          date: evt.startDate,
+          type: (evt.type === 'cultural' || evt.type === 'religious' || evt.type === 'seasonal' || evt.type === 'commercial' ? evt.type : 'seasonal') as 'cultural' | 'religious' | 'seasonal' | 'commercial',
+          zonesAffected: evt.affectedZones.map((zId) => {
+            const zone = zones.find((z) => z.id === zId);
+            return zone ? (lang === 'sw' ? zone.nameSw : zone.name) : zId;
+          }),
+          insiderTip: lang === 'sw' ? (evt.insiderTipSw || evt.insiderTip || '') : (evt.insiderTip || ''),
+          dateRange: evt.startDate !== evt.endDate ? `${Math.ceil((new Date(evt.endDate).getTime() - new Date(evt.startDate).getTime()) / 86400000)} days` : undefined,
+        })) : [
+          { id: 'evt_fallback', title: lang === 'sw' ? 'Hakuna matukio' : 'No events', date: new Date().toISOString(), type: 'seasonal' as const, zonesAffected: [] as string[], insiderTip: '' },
         ]}
         onSetReminder={(eventId) => {
           toast.success(lang === 'sw' ? 'Kumbusho limewekwa!' : 'Reminder set!');
@@ -2175,16 +2334,42 @@ export function GuideDashboard() {
     <div className="space-y-6 p-4">
       {renderBackButton()}
       <MarketStoriesComp
-        stories={[
-          { id: 'story1', guideName: user?.name || 'Guide', vendorName: 'Mama Halima', zoneName: lang === 'sw' ? 'Vyombo' : 'Utensils', text: 'The best kitchenware deals in Kariakoo are found in the early morning hours when the wholesale trucks arrive. Mama Halima has been selling here for 20 years and knows every vendor.', textSw: 'Mashauri mazuri ya vyombo vya chakula Kariakoo yanapatikana asubuhi mapema wakati malori ya jumla yanapowasili. Mama Halima ameuza hapa kwa miaka 20 na anamfahamu kila muuzaji.', tags: ['kitchenware', 'wholesale', 'tips'], createdAt: new Date(Date.now() - 86400000).toISOString() },
-          { id: 'story2', guideName: 'Uncle Juma', vendorName: 'Ali Electronics', zoneName: lang === 'sw' ? 'Elektroniki' : 'Electronics', text: 'When buying electronics in Kariakoo, always ask about the warranty. Ali Electronics offers a 6-month guarantee on most items, which is rare in this market.', textSw: 'Unaponunua elektroniki Kariakoo, daima uliza kuhusu dhamana. Ali Electronics inatoa dhamana ya miezi 6 kwa vitu vingi, jambo ambalo ni nadra sokoni.', tags: ['electronics', 'warranty', 'advice'], createdAt: new Date(Date.now() - 172800000).toISOString() },
+        stories={marketStories.length > 0 ? marketStories.map((story) => ({
+          id: story.id,
+          guideName: user?.name || 'Guide',
+          vendorName: story.vendorId || '',
+          zoneName: zones.find((z) => z.id === story.zoneId)?.name || story.zoneId,
+          text: story.content,
+          textSw: story.content,
+          tags: story.tags || [],
+          createdAt: story.createdAt,
+        })) : [
+          { id: 'story_empty', guideName: '', vendorName: '', zoneName: '', text: lang === 'sw' ? 'Hakuna hadithi bado' : 'No stories yet', textSw: 'Hakuna hadithi bado', tags: [], createdAt: new Date().toISOString() },
         ]}
         language={lang}
         onPlayAudio={(storyId) => {
-          toast.info(lang === 'sw' ? 'Inacheza sauti...' : 'Playing audio...');
+          const story = marketStories.find((s) => s.id === storyId);
+          if (story?.audioUrl) {
+            toast.info(lang === 'sw' ? 'Inacheza sauti...' : 'Playing audio...');
+          } else {
+            toast.info(lang === 'sw' ? 'Hakuna sauti inayopatikana' : 'No audio available');
+          }
         }}
-        onAddStory={() => {
-          toast.info(lang === 'sw' ? 'Ongeza hadithi yako!' : 'Add your story!');
+        onAddStory={async () => {
+          if (!user || !profile) return;
+          try {
+            await marketStoriesApi.create({
+              guideId: profile.id,
+              zoneId: profile.zones[0] || '',
+              title: lang === 'sw' ? 'Hadithi yangu' : 'My Story',
+              content: '',
+              tags: [],
+            });
+            toast.info(lang === 'sw' ? 'Hadithi mpya imeundwa!' : 'New story created!');
+            fetchMarketStories();
+          } catch {
+            toast.error(lang === 'sw' ? 'Imeshindwa kuunda hadithi' : 'Failed to create story');
+          }
         }}
       />
     </div>
@@ -2434,7 +2619,11 @@ export function GuideDashboard() {
           </div>
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-foreground text-sm">{lang === 'sw' ? 'Usajili wako' : 'Your Subscription'}</p>
-            <p className="text-xs text-muted-foreground">Starter - {lang === 'sw' ? 'Boresha hadi Pro' : 'Upgrade to Pro'}</p>
+            <p className="text-xs text-muted-foreground">{(() => {
+              const tier = subscriptions.length > 0 ? subscriptions[0].tier : 'starter';
+              const tierLabel = tier.charAt(0).toUpperCase() + tier.slice(1);
+              return `${tierLabel} - ${lang === 'sw' ? 'Boresha hadi Pro' : 'Upgrade to Pro'}`;
+            })()}</p>
           </div>
           <ArrowLeft className="size-4 text-muted-foreground rotate-180" />
         </CardContent>

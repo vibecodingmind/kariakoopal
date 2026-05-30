@@ -4,14 +4,23 @@ import { cookies } from 'next/headers';
 
 export async function POST(request: NextRequest) {
   try {
-    const { phone, name, email } = await request.json();
+    const { phone, name, email, role } = await request.json();
 
     // Support email-based lookup for social login users
     if (!phone && email) {
       const user = await db.user.findFirst({ where: { email } });
 
       if (user) {
-        const token = `token_${user.id}_${Date.now()}`;
+        // If role is provided and differs, update it
+        let updatedUser = user;
+        if (role && user.role !== role && (role === 'seeker' || role === 'guide' || role === 'admin')) {
+          updatedUser = await db.user.update({
+            where: { id: user.id },
+            data: { role },
+          });
+        }
+
+        const token = `token_${updatedUser.id}_${Date.now()}`;
 
         const cookieStore = await cookies();
         cookieStore.set('auth_token', token, {
@@ -22,7 +31,15 @@ export async function POST(request: NextRequest) {
           path: '/',
         });
 
-        return NextResponse.json({ user, token }, { status: 200 });
+        // Also fetch guide profile if user is a guide
+        let guideProfile = null;
+        if (updatedUser.role === 'guide') {
+          guideProfile = await db.guideProfile.findUnique({
+            where: { userId: updatedUser.id },
+          });
+        }
+
+        return NextResponse.json({ user: updatedUser, token, guideProfile }, { status: 200 });
       }
 
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
@@ -33,6 +50,7 @@ export async function POST(request: NextRequest) {
     }
 
     let user = await db.user.findUnique({ where: { phone } });
+    let isNewUser = false;
 
     if (!user) {
       if (!name) {
@@ -41,9 +59,59 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         );
       }
+      // Validate role
+      const userRole = (role === 'guide' || role === 'admin') ? role : 'seeker';
       user = await db.user.create({
-        data: { phone, name, email: email || null },
+        data: { phone, name, email: email || null, role: userRole },
       });
+      isNewUser = true;
+
+      // If new guide, create a pending guide profile
+      if (userRole === 'guide') {
+        await db.guideProfile.create({
+          data: {
+            userId: user.id,
+            bio: '',
+            status: 'pending',
+            zones: [],
+            languages: ['sw'],
+            avgRating: 0,
+            totalSessions: 0,
+            isOnline: false,
+            currentStatus: 'offline',
+          },
+        });
+      }
+    } else {
+      // Update role if provided and different
+      if (role && user.role !== role && (role === 'seeker' || role === 'guide' || role === 'admin')) {
+        user = await db.user.update({
+          where: { id: user.id },
+          data: { role },
+        });
+
+        // If upgrading to guide, create guide profile if not exists
+        if (role === 'guide') {
+          const existingProfile = await db.guideProfile.findUnique({
+            where: { userId: user.id },
+          });
+          if (!existingProfile) {
+            await db.guideProfile.create({
+              data: {
+                userId: user.id,
+                bio: '',
+                status: 'pending',
+                zones: [],
+                languages: ['sw'],
+                avgRating: 0,
+                totalSessions: 0,
+                isOnline: false,
+                currentStatus: 'offline',
+              },
+            });
+          }
+        }
+      }
     }
 
     const token = `token_${user.id}_${Date.now()}`;
@@ -57,7 +125,23 @@ export async function POST(request: NextRequest) {
       path: '/',
     });
 
-    return NextResponse.json({ user, token }, { status: 200 });
+    // Fetch guide profile if user is a guide
+    let guideProfile = null;
+    if (user.role === 'guide') {
+      guideProfile = await db.guideProfile.findUnique({
+        where: { userId: user.id },
+      });
+    }
+
+    // Fetch badges if guide
+    let badges: never[] | { id: string; guideId: string; badgeType: string; awardedAt: string }[] = [];
+    if (user.role === 'guide' && guideProfile) {
+      badges = await db.badge.findMany({
+        where: { guideId: guideProfile.id },
+      });
+    }
+
+    return NextResponse.json({ user, token, guideProfile, badges, isNewUser }, { status: 200 });
   } catch (error) {
     console.error('Auth error:', error);
     return NextResponse.json({ error: 'Authentication failed' }, { status: 500 });

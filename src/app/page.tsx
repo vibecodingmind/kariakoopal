@@ -1,23 +1,24 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { useAppStore } from '@/lib/stores/app-store';
-import { t, Language } from '@/lib/i18n';
+import { t } from '@/lib/i18n';
 import { SeekerDashboard } from '@/components/seeker-dashboard';
 import { GuideDashboard } from '@/components/guide-dashboard';
 import { AdminDashboard } from '@/components/admin-dashboard';
 import { Onboarding } from '@/components/onboarding';
+import { LanguageToggle } from '@/components/language-toggle';
 import { Input } from '@/components/ui/input';
-import { MapPin, Phone, Shield, Compass, LogOut, Moon, Sun, Loader2, ChevronDown, Globe } from 'lucide-react';
+import { MapPin, Phone, Shield, Compass, LogOut, Moon, Sun, Loader2, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
-import { signIn, useSession } from 'next-auth/react';
+import { signIn, useSession, signOut } from 'next-auth/react';
 
 // ── NextAuth Session Sync ──
 // Syncs the NextAuth session into the Zustand auth store when a social login completes
 function NextAuthSessionSync() {
   const { data: session } = useSession();
-  const { setUser, isAuthenticated } = useAuthStore();
+  const { setUser, setGuideProfile, isAuthenticated } = useAuthStore();
   const syncedRef = useRef(false);
 
   useEffect(() => {
@@ -31,21 +32,35 @@ function NextAuthSessionSync() {
         email: u.email || null,
         name: u.name || '',
         role: ((u as Record<string, unknown>).role as string || 'seeker') as 'seeker' | 'guide' | 'admin',
-        languagePref: 'sw' as const,
-        avatarUrl: u.image || null,
+        languagePref: ((u as Record<string, unknown>).languagePref as string || 'sw') as 'sw' | 'en',
+        avatarUrl: ((u as Record<string, unknown>).avatarUrl as string) || u.image || null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
       setUser(user);
+
+      // If user is a guide, fetch guide profile from our API
+      if (user.role === 'guide' && user.id) {
+        fetch(`/api/guides/${user.id}`)
+          .then(res => res.ok ? res.json() : null)
+          .then(data => {
+            if (data?.guideProfile) {
+              setGuideProfile(data.guideProfile);
+            }
+          })
+          .catch(() => {
+            // Profile fetch can fail, that's OK
+          });
+      }
     }
-  }, [session, isAuthenticated, setUser]);
+  }, [session, isAuthenticated, setUser, setGuideProfile]);
 
   return null;
 }
 
 // ── Glassmorphism Auth Screen ──
 function AuthScreen() {
-  const { login, language, setLanguage, isLoading } = useAuthStore();
+  const { login, language, isLoading } = useAuthStore();
   const [step, setStep] = useState<'phone' | 'otp' | 'role'>('phone');
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
@@ -75,7 +90,8 @@ function AuthScreen() {
     setError('');
     try {
       const fullPhone = phone.startsWith('+') ? phone : `+255${phone.replace(/^0/, '')}`;
-      await login(fullPhone);
+      const roleName = selectedRole === 'seeker' ? 'Demo Seeker' : 'Demo Guide';
+      await login(fullPhone, selectedRole, roleName);
     } catch {
       setError(language === 'sw' ? 'Hitilafu katika kuingia. Jaribu tena.' : 'Login failed. Please try again.');
     }
@@ -85,16 +101,17 @@ function AuthScreen() {
     setError('');
     try {
       let phoneNum = '';
-      if (role === 'seeker') phoneNum = '+14155550001';
-      else if (role === 'guide') phoneNum = '+255712000001';
-      else if (role === 'admin') phoneNum = '+255700000001';
-      await login(phoneNum);
+      let name = '';
+      if (role === 'seeker') { phoneNum = '+14155550001'; name = 'Demo Seeker'; }
+      else if (role === 'guide') { phoneNum = '+255712000001'; name = 'Demo Guide'; }
+      else if (role === 'admin') { phoneNum = '+255700000001'; name = 'Admin'; }
+      await login(phoneNum, role, name);
     } catch {
       setError(language === 'sw' ? 'Hitilafu katika kuingia' : 'Login failed');
     }
   };
 
-  const handleSocialLogin = (provider: string) => {
+  const handleSocialLogin = useCallback((provider: string) => {
     // Map the display name to NextAuth provider ID
     const providerMap: Record<string, string> = {
       'Google': 'google',
@@ -112,27 +129,13 @@ function AuthScreen() {
     } else {
       toast.info(`${provider} ${t('demo_mode', language).toLowerCase()} — Coming soon!`);
     }
-  };
-
-  const toggleLanguage = () => {
-    const newLang: Language = language === 'sw' ? 'en' : 'sw';
-    setLanguage(newLang);
-  };
+  }, [language]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 relative">
       {/* Language toggle pill - top right */}
       <div className="fixed top-4 right-4 z-10">
-        <button
-          onClick={toggleLanguage}
-          className="glass flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium hover:bg-[var(--glass-hover)] transition-colors"
-          aria-label={`Switch language to ${language === 'sw' ? 'English' : 'Kiswahili'}`}
-        >
-          <Globe className="w-4 h-4" />
-          <span className="text-xs font-semibold uppercase tracking-wide">
-            {language === 'sw' ? 'SW' : 'EN'}
-          </span>
-        </button>
+        <LanguageToggle className="glass rounded-full" />
       </div>
 
       {/* Main glass card */}
@@ -382,7 +385,7 @@ function AuthScreen() {
 
 // ── Glassmorphism App Shell ──
 function AppShell() {
-  const { user, language, logout, setLanguage } = useAuthStore();
+  const { user, language, logout } = useAuthStore();
   const { darkMode, setDarkMode } = useAppStore();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -421,10 +424,15 @@ function AppShell() {
       ? 'text-emerald-600 dark:text-emerald-400'
       : 'text-purple-600 dark:text-purple-400';
 
-  const toggleLanguage = () => {
-    const newLang: Language = language === 'sw' ? 'en' : 'sw';
-    setLanguage(newLang);
-  };
+  const handleLogout = useCallback(async () => {
+    try {
+      await signOut({ redirect: false });
+    } catch {
+      // signOut can fail if no NextAuth session, that's OK
+    }
+    logout();
+    setShowUserMenu(false);
+  }, [logout]);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -446,16 +454,7 @@ function AppShell() {
           {/* Right controls */}
           <div className="flex items-center gap-2">
             {/* Language toggle pill */}
-            <button
-              onClick={toggleLanguage}
-              className="glass flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium hover:bg-[var(--glass-hover)] transition-colors"
-              aria-label={`Switch language to ${language === 'sw' ? 'English' : 'Kiswahili'}`}
-            >
-              <Globe className="w-3.5 h-3.5" />
-              <span className="font-semibold uppercase tracking-wide">
-                {language === 'sw' ? 'SW' : 'EN'}
-              </span>
-            </button>
+            <LanguageToggle className="glass rounded-full" />
 
             {/* Dark mode toggle */}
             <button
@@ -489,10 +488,7 @@ function AppShell() {
                   </div>
                   <div className="p-2">
                     <button
-                      onClick={() => {
-                        logout();
-                        setShowUserMenu(false);
-                      }}
+                      onClick={handleLogout}
                       className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
                     >
                       <LogOut className="w-4 h-4" />

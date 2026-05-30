@@ -55,6 +55,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
+import { api, adminApi, zonesApi, priceRadarApi, fraudAlertsApi, seasonalEventsApi } from '@/lib/api';
 import {
   BarChart3,
   Users,
@@ -404,12 +405,12 @@ export function AdminDashboard() {
   const [vendorsWithVer, setVendorsWithVer] = useState<VendorWithVerification[]>([]);
   const [seasonalEvents, setSeasonalEvents] = useState<SeasonalEventItem[]>([]);
   const [packageDeals, setPackageDeals] = useState<PackageDealItem[]>([]);
+  const [sessions, setSessions] = useState<{ id: string; createdAt: string; amount: number; status: string; guideRating: number | null; seekerRating: number | null; startedAt: string | null }[]>([]);
 
   // Fetch all data
   const fetchStats = useCallback(async () => {
     try {
-      const res = await fetch('/api/admin/stats');
-      const data = await res.json();
+      const data = await api.get<{ stats: AdminStats }>('/admin/stats');
       setStats(data.stats);
     } catch {
       toast.error(lang === 'sw' ? 'Hitilafu ya kupata takwimu' : 'Failed to load stats');
@@ -418,8 +419,7 @@ export function AdminDashboard() {
 
   const fetchPendingGuides = useCallback(async () => {
     try {
-      const res = await fetch('/api/guides?status=pending');
-      const data = await res.json();
+      const data = await api.get<{ guides: PendingGuide[] }>('/guides?status=pending');
       setPendingGuides(data.guides || []);
     } catch {
       toast.error(lang === 'sw' ? 'Hitilafu ya kupata waongozaji' : 'Failed to load pending guides');
@@ -428,8 +428,7 @@ export function AdminDashboard() {
 
   const fetchZones = useCallback(async () => {
     try {
-      const res = await fetch('/api/zones');
-      const data = await res.json();
+      const data = await api.get<{ zones: ZoneItem[] }>('/zones');
       setZones(data.zones || []);
     } catch {
       toast.error(lang === 'sw' ? 'Hitilafu ya kupata maeneo' : 'Failed to load zones');
@@ -438,8 +437,7 @@ export function AdminDashboard() {
 
   const fetchPriceEntries = useCallback(async () => {
     try {
-      const res = await fetch('/api/price-radar');
-      const data = await res.json();
+      const data = await api.get<{ entries: PriceRadarEntry[] }>('/price-radar');
       setPriceEntries(data.entries || []);
     } catch {
       toast.error(lang === 'sw' ? 'Hitilafu ya kupata rada ya bei' : 'Failed to load price entries');
@@ -448,8 +446,7 @@ export function AdminDashboard() {
 
   const fetchUsers = useCallback(async () => {
     try {
-      const res = await fetch('/api/users');
-      const data = await res.json();
+      const data = await api.get<{ users: UserItem[] }>('/users');
       setUsers(data.users || []);
     } catch {
       toast.error(lang === 'sw' ? 'Hitilafu ya kupata watumiaji' : 'Failed to load users');
@@ -458,8 +455,7 @@ export function AdminDashboard() {
 
   const fetchDisputes = useCallback(async () => {
     try {
-      const res = await fetch('/api/admin/disputes');
-      const data = await res.json();
+      const data = await api.get<{ disputes: DisputeItem[] }>('/admin/disputes');
       setDisputes(data.disputes || []);
     } catch {
       toast.error(lang === 'sw' ? 'Hitilafu ya kupata migogoro' : 'Failed to load disputes');
@@ -468,8 +464,7 @@ export function AdminDashboard() {
 
   const fetchFraudAlerts = useCallback(async () => {
     try {
-      const res = await fetch('/api/fraud-alerts');
-      const data = await res.json();
+      const data = await api.get<{ items: FraudAlertItem[] }>('/fraud-alerts');
       setFraudAlerts(data.items || []);
     } catch {
       toast.error(lang === 'sw' ? 'Hitilafu ya kupata tahadhari' : 'Failed to load fraud alerts');
@@ -478,16 +473,14 @@ export function AdminDashboard() {
 
   const fetchVendorsWithVerification = useCallback(async () => {
     try {
-      const [verRes, venRes] = await Promise.all([
-        fetch('/api/vendor-verifications'),
-        fetch('/api/vendors'),
+      const [verData, venData] = await Promise.all([
+        api.get<{ items: { id: string; vendorId: string; isVerified: boolean; verifiedAt: string | null; monthlyFee: number; qrCode: string }[] }>('/vendor-verifications'),
+        api.get<{ vendors: VendorWithVerification[] }>('/vendors'),
       ]);
-      const verData = await verRes.json();
-      const venData = await venRes.json();
       const verifications = verData.items || [];
       const vendors = venData.vendors || [];
       const merged = vendors.map((v: VendorWithVerification) => {
-        const ver = verifications.find((vv: { id: string; vendorId: string; isVerified: boolean; verifiedAt: string | null; monthlyFee: number; qrCode: string }) => vv.vendorId === v.id);
+        const ver = verifications.find((vv) => vv.vendorId === v.id);
         return { ...v, verification: ver || null };
       });
       setVendorsWithVer(merged);
@@ -498,8 +491,7 @@ export function AdminDashboard() {
 
   const fetchSeasonalEvents = useCallback(async () => {
     try {
-      const res = await fetch('/api/seasonal-events');
-      const data = await res.json();
+      const data = await api.get<{ items: SeasonalEventItem[] }>('/seasonal-events');
       setSeasonalEvents(data.items || []);
     } catch {
       toast.error(lang === 'sw' ? 'Hitilafu ya kupata matukio' : 'Failed to load seasonal events');
@@ -508,13 +500,21 @@ export function AdminDashboard() {
 
   const fetchPackageDeals = useCallback(async () => {
     try {
-      const res = await fetch('/api/package-deals');
-      const data = await res.json();
+      const data = await api.get<{ items: PackageDealItem[] }>('/package-deals');
       setPackageDeals(data.items || []);
     } catch {
       toast.error(lang === 'sw' ? 'Hitilafu ya kupata vifurushi' : 'Failed to load package deals');
     }
   }, [lang]);
+
+  const fetchSessions = useCallback(async () => {
+    try {
+      const data = await api.get<{ sessions: { id: string; createdAt: string; amount: number; status: string; guideRating: number | null; seekerRating: number | null; startedAt: string | null }[] }>('/sessions');
+      setSessions(data.sessions || []);
+    } catch {
+      // Sessions are optional for analytics, don't show error toast
+    }
+  }, []);
 
   // Initial load
   useEffect(() => {
@@ -531,11 +531,12 @@ export function AdminDashboard() {
         fetchVendorsWithVerification(),
         fetchSeasonalEvents(),
         fetchPackageDeals(),
+        fetchSessions(),
       ]);
       setLoading(false);
     };
     load();
-  }, [fetchStats, fetchPendingGuides, fetchZones, fetchPriceEntries, fetchUsers, fetchDisputes, fetchFraudAlerts, fetchVendorsWithVerification, fetchSeasonalEvents, fetchPackageDeals]);
+  }, [fetchStats, fetchPendingGuides, fetchZones, fetchPriceEntries, fetchUsers, fetchDisputes, fetchFraudAlerts, fetchVendorsWithVerification, fetchSeasonalEvents, fetchPackageDeals, fetchSessions]);
 
   return (
     <div className="min-h-screen flex bg-background">
@@ -592,7 +593,7 @@ export function AdminDashboard() {
               {view === 'price-radar' && <PriceRadarView lang={lang} entries={priceEntries} zones={zones} onRefresh={fetchPriceEntries} />}
               {view === 'calendar' && <CalendarView lang={lang} events={seasonalEvents} zones={zones} onRefresh={fetchSeasonalEvents} />}
               {view === 'packages' && <PackagesView lang={lang} deals={packageDeals} onRefresh={fetchPackageDeals} />}
-              {view === 'analytics' && <AnalyticsView lang={lang} stats={stats} zones={zones} users={users} />}
+              {view === 'analytics' && <AnalyticsView lang={lang} stats={stats} zones={zones} users={users} sessions={sessions} />}
               {view === 'users' && <UsersView lang={lang} users={users} onRefresh={fetchUsers} />}
               {view === 'disputes' && <DisputesView lang={lang} disputes={disputes} onRefresh={fetchDisputes} />}
             </>
@@ -667,16 +668,24 @@ function OverviewView({ lang, stats, zones, disputes, pendingGuides, users, onNa
     fill: z.color,
   }));
 
-  // Rating distribution (simulated)
+  // Rating distribution computed from real guide data
+  const guideRatings = users.filter(u => u.role === 'guide' && u.guideProfile && u.guideProfile.avgRating > 0);
+  const ratingBuckets = [0, 0, 0, 0, 0];
+  guideRatings.forEach(u => {
+    if (u.guideProfile) {
+      const bucket = Math.min(Math.floor(u.guideProfile.avgRating) - 1, 4);
+      if (bucket >= 0) ratingBuckets[bucket]++;
+    }
+  });
   const ratingDistribution = [
-    { rating: '5 ★', count: 8, fill: '#10B981' },
-    { rating: '4 ★', count: 12, fill: '#0EA5E9' },
-    { rating: '3 ★', count: 5, fill: '#F59E0B' },
-    { rating: '2 ★', count: 2, fill: '#F97316' },
-    { rating: '1 ★', count: 1, fill: '#EF4444' },
+    { rating: '5 ★', count: ratingBuckets[4], fill: '#10B981' },
+    { rating: '4 ★', count: ratingBuckets[3], fill: '#0EA5E9' },
+    { rating: '3 ★', count: ratingBuckets[2], fill: '#F59E0B' },
+    { rating: '2 ★', count: ratingBuckets[1], fill: '#F97316' },
+    { rating: '1 ★', count: ratingBuckets[0], fill: '#EF4444' },
   ];
 
-  // Recent activity (simulated from data)
+  // Recent activity from real data
   const recentActivity = [
     ...pendingGuides.slice(0, 3).map(g => ({
       type: 'registration' as const,
@@ -897,12 +906,7 @@ function VerificationView({ lang, guides, onRefresh }: {
   const approveGuide = async (guideId: string) => {
     setProcessing(guideId);
     try {
-      const res = await fetch('/api/admin/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ guideId, action: 'approve' }),
-      });
-      if (!res.ok) throw new Error();
+      await adminApi.verify({ type: 'guide', id: guideId, approved: true });
       toast.success(lang === 'sw' ? 'Mwongozo amekubaliwa' : 'Guide approved successfully');
       onRefresh();
     } catch {
@@ -915,12 +919,7 @@ function VerificationView({ lang, guides, onRefresh }: {
   const rejectGuide = async (guideId: string, reason: string) => {
     setProcessing(guideId);
     try {
-      const res = await fetch('/api/admin/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ guideId, action: 'reject', reason }),
-      });
-      if (!res.ok) throw new Error();
+      await adminApi.verify({ type: 'guide', id: guideId, approved: false });
       toast.success(lang === 'sw' ? 'Mwongozo amekataliwa' : 'Guide rejected');
       onRefresh();
     } catch {
@@ -1113,12 +1112,7 @@ function ZonesView({ lang, zones, onRefresh }: {
     if (!editZone) return;
     setSaving(true);
     try {
-      const res = await fetch(`/api/zones/${editZone.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: formName, nameSw: formNameSw, description: formDesc, color: formColor }),
-      });
-      if (!res.ok) throw new Error();
+      await zonesApi.update(editZone.id, { name: formName, nameSw: formNameSw, description: formDesc, color: formColor });
       toast.success(lang === 'sw' ? 'Eneo limehifadhiwa' : 'Zone saved');
       onRefresh();
       setEditDialogOpen(false);
@@ -1133,12 +1127,7 @@ function ZonesView({ lang, zones, onRefresh }: {
     if (!formName.trim()) return;
     setSaving(true);
     try {
-      const res = await fetch('/api/zones', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: formName, nameSw: formNameSw, description: formDesc, color: formColor }),
-      });
-      if (!res.ok) throw new Error();
+      await zonesApi.create({ name: formName, nameSw: formNameSw, description: formDesc, color: formColor });
       toast.success(lang === 'sw' ? 'Eneo limeundwa' : 'Zone created');
       onRefresh();
       setCreateDialogOpen(false);
@@ -1152,8 +1141,7 @@ function ZonesView({ lang, zones, onRefresh }: {
   const deleteZone = async () => {
     setSaving(true);
     try {
-      const res = await fetch(`/api/zones/${deleteZoneId}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error();
+      await zonesApi.delete(deleteZoneId);
       toast.success(lang === 'sw' ? 'Eneo limefutwa' : 'Zone deleted');
       onRefresh();
       setDeleteDialogOpen(false);
@@ -1359,12 +1347,7 @@ function PriceRadarView({ lang, entries, zones, onRefresh }: {
     if (!editEntry) return;
     setSaving(true);
     try {
-      const res = await fetch(`/api/price-radar/${editEntry.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ category: formCategory, zoneId: formZoneId, priceMin: formPriceMin, priceMax: formPriceMax, updatedBy: 'admin' }),
-      });
-      if (!res.ok) throw new Error();
+      await priceRadarApi.update(editEntry.id, { category: formCategory, zoneId: formZoneId, priceMin: formPriceMin, priceMax: formPriceMax });
       toast.success(lang === 'sw' ? 'Bei imehifadhiwa' : 'Price updated');
       onRefresh();
       setEditDialogOpen(false);
@@ -1379,12 +1362,7 @@ function PriceRadarView({ lang, entries, zones, onRefresh }: {
     if (!formCategory.trim() || !formZoneId) return;
     setSaving(true);
     try {
-      const res = await fetch('/api/price-radar', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ category: formCategory, zoneId: formZoneId, priceMin: formPriceMin, priceMax: formPriceMax, updatedBy: 'admin' }),
-      });
-      if (!res.ok) throw new Error();
+      await priceRadarApi.create({ category: formCategory, zoneId: formZoneId, priceMin: formPriceMin, priceMax: formPriceMax });
       toast.success(lang === 'sw' ? 'Bei imeundwa' : 'Price entry created');
       onRefresh();
       setCreateDialogOpen(false);
@@ -1398,8 +1376,7 @@ function PriceRadarView({ lang, entries, zones, onRefresh }: {
   const deleteEntry = async () => {
     setSaving(true);
     try {
-      const res = await fetch(`/api/price-radar/${deleteEntryId}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error();
+      await priceRadarApi.delete(deleteEntryId);
       toast.success(lang === 'sw' ? 'Bei imefutwa' : 'Price entry deleted');
       onRefresh();
       setDeleteDialogOpen(false);
@@ -1600,30 +1577,46 @@ function PriceRadarView({ lang, entries, zones, onRefresh }: {
 }
 
 // ── 5. Analytics View ──
-function AnalyticsView({ lang, stats, zones, users }: {
+function AnalyticsView({ lang, stats, zones, users, sessions }: {
   lang: Language; stats: AdminStats | null; zones: ZoneItem[];
-  users: UserItem[];
+  users: UserItem[]; sessions: { id: string; createdAt: string; amount: number; status: string; guideRating: number | null; seekerRating: number | null; startedAt: string | null }[];
 }) {
   const [dateRange, setDateRange] = useState<'week' | 'month' | 'year'>('week');
 
   if (!stats) return null;
 
-  // Generate simulated chart data based on date range
+  // Generate chart data from real session data
   const generateTimeData = () => {
+    const now = new Date();
     const days = dateRange === 'week' ? 7 : dateRange === 'month' ? 30 : 12;
-    const labels = dateRange === 'year'
-      ? ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-      : Array.from({ length: days }, (_, i) => {
-          const d = new Date();
-          d.setDate(d.getDate() - (days - 1 - i));
-          return d.toLocaleDateString(lang === 'sw' ? 'sw-TZ' : 'en-US', { month: 'short', day: 'numeric' });
-        });
 
-    return labels.map((label, i) => ({
-      name: label,
-      sessions: Math.floor(Math.random() * 15) + 3 + i * 0.5,
-      revenue: Math.floor(Math.random() * 50000) + 10000 + i * 2000,
-    }));
+    if (dateRange === 'year') {
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const yearData = months.map((label, i) => {
+        const monthSessions = sessions.filter(s => {
+          const d = new Date(s.createdAt);
+          return d.getFullYear() === now.getFullYear() && d.getMonth() === i;
+        });
+        return {
+          name: label,
+          sessions: monthSessions.length,
+          revenue: monthSessions.reduce((sum, s) => sum + s.amount, 0),
+        };
+      });
+      return yearData;
+    }
+
+    return Array.from({ length: days }, (_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() - (days - 1 - i));
+      const dateStr = d.toISOString().slice(0, 10);
+      const daySessions = sessions.filter(s => s.createdAt.slice(0, 10) === dateStr);
+      return {
+        name: d.toLocaleDateString(lang === 'sw' ? 'sw-TZ' : 'en-US', { month: 'short', day: 'numeric' }),
+        sessions: daySessions.length,
+        revenue: daySessions.reduce((sum, s) => sum + s.amount, 0),
+      };
+    });
   };
 
   const timeData = generateTimeData();
@@ -1634,25 +1627,57 @@ function AnalyticsView({ lang, stats, zones, users }: {
     fill: z.color,
   }));
 
+  // Rating distribution computed from real guide ratings
+  const guideRatings = users.filter(u => u.role === 'guide' && u.guideProfile && u.guideProfile.avgRating > 0);
+  const ratingBucketsAnalytics = [0, 0, 0, 0, 0];
+  guideRatings.forEach(u => {
+    if (u.guideProfile) {
+      const bucket = Math.min(Math.floor(u.guideProfile.avgRating) - 1, 4);
+      if (bucket >= 0) ratingBucketsAnalytics[bucket]++;
+    }
+  });
   const ratingDist = [
-    { name: '5 ★', value: 8, fill: '#10B981' },
-    { name: '4 ★', value: 12, fill: '#0EA5E9' },
-    { name: '3 ★', value: 5, fill: '#F59E0B' },
-    { name: '2 ★', value: 2, fill: '#F97316' },
-    { name: '1 ★', value: 1, fill: '#EF4444' },
+    { name: '5 ★', value: ratingBucketsAnalytics[4], fill: '#10B981' },
+    { name: '4 ★', value: ratingBucketsAnalytics[3], fill: '#0EA5E9' },
+    { name: '3 ★', value: ratingBucketsAnalytics[2], fill: '#F59E0B' },
+    { name: '2 ★', value: ratingBucketsAnalytics[1], fill: '#F97316' },
+    { name: '1 ★', value: ratingBucketsAnalytics[0], fill: '#EF4444' },
   ];
 
-  // Guide activity heatmap (simplified - 7 days x 6 time slots)
+  // Guide activity heatmap computed from real session start times
   const heatmapData = Array.from({ length: 7 }, (_, day) =>
-    Array.from({ length: 6 }, (_, slot) => Math.floor(Math.random() * 5))
+    Array.from({ length: 6 }, (_, slot) => {
+      const slotStart = slot * 3 + 6; // 6-9, 9-12, 12-15, 15-18, 18-21, 21-24
+      const slotEnd = slotStart + 3;
+      return sessions.filter(s => {
+        if (!s.startedAt) return false;
+        const d = new Date(s.startedAt);
+        const dayOfWeek = (d.getDay() + 6) % 7; // Mon=0..Sun=6
+        const hour = d.getHours();
+        return dayOfWeek === day && hour >= slotStart && hour < slotEnd;
+      }).length;
+    })
   );
   const dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   const slotLabels = ['6-9', '9-12', '12-15', '15-18', '18-21', '21-24'];
 
   const handleExport = () => {
-    toast.success(lang === 'sw' ? 'Data inashushwa...' : 'Exporting data...');
-    // Simulated export
-    setTimeout(() => toast.success(lang === 'sw' ? 'Data imeshushwa' : 'Data exported!'), 1500);
+    try {
+      const csvRows = ['Date,Sessions,Revenue'];
+      timeData.forEach(row => {
+        csvRows.push(`${row.name},${row.sessions},${row.revenue}`);
+      });
+      const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `kariako-analytics-${dateRange}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success(lang === 'sw' ? 'Data imeshushwa' : 'Data exported!');
+    } catch {
+      toast.error(lang === 'sw' ? 'Hitilafu ya kushusha data' : 'Export failed');
+    }
   };
 
   return (
@@ -1862,15 +1887,10 @@ function UsersView({ lang, users, onRefresh }: {
       return;
     }
     try {
-      const res = await fetch('/api/users', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: userId,
-          name: action === 'suspend' ? '[SUSPENDED]' : '[BANNED]',
-        }),
+      await api.patch<{ success: boolean }>('/users', {
+        id: userId,
+        name: action === 'suspend' ? '[SUSPENDED]' : '[BANNED]',
       });
-      if (!res.ok) throw new Error();
       toast.success(action === 'suspend'
         ? (lang === 'sw' ? 'Mtumiaji amesimamishwa' : 'User suspended')
         : (lang === 'sw' ? 'Mtumiaji amezuiwa' : 'User banned')
@@ -2076,12 +2096,7 @@ function DisputesView({ lang, disputes, onRefresh }: {
   const resolveDispute = async (sessionId: string, resolution: string) => {
     setProcessing(sessionId);
     try {
-      const res = await fetch('/api/admin/disputes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId, resolution, reason: adminNotes[sessionId] || '' }),
-      });
-      if (!res.ok) throw new Error();
+      await api.post<{ success: boolean }>('/admin/disputes', { sessionId, resolution, reason: adminNotes[sessionId] || '' });
       toast.success(resolution === 'release'
         ? (lang === 'sw' ? 'Escrow imetolewa kwa mwongozo' : 'Escrow released to guide')
         : (lang === 'sw' ? 'Pesa zimerudishwa kwa mtafuta' : 'Refund issued to seeker')
@@ -2311,12 +2326,7 @@ function FraudView({ lang, alerts, onRefresh }: {
   const reviewAlert = async (alertId: string, action: 'dismiss' | 'escalate') => {
     setProcessing(alertId);
     try {
-      const res = await fetch(`/api/fraud-alerts/${alertId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: action === 'dismiss' ? 'dismissed' : 'escalated' }),
-      });
-      if (!res.ok) throw new Error();
+      await fraudAlertsApi.update(alertId, { status: action === 'dismiss' ? 'dismissed' : 'investigating' });
       toast.success(action === 'dismiss'
         ? (lang === 'sw' ? 'Tahadhari imeondolewa' : 'Alert dismissed')
         : (lang === 'sw' ? 'Tahadhari imepandishwa' : 'Alert escalated')
@@ -2505,16 +2515,11 @@ function CalendarView({ lang, events, zones, onRefresh }: {
     if (!formTitle.trim() || !formStartDate) return;
     setSaving(true);
     try {
-      const res = await fetch('/api/seasonal-events', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: formTitle, titleSw: formTitleSw, description: formDesc, type: formType,
-          startDate: formStartDate, affectedZones: formAffectedZones,
-          insiderTip: '', insiderTipSw: '',
-        }),
+      await seasonalEventsApi.create({
+        title: formTitle, titleSw: formTitleSw, type: formType,
+        startDate: formStartDate, affectedZones: formAffectedZones ? [formAffectedZones] : [],
+        insiderTip: '', insiderTipSw: '',
       });
-      if (!res.ok) throw new Error();
       toast.success(lang === 'sw' ? 'Tukio limeundwa' : 'Event created');
       onRefresh();
       setCreateDialogOpen(false);
