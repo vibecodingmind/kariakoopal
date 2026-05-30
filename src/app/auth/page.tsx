@@ -156,7 +156,13 @@ function AuthContent() {
   return (
     <>
       <NextAuthSessionSync />
-      <div className="min-h-screen flex flex-col items-center justify-center p-4 relative">
+      <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden">
+        {/* Background orbs */}
+        <div className="fixed inset-0 z-0 pointer-events-none">
+          <div className="orb orb-amber w-[400px] h-[400px] -top-[10%] -left-[5%]" />
+          <div className="orb orb-emerald w-[300px] h-[300px] -bottom-[5%] -right-[5%]" />
+        </div>
+
         {/* Language toggle pill - top right */}
         <div className="fixed top-4 right-4 z-10">
           <LanguageToggle className="glass rounded-full" />
@@ -165,22 +171,22 @@ function AuthContent() {
         {/* Back to landing */}
         <button
           onClick={() => router.push('/')}
-          className="fixed top-4 left-4 z-10 glass w-9 h-9 rounded-full flex items-center justify-center hover:bg-[var(--glass-hover)] transition-colors text-sm"
+          className="fixed top-4 left-4 z-10 glass-card-premium w-10 h-10 rounded-xl flex items-center justify-center hover:bg-[var(--glass-hover)] transition-colors text-sm font-medium"
           aria-label="Back"
         >
           ←
         </button>
 
         {/* Main glass card */}
-        <div className="w-full max-w-sm">
+        <div className="w-full max-w-sm relative z-10">
           {/* Logo section */}
           <div className="text-center mb-8">
             <div className="animate-float inline-block">
-              <div className="w-20 h-20 mx-auto rounded-2xl glass-card flex items-center justify-center amber-glow-sm">
-                <Compass className="w-10 h-10 gradient-text" strokeWidth={2.5} />
+              <div className="w-20 h-20 mx-auto rounded-3xl glass-card-premium flex items-center justify-center animate-pulse-glow">
+                <Compass className="w-10 h-10 gradient-text-warm" strokeWidth={2.5} />
               </div>
             </div>
-            <h1 className="text-3xl font-bold mt-4 gradient-text">
+            <h1 className="text-3xl font-black mt-5 gradient-text-warm tracking-tight">
               {t('app_name', language)}
             </h1>
             <p className="text-muted-foreground mt-2 text-sm max-w-xs mx-auto">
@@ -189,7 +195,7 @@ function AuthContent() {
           </div>
 
           {/* Auth card */}
-          <div className="glass-card p-6 space-y-5">
+          <div className="glass-card-premium p-7 space-y-5 noise-overlay">
             {/* Step title */}
             <div className="text-center">
               <h2 className="text-lg font-semibold">
