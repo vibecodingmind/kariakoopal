@@ -11,6 +11,37 @@ import { Onboarding } from '@/components/onboarding';
 import { Input } from '@/components/ui/input';
 import { MapPin, Phone, Shield, Compass, LogOut, Moon, Sun, Loader2, ChevronDown, Globe } from 'lucide-react';
 import { toast } from 'sonner';
+import { signIn, useSession } from 'next-auth/react';
+
+// ── NextAuth Session Sync ──
+// Syncs the NextAuth session into the Zustand auth store when a social login completes
+function NextAuthSessionSync() {
+  const { data: session } = useSession();
+  const { setUser, isAuthenticated } = useAuthStore();
+  const syncedRef = useRef(false);
+
+  useEffect(() => {
+    if (session?.user && !isAuthenticated && !syncedRef.current) {
+      syncedRef.current = true;
+      const u = session.user;
+      // The session.user has our custom fields from JWT/session callbacks
+      const user = {
+        id: (u as Record<string, unknown>).dbId as string || u.id || '',
+        phone: (u as Record<string, unknown>).phone as string || '',
+        email: u.email || null,
+        name: u.name || '',
+        role: ((u as Record<string, unknown>).role as string || 'seeker') as 'seeker' | 'guide' | 'admin',
+        languagePref: 'sw' as const,
+        avatarUrl: u.image || null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      setUser(user);
+    }
+  }, [session, isAuthenticated, setUser]);
+
+  return null;
+}
 
 // ── Glassmorphism Auth Screen ──
 function AuthScreen() {
@@ -64,7 +95,23 @@ function AuthScreen() {
   };
 
   const handleSocialLogin = (provider: string) => {
-    toast.info(`${provider} ${t('demo_mode', language).toLowerCase()} — Coming soon!`);
+    // Map the display name to NextAuth provider ID
+    const providerMap: Record<string, string> = {
+      'Google': 'google',
+      'google': 'google',
+      'Facebook': 'facebook',
+      'facebook': 'facebook',
+      'Apple': 'apple',
+      'apple': 'apple',
+    };
+
+    const providerId = providerMap[provider];
+
+    if (providerId === 'google' || providerId === 'facebook') {
+      signIn(providerId, { callbackUrl: '/' });
+    } else {
+      toast.info(`${provider} ${t('demo_mode', language).toLowerCase()} — Coming soon!`);
+    }
   };
 
   const toggleLanguage = () => {
@@ -476,14 +523,29 @@ export default function Home() {
 
   // Show onboarding for first-time seekers
   if (isAuthenticated && user?.role === 'seeker' && showOnboarding) {
-    return <Onboarding />;
+    return (
+      <>
+        <NextAuthSessionSync />
+        <Onboarding />
+      </>
+    );
   }
 
   // Show auth screen if not logged in
   if (!isAuthenticated) {
-    return <AuthScreen />;
+    return (
+      <>
+        <NextAuthSessionSync />
+        <AuthScreen />
+      </>
+    );
   }
 
   // Show app shell with role-based dashboard
-  return <AppShell />;
+  return (
+    <>
+      <NextAuthSessionSync />
+      <AppShell />
+    </>
+  );
 }

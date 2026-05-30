@@ -4,7 +4,29 @@ import { cookies } from 'next/headers';
 
 export async function POST(request: NextRequest) {
   try {
-    const { phone, name } = await request.json();
+    const { phone, name, email } = await request.json();
+
+    // Support email-based lookup for social login users
+    if (!phone && email) {
+      const user = await db.user.findFirst({ where: { email } });
+
+      if (user) {
+        const token = `token_${user.id}_${Date.now()}`;
+
+        const cookieStore = await cookies();
+        cookieStore.set('auth_token', token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          maxAge: 60 * 60 * 24 * 7, // 7 days
+          path: '/',
+        });
+
+        return NextResponse.json({ user, token }, { status: 200 });
+      }
+
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
 
     if (!phone) {
       return NextResponse.json({ error: 'Phone number is required' }, { status: 400 });
@@ -20,7 +42,7 @@ export async function POST(request: NextRequest) {
         );
       }
       user = await db.user.create({
-        data: { phone, name },
+        data: { phone, name, email: email || null },
       });
     }
 

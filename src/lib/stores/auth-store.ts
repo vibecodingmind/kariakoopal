@@ -7,6 +7,7 @@ import type { Language } from '@/lib/i18n';
 export interface User {
   id: string;
   phone: string;
+  email?: string | null;
   name: string;
   role: 'seeker' | 'guide' | 'admin';
   languagePref: 'sw' | 'en';
@@ -51,6 +52,7 @@ interface AuthState {
 
   // Actions
   login: (phone: string) => Promise<void>;
+  socialLogin: (provider: string, providerId: string, email: string, name: string, avatarUrl?: string) => Promise<void>;
   logout: () => void;
   setUser: (user: User) => void;
   setGuideProfile: (profile: GuideProfile | null) => void;
@@ -96,6 +98,34 @@ export const useAuthStore = create<AuthState>()(
         } catch {
           set({ isLoading: false });
           throw new Error('Login failed');
+        }
+      },
+
+      socialLogin: async (provider: string, providerId: string, email: string, name: string, avatarUrl?: string) => {
+        set({ isLoading: true });
+        try {
+          const res = await fetch('/api/auth/social', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ provider, providerId, email, name, avatarUrl }),
+          });
+
+          if (!res.ok) {
+            throw new Error('Social login failed');
+          }
+
+          const data = await res.json();
+
+          set({
+            user: data.user,
+            isAuthenticated: true,
+            language: (data.user?.languagePref as Language) || 'sw',
+            currentView: data.user?.role === 'admin' ? 'admin' : 'home',
+            isLoading: false,
+          });
+        } catch {
+          set({ isLoading: false });
+          throw new Error('Social login failed');
         }
       },
 

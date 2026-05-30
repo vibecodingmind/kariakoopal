@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { t, type Language } from '@/lib/i18n';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { Loader2 } from 'lucide-react';
+import { signIn } from 'next-auth/react';
 
 // ── Types ──
 
@@ -29,12 +30,68 @@ export function SocialLogin({
   const language = propLanguage || storeLanguage;
   const [loadingProvider, setLoadingProvider] = useState<'google' | 'facebook' | 'apple' | null>(null);
 
-  const handleLogin = (provider: 'google' | 'facebook' | 'apple', callback?: () => void) => {
-    if (isLoading) return;
-    setLoadingProvider(provider);
-    // Simulate a brief loading state then call the callback
+  const handleGoogleLogin = () => {
+    if (isLoading || loadingProvider) return;
+    setLoadingProvider('google');
+
+    // If a custom callback is provided, use it
+    if (onGoogleLogin) {
+      setTimeout(() => {
+        onGoogleLogin();
+        setLoadingProvider(null);
+      }, 600);
+      return;
+    }
+
+    // Otherwise, use NextAuth Google sign-in
+    signIn('google', { callbackUrl: '/' })
+      .catch((error) => {
+        console.error('Google sign-in error:', error);
+      })
+      .finally(() => {
+        setLoadingProvider(null);
+      });
+  };
+
+  const handleFacebookLogin = () => {
+    if (isLoading || loadingProvider) return;
+    setLoadingProvider('facebook');
+
+    // If a custom callback is provided, use it
+    if (onFacebookLogin) {
+      setTimeout(() => {
+        onFacebookLogin();
+        setLoadingProvider(null);
+      }, 600);
+      return;
+    }
+
+    // Otherwise, use NextAuth Facebook sign-in
+    signIn('facebook', { callbackUrl: '/' })
+      .catch((error) => {
+        console.error('Facebook sign-in error:', error);
+      })
+      .finally(() => {
+        setLoadingProvider(null);
+      });
+  };
+
+  const handleAppleLogin = () => {
+    if (isLoading || loadingProvider) return;
+    setLoadingProvider('apple');
+
+    // If a custom callback is provided, use it
+    if (onAppleLogin) {
+      setTimeout(() => {
+        onAppleLogin();
+        setLoadingProvider(null);
+      }, 600);
+      return;
+    }
+
+    // Apple sign-in not yet configured with NextAuth
+    // Could be added later with AppleProvider
     setTimeout(() => {
-      callback?.();
       setLoadingProvider(null);
     }, 600);
   };
@@ -45,7 +102,7 @@ export function SocialLogin({
       <div className="flex gap-3">
         {/* Google */}
         <button
-          onClick={() => handleLogin('google', onGoogleLogin)}
+          onClick={handleGoogleLogin}
           disabled={isLoading || loadingProvider !== null}
           className={cn(
             'flex-1 glass-card gradient-border rounded-xl py-3 px-4 flex items-center justify-center gap-2.5',
@@ -70,7 +127,7 @@ export function SocialLogin({
 
         {/* Facebook */}
         <button
-          onClick={() => handleLogin('facebook', onFacebookLogin)}
+          onClick={handleFacebookLogin}
           disabled={isLoading || loadingProvider !== null}
           className={cn(
             'flex-1 glass-card gradient-border rounded-xl py-3 px-4 flex items-center justify-center gap-2.5',
@@ -94,7 +151,7 @@ export function SocialLogin({
 
         {/* Apple */}
         <button
-          onClick={() => handleLogin('apple', onAppleLogin)}
+          onClick={handleAppleLogin}
           disabled={isLoading || loadingProvider !== null}
           className={cn(
             'flex-1 glass-card gradient-border rounded-xl py-3 px-4 flex items-center justify-center gap-2.5',

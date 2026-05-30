@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { PWARegister } from "@/components/pwa-register";
+import { Providers } from "@/components/providers";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -59,10 +60,12 @@ export default function RootLayout({
       <body
         className={`${inter.variable} antialiased bg-background text-foreground relative`}
       >
-        <div className="mesh-gradient" aria-hidden="true" />
-        {children}
-        <Toaster />
-        <PWARegister />
+        <Providers>
+          <div className="mesh-gradient" aria-hidden="true" />
+          {children}
+          <Toaster />
+          <PWARegister />
+        </Providers>
       </body>
     </html>
   );

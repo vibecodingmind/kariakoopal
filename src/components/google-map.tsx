@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo, lazy, Suspense } from 'react';
 import { cn } from '@/lib/utils';
 import { t, type Language } from '@/lib/i18n';
 import { useAuthStore } from '@/lib/stores/auth-store';
@@ -16,6 +16,9 @@ import {
   Compass,
   ChevronUp,
 } from 'lucide-react';
+
+// ── Conditional rendering: use real Google Maps if API key is available ──
+const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
 
 // ── Types ──
 
@@ -147,7 +150,42 @@ const BUILDINGS = [
 
 // ── Component ──
 
-export function GoogleMap({
+// Lazy wrapper for the real Google Maps component
+// We use dynamic import to avoid bundling the Google Maps API when not needed
+const RealGoogleMapLazy = lazy(() =>
+  import('@/components/real-google-map').then((mod) => ({ default: mod.RealGoogleMap }))
+);
+
+function RealGoogleMapWrapper(props: GoogleMapProps) {
+  return (
+    <Suspense
+      fallback={
+        <div className="w-full aspect-[4/3] flex items-center justify-center bg-gradient-to-b from-amber-50/80 to-amber-100/60 dark:from-gray-900 dark:to-gray-950 rounded-xl">
+          <div className="text-center p-6">
+            <div className="size-10 mx-auto mb-3 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
+            <p className="text-sm text-muted-foreground">Loading map...</p>
+          </div>
+        </div>
+      }
+    >
+      <RealGoogleMapLazy {...props} />
+    </Suspense>
+  );
+}
+
+export function GoogleMap(props: GoogleMapProps) {
+  // ── If Google Maps API key is available, render the real Google Map ──
+  if (GOOGLE_MAPS_API_KEY) {
+    return <RealGoogleMapWrapper {...props} />;
+  }
+
+  // ── Otherwise, render the SVG fallback map ──
+  return <SvgMapFallback {...props} />;
+}
+
+// ── SVG Map Fallback Component ──
+
+function SvgMapFallback({
   zones = [],
   vendors = [],
   guides = [],

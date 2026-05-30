@@ -12,6 +12,7 @@ datasource db {
 model User {
   id           String   @id @default(cuid())
   phone        String   @unique
+  email        String?  // Optional, for social login
   name         String
   role         String   @default("seeker") // seeker, guide, admin
   languagePref String   @default("sw") // sw, en
