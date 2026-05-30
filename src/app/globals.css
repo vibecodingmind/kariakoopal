@@ -1117,3 +1117,17 @@ html {
 .mobile-menu-panel.open {
   transform: translateX(0);
 }
+
+/* ── Safe Area Bottom (for bottom nav) ── */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* ── Scrollbar Hide ── */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

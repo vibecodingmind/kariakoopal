@@ -134,10 +134,11 @@ export default function LandingPage() {
           </div>
 
           <div className="hidden md:flex items-center gap-1">
-            <a href="#market" className="landing-nav-link">{l('Market', 'Soko')}</a>
-            <a href="#how-it-works" className="landing-nav-link">{l('How It Works', 'Jinsi Inavyofanya Kazi')}</a>
-            <a href="#price-finder" className="landing-nav-link">{l('Price Finder', 'Kitafuta Bei')}</a>
-            <a href="#for-guides" className="landing-nav-link">{l('For Guides', 'Kwa Miongozo')}</a>
+            <Link href="/market" className="landing-nav-link">{l('Market', 'Soko')}</Link>
+            <Link href="/guides" className="landing-nav-link">{l('Guides', 'Miongozo')}</Link>
+            <Link href="/prices" className="landing-nav-link">{l('Prices', 'Bei')}</Link>
+            <Link href="/events" className="landing-nav-link">{l('Events', 'Matukio')}</Link>
+            <Link href="/stories" className="landing-nav-link">{l('Stories', 'Hadithi')}</Link>
           </div>
 
           <div className="hidden md:flex items-center gap-3">
@@ -162,10 +163,12 @@ export default function LandingPage() {
         {/* Mobile Menu */}
         {mobileMenuOpen && (
           <div className="md:hidden bg-[#073B2A] border-t border-white/10 px-4 py-4 space-y-2">
-            <a href="#market" className="block py-2 text-white/80 hover:text-white text-sm" onClick={() => setMobileMenuOpen(false)}>{l('Market', 'Soko')}</a>
-            <a href="#how-it-works" className="block py-2 text-white/80 hover:text-white text-sm" onClick={() => setMobileMenuOpen(false)}>{l('How It Works', 'Jinsi Inavyofanya Kazi')}</a>
-            <a href="#price-finder" className="block py-2 text-white/80 hover:text-white text-sm" onClick={() => setMobileMenuOpen(false)}>{l('Price Finder', 'Kitafuta Bei')}</a>
-            <a href="#for-guides" className="block py-2 text-white/80 hover:text-white text-sm" onClick={() => setMobileMenuOpen(false)}>{l('For Guides', 'Kwa Miongozo')}</a>
+            <Link href="/market" className="block py-2 text-white/80 hover:text-white text-sm" onClick={() => setMobileMenuOpen(false)}>{l('Market', 'Soko')}</Link>
+            <Link href="/guides" className="block py-2 text-white/80 hover:text-white text-sm" onClick={() => setMobileMenuOpen(false)}>{l('Guides', 'Miongozo')}</Link>
+            <Link href="/prices" className="block py-2 text-white/80 hover:text-white text-sm" onClick={() => setMobileMenuOpen(false)}>{l('Prices', 'Bei')}</Link>
+            <Link href="/vendors" className="block py-2 text-white/80 hover:text-white text-sm" onClick={() => setMobileMenuOpen(false)}>{l('Vendors', 'Wauzaji')}</Link>
+            <Link href="/events" className="block py-2 text-white/80 hover:text-white text-sm" onClick={() => setMobileMenuOpen(false)}>{l('Events', 'Matukio')}</Link>
+            <Link href="/stories" className="block py-2 text-white/80 hover:text-white text-sm" onClick={() => setMobileMenuOpen(false)}>{l('Stories', 'Hadithi')}</Link>
             <div className="pt-3 border-t border-white/10 flex gap-2">
               <Link href="/auth" className="lbtn-nav-ghost flex-1">{l('Login', 'Ingia')}</Link>
               <Link href="/auth" className="lbtn-primary flex-1">{l('Get a Guide', 'Pata Mwongozo')}</Link>
@@ -197,9 +200,9 @@ export default function LandingPage() {
                     {l('Find My Guide', 'Pata Mwongozo Wangu')}
                     <ArrowRight className="w-5 h-5" />
                   </Link>
-                  <a href="#market" className="lbtn-secondary">
+                  <Link href="/market" className="lbtn-secondary">
                     {l('Explore Market', 'Gundua Soko')}
-                  </a>
+                  </Link>
                 </div>
               </div>
             </AnimatedSection>
@@ -286,22 +289,22 @@ export default function LandingPage() {
             {/* Right Column - Category Grid */}
             <AnimatedSection delay={200}>
               <div className="grid grid-cols-2 gap-4">
-                <a href="#market" className="lcard-category bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white">
+                <Link href="/market/fabrics" className="lcard-category bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white">
                   <Scissors className="w-8 h-8 mb-2 opacity-80" />
                   <span className="font-semibold text-sm">{l('Fabrics', 'Vitenge')}</span>
-                </a>
-                <a href="#market" className="lcard-category bg-[#FFD23F] text-[#0A4D3C]">
+                </Link>
+                <Link href="/market/wholesale" className="lcard-category bg-[#FFD23F] text-[#0A4D3C]">
                   <Package className="w-8 h-8 mb-2 opacity-80" />
                   <span className="font-semibold text-sm">{l('Wholesale', 'Jumla')}</span>
-                </a>
-                <a href="#market" className="lcard-category bg-[#0A4D3C] text-white">
+                </Link>
+                <Link href="/market/electronics" className="lcard-category bg-[#0A4D3C] text-white">
                   <Zap className="w-8 h-8 mb-2 opacity-80" />
                   <span className="font-semibold text-sm">{l('Electronics', 'Elektroniki')}</span>
-                </a>
-                <a href="#market" className="lcard-category bg-gradient-to-br from-[#8B5E3C] to-[#6B3F1F] text-white">
+                </Link>
+                <Link href="/market/artisanal" className="lcard-category bg-gradient-to-br from-[#8B5E3C] to-[#6B3F1F] text-white">
                   <Store className="w-8 h-8 mb-2 opacity-80" />
                   <span className="font-semibold text-sm">{l('Artisanal', 'Kisanii')}</span>
-                </a>
+                </Link>
               </div>
             </AnimatedSection>
           </div>
@@ -485,10 +488,10 @@ export default function LandingPage() {
             <div>
               <h4 className="text-xs font-bold mb-4 uppercase tracking-[0.15em] text-[#333333]">{l('PLATFORM', 'JUKWAA')}</h4>
               <ul className="space-y-2.5 text-sm text-[#666666]">
-                <li><a href="#market" className="hover:text-[#0A4D3C] transition-colors">{l('Market Finder', 'Kitafuta Soko')}</a></li>
-                <li><a href="#for-guides" className="hover:text-[#0A4D3C] transition-colors">{l('Verified Guides', 'Miongozo Waliothibitishwa')}</a></li>
-                <li><a href="#market" className="hover:text-[#0A4D3C] transition-colors">{l('Escrow System', 'Mfumo wa Escrow')}</a></li>
-                <li><a href="#market" className="hover:text-[#0A4D3C] transition-colors">{l('Sourcing Map', 'Ramani ya Ununuzi')}</a></li>
+                <li><Link href="/market" className="hover:text-[#0A4D3C] transition-colors">{l('Market Explorer', 'Mchunguzi wa Soko')}</Link></li>
+                <li><Link href="/guides" className="hover:text-[#0A4D3C] transition-colors">{l('Browse Guides', 'Vinjua Miongozo')}</Link></li>
+                <li><Link href="/prices" className="hover:text-[#0A4D3C] transition-colors">{l('Price Radar', 'Rada ya Bei')}</Link></li>
+                <li><Link href="/vendors" className="hover:text-[#0A4D3C] transition-colors">{l('Vendor Directory', 'Orodha ya Wauzaji')}</Link></li>
               </ul>
             </div>
 
@@ -496,9 +499,9 @@ export default function LandingPage() {
             <div>
               <h4 className="text-xs font-bold mb-4 uppercase tracking-[0.15em] text-[#333333]">{l('COMPANY', 'KAMPUNI')}</h4>
               <ul className="space-y-2.5 text-sm text-[#666666]">
-                <li><span className="hover:text-[#0A4D3C] transition-colors cursor-pointer">{l('About', 'Kuhusu')}</span></li>
+                <li><Link href="/events" className="hover:text-[#0A4D3C] transition-colors">{l('Events', 'Matukio')}</Link></li>
+                <li><Link href="/stories" className="hover:text-[#0A4D3C] transition-colors">{l('Market Stories', 'Hadithi za Soko')}</Link></li>
                 <li><span className="hover:text-[#0A4D3C] transition-colors cursor-pointer">{l('Safety First', 'Usalama Kwanza')}</span></li>
-                <li><span className="hover:text-[#0A4D3C] transition-colors cursor-pointer">{l('Careers', 'Kazi')}</span></li>
                 <li><span className="hover:text-[#0A4D3C] transition-colors cursor-pointer">{l('Terms', 'Masharti')}</span></li>
               </ul>
             </div>
