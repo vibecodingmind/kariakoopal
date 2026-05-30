@@ -9,6 +9,7 @@ import {
   InfoWindow,
   StandaloneSearchBox,
   Circle,
+  MarkerClusterer,
 } from '@react-google-maps/api';
 import { cn } from '@/lib/utils';
 import { t, type Language } from '@/lib/i18n';
@@ -34,6 +35,19 @@ import {
   type ZonePolygon,
 } from '@/lib/map-data';
 import type { GoogleMapProps, ZoneData, VendorMarker, GuideMarker } from '@/components/google-map';
+
+// ── Deterministic offset utility ──
+// Replaces Math.random() with a stable hash-based offset so positions
+// don't change on every render.
+function deterministicOffset(id: string, index: number, range: number): number {
+  let hash = 0;
+  const str = id + String(index);
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash) + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return ((hash % 1000) / 1000 - 0.5) * 2 * range;
+}
 
 // ── Container style for the map ──
 const CONTAINER_STYLE = {
@@ -204,28 +218,31 @@ export function RealGoogleMap({
   }, [zones]);
 
   // Find vendor position (from props or from map data stalls)
-  const getVendorPosition = useCallback((vendor: VendorMarker): { lat: number; lng: number } | null => {
+  const getVendorPosition = useCallback((vendor: VendorMarker, index: number = 0): { lat: number; lng: number } | null => {
     if (vendor.lat && vendor.lng) return { lat: vendor.lat, lng: vendor.lng };
     // Try to find a stall in the same zone
     const stall = VENDOR_STALLS.find((s) => s.zoneId === vendor.zoneId && s.name.includes(vendor.name));
     if (stall) return { lat: stall.lat, lng: stall.lng };
-    // Fallback: use zone center with small jitter
+    // Fallback: use zone center with deterministic jitter
     const zonePoly = ZONE_POLYGONS.find((z) => z.id === vendor.zoneId);
     if (zonePoly) {
       return {
-        lat: zonePoly.center.lat + (Math.random() - 0.5) * 0.0005,
-        lng: zonePoly.center.lng + (Math.random() - 0.5) * 0.0005,
+        lat: zonePoly.center.lat + deterministicOffset(vendor.id, index, 0.0005),
+        lng: zonePoly.center.lng + deterministicOffset(vendor.id, index + 1, 0.0005),
       };
     }
-    return { lat: KARIAKOO_CENTER.lat + (Math.random() - 0.5) * 0.002, lng: KARIAKOO_CENTER.lng + (Math.random() - 0.5) * 0.002 };
+    return {
+      lat: KARIAKOO_CENTER.lat + deterministicOffset(vendor.id, index, 0.002),
+      lng: KARIAKOO_CENTER.lng + deterministicOffset(vendor.id, index + 1, 0.002),
+    };
   }, []);
 
   // Get guide position
-  const getGuidePosition = useCallback((guide: GuideMarker): { lat: number; lng: number } => {
+  const getGuidePosition = useCallback((guide: GuideMarker, index: number = 0): { lat: number; lng: number } => {
     if (guide.lat && guide.lng) return { lat: guide.lat, lng: guide.lng };
     return {
-      lat: KARIAKOO_CENTER.lat + (Math.random() - 0.5) * 0.003,
-      lng: KARIAKOO_CENTER.lng + (Math.random() - 0.5) * 0.003,
+      lat: KARIAKOO_CENTER.lat + deterministicOffset(guide.id, index, 0.003),
+      lng: KARIAKOO_CENTER.lng + deterministicOffset(guide.id, index + 1, 0.003),
     };
   }, []);
 
@@ -328,40 +345,64 @@ export function RealGoogleMap({
             />
           ))}
 
-          {/* Vendor markers */}
-          {vendors.map((vendor) => {
-            const pos = getVendorPosition(vendor);
-            if (!pos) return null;
-            return (
-              <Marker
-                key={vendor.id}
-                position={pos}
-                icon={VENDOR_MARKER_ICON}
-                title={vendor.name}
-                onClick={() => {
-                  setSelectedVendor(vendor.id);
-                  onVendorClick?.(vendor.id);
-                }}
-              />
-            );
-          })}
+          {/* Vendor markers with clustering */}
+          <MarkerClusterer
+            gridSize={40}
+            maxZoom={17}
+            averageCenter
+            enableRetinaIcons
+          >
+            {(clusterer) => (
+              <>
+                {vendors.map((vendor, idx) => {
+                  const pos = getVendorPosition(vendor, idx);
+                  if (!pos) return null;
+                  return (
+                    <Marker
+                      key={vendor.id}
+                      position={pos}
+                      icon={VENDOR_MARKER_ICON}
+                      title={vendor.name}
+                      clusterer={clusterer}
+                      onClick={() => {
+                        setSelectedVendor(vendor.id);
+                        onVendorClick?.(vendor.id);
+                      }}
+                    />
+                  );
+                })}
+              </>
+            )}
+          </MarkerClusterer>
 
-          {/* Guide markers */}
-          {guides.map((guide) => {
-            const pos = getGuidePosition(guide);
-            return (
-              <Marker
-                key={guide.id}
-                position={pos}
-                icon={guide.isOnline ? GUIDE_ONLINE_MARKER_ICON : GUIDE_OFFLINE_MARKER_ICON}
-                title={guide.name}
-                onClick={() => {
-                  setSelectedGuide(guide.id);
-                  onGuideClick?.(guide.id);
-                }}
-              />
-            );
-          })}
+          {/* Guide markers with clustering */}
+          <MarkerClusterer
+            gridSize={40}
+            maxZoom={17}
+            averageCenter
+            enableRetinaIcons
+          >
+            {(clusterer) => (
+              <>
+                {guides.map((guide, idx) => {
+                  const pos = getGuidePosition(guide, idx);
+                  return (
+                    <Marker
+                      key={guide.id}
+                      position={pos}
+                      icon={guide.isOnline ? GUIDE_ONLINE_MARKER_ICON : GUIDE_OFFLINE_MARKER_ICON}
+                      title={guide.name}
+                      clusterer={clusterer}
+                      onClick={() => {
+                        setSelectedGuide(guide.id);
+                        onGuideClick?.(guide.id);
+                      }}
+                    />
+                  );
+                })}
+              </>
+            )}
+          </MarkerClusterer>
 
           {/* User location circle (accuracy) + marker */}
           {showUserLocation && userLocation && (

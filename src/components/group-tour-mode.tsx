@@ -37,9 +37,11 @@ import {
   buddyMatchesApi,
   zonesApi,
   guidesApi,
+  groupToursApi,
   type BuddyMatch,
   type Zone,
   type GuideWithProfile,
+  type GroupTour,
 } from '@/lib/api';
 import { cn } from '@/lib/utils';
 
@@ -145,6 +147,7 @@ export function GroupTourMode({ className }: GroupTourModeProps) {
   const lang = (storeLanguage as Language) || 'sw';
 
   // ── State ──
+  const userId = useAuthStore((s) => s.user?.id) || '';
   const [tours, setTours] = useState<GroupTourItem[]>(demoTours);
   const [zones, setZones] = useState<Zone[]>([]);
   const [guides, setGuides] = useState<GuideWithProfile[]>([]);
@@ -152,6 +155,7 @@ export function GroupTourMode({ className }: GroupTourModeProps) {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [expandedTour, setExpandedTour] = useState<string | null>(null);
   const [joinedTours, setJoinedTours] = useState<Set<string>>(new Set());
+  const [isLoadingTours, setIsLoadingTours] = useState(false);
 
   // Create form state
   const [formZone, setFormZone] = useState('');
@@ -164,27 +168,99 @@ export function GroupTourMode({ className }: GroupTourModeProps) {
   // Price split calculator
   const [splitCount, setSplitCount] = useState(2);
 
+  // ── Map API tour to local type ──
+  const mapApiTourToItem = useCallback((apiTour: GroupTour, zoneList: Zone[], guideList: GuideWithProfile[]): GroupTourItem => {
+    const zone = zoneList.find((z) => z.id === apiTour.zoneId);
+    const guide = guideList.find((g) => g.id === apiTour.guideId);
+    return {
+      id: apiTour.id,
+      zoneId: apiTour.zoneId,
+      zoneName: zone?.name || apiTour.zoneId,
+      zoneNameSw: zone?.nameSw || apiTour.zoneId,
+      date: apiTour.date,
+      timeSlot: apiTour.timeSlot,
+      maxParticipants: apiTour.maxParticipants,
+      currentParticipants: apiTour.currentCount,
+      description: apiTour.description,
+      descriptionSw: apiTour.descriptionSw,
+      guideId: apiTour.guideId,
+      guideName: guide?.name || null,
+      pricePerPerson: apiTour.groupPrice,
+      soloPrice: apiTour.soloPrice,
+      status: apiTour.status as GroupTourItem['status'],
+      createdAt: apiTour.createdAt,
+    };
+  }, []);
+
+  // ── Refresh tours from API ──
+  const refreshTours = useCallback(async (zoneList?: Zone[], guideList?: GuideWithProfile[]) => {
+    try {
+      const tourResult = await groupToursApi.list();
+      if (tourResult.items) {
+        const zList = zoneList || zones;
+        const gList = guideList || guides;
+        const mappedTours: GroupTourItem[] = tourResult.items.map((t) => mapApiTourToItem(t, zList, gList));
+        setTours(mappedTours.length > 0 ? mappedTours : demoTours);
+        if (userId) {
+          const joined = new Set<string>();
+          tourResult.items.forEach((t) => {
+            if (t.participantIds.includes(userId)) joined.add(t.id);
+          });
+          setJoinedTours(joined);
+        }
+      }
+    } catch {
+      // Keep current data on error
+    }
+  }, [mapApiTourToItem, userId, zones, guides]);
+
   // ── Load data ──
   useEffect(() => {
     async function loadData() {
+      setIsLoadingTours(true);
+      let zoneResult: Zone[] = [];
+      let guideResult: GuideWithProfile[] = [];
       try {
-        const [zoneResult, guideResult, buddyResult] = await Promise.all([
+        const [zResult, gResult, buddyResult] = await Promise.all([
           zonesApi.list(),
           guidesApi.list(),
           buddyMatchesApi.list(),
         ]);
+        zoneResult = zResult;
+        guideResult = gResult;
         setZones(zoneResult);
         setGuides(guideResult);
         setBuddyMatches(buddyResult);
       } catch {
         // API not available, use demo data
       }
+
+      // Load group tours from API
+      try {
+        const tourResult = await groupToursApi.list();
+        if (tourResult.items && tourResult.items.length > 0) {
+          const mappedTours: GroupTourItem[] = tourResult.items.map((t) => mapApiTourToItem(t, zoneResult, guideResult));
+          setTours(mappedTours);
+          // Check which tours the user has already joined
+          if (userId) {
+            const joined = new Set<string>();
+            tourResult.items.forEach((t) => {
+              if (t.participantIds.includes(userId)) joined.add(t.id);
+            });
+            setJoinedTours(joined);
+          }
+        }
+      } catch {
+        // API not available, keep demo data
+      }
+      setIsLoadingTours(false);
     }
     loadData();
-  }, []);
+  }, [userId, mapApiTourToItem]);
 
   // ── Handlers ──
-  const handleJoinTour = useCallback((tourId: string) => {
+  const handleJoinTour = useCallback(async (tourId: string) => {
+    // Optimistic update
     setTours((prev) =>
       prev.map((tour) => {
         if (tour.id === tourId && tour.currentParticipants < tour.maxParticipants) {
@@ -198,12 +274,72 @@ export function GroupTourMode({ className }: GroupTourModeProps) {
       })
     );
     setJoinedTours((prev) => new Set(prev).add(tourId));
-  }, []);
 
-  const handleCreateTour = useCallback(() => {
+    // Persist to API
+    if (userId) {
+      try {
+        await groupToursApi.update(tourId, { action: 'join', userId });
+      } catch {
+        // Revert on failure
+        setTours((prev) =>
+          prev.map((tour) => {
+            if (tour.id === tourId) {
+              return {
+                ...tour,
+                currentParticipants: Math.max(0, tour.currentParticipants - 1),
+                status: tour.status === 'full' ? 'open' as const : tour.status,
+              };
+            }
+            return tour;
+          })
+        );
+        setJoinedTours((prev) => {
+          const next = new Set(prev);
+          next.delete(tourId);
+          return next;
+        });
+      }
+    }
+  }, [userId]);
+
+  const handleLeaveTour = useCallback(async (tourId: string) => {
+    // Optimistic update
+    setTours((prev) =>
+      prev.map((tour) => {
+        if (tour.id === tourId) {
+          return {
+            ...tour,
+            currentParticipants: Math.max(0, tour.currentParticipants - 1),
+            status: tour.status === 'full' ? 'open' as const : tour.status,
+          };
+        }
+        return tour;
+      })
+    );
+    setJoinedTours((prev) => {
+      const next = new Set(prev);
+      next.delete(tourId);
+      return next;
+    });
+
+    // Persist to API
+    if (userId) {
+      try {
+        await groupToursApi.update(tourId, { action: 'leave', userId });
+      } catch {
+        // Revert on failure
+        refreshTours();
+      }
+    }
+  }, [userId, refreshTours]);
+
+  const handleCreateTour = useCallback(async () => {
     if (!formZone || !formDate || !formTime) return;
 
     const zone = zones.find((z) => z.id === formZone);
+    const maxP = parseInt(formMaxParticipants) || 4;
+
+    // Optimistic local add
     const newTour: GroupTourItem = {
       id: generateTourId(),
       zoneId: formZone,
@@ -211,11 +347,11 @@ export function GroupTourMode({ className }: GroupTourModeProps) {
       zoneNameSw: zone?.nameSw || formZone,
       date: formDate,
       timeSlot: formTime,
-      maxParticipants: parseInt(formMaxParticipants) || 4,
+      maxParticipants: maxP,
       currentParticipants: 1,
       description: formDescription || 'Group shopping tour',
       descriptionSw: formDescriptionSw || 'Safari ya kununua kwa kikundi',
-      guideId: null,
+      guideId: userId || null,
       guideName: null,
       pricePerPerson: 7500,
       soloPrice: 15000,
@@ -231,7 +367,27 @@ export function GroupTourMode({ className }: GroupTourModeProps) {
     setFormMaxParticipants('4');
     setFormDescription('');
     setFormDescriptionSw('');
-  }, [formZone, formDate, formTime, formMaxParticipants, formDescription, formDescriptionSw, zones]);
+
+    // Persist to API
+    try {
+      await groupToursApi.create({
+        guideId: userId || 'anonymous',
+        zoneId: formZone,
+        title: zone ? (lang === 'sw' ? zone.nameSw : zone.name) : formZone,
+        description: formDescription || 'Group shopping tour',
+        descriptionSw: formDescriptionSw || 'Safari ya kununua kwa kikundi',
+        maxParticipants: maxP,
+        soloPrice: 15000,
+        groupPrice: 7500,
+        timeSlot: formTime,
+        date: formDate,
+      });
+      // Refresh from API to get the real ID
+      refreshTours();
+    } catch {
+      // Keep optimistic data on failure
+    }
+  }, [formZone, formDate, formTime, formMaxParticipants, formDescription, formDescriptionSw, zones, userId, lang, refreshTours]);
 
   // ── Computed ──
   const openTours = useMemo(() => tours.filter((t) => t.status === 'open'), [tours]);
@@ -595,11 +751,22 @@ export function GroupTourMode({ className }: GroupTourModeProps) {
 
                   {/* Join / Joined button */}
                   {isJoined ? (
-                    <div className="flex items-center justify-center gap-2 h-10 glass rounded-xl">
-                      <CheckCircle2 className="size-4 text-emerald-500" />
-                      <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                        {t('group_tour_joined', lang)}
-                      </span>
+                    <div className="flex items-center gap-2 h-10">
+                      <div className="flex items-center justify-center gap-2 flex-1 glass rounded-l-xl h-10">
+                        <CheckCircle2 className="size-4 text-emerald-500" />
+                        <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                          {t('group_tour_joined', lang)}
+                        </span>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-10 px-3 text-xs font-medium border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-r-xl"
+                        onClick={() => handleLeaveTour(tour.id)}
+                      >
+                        <X className="size-3 mr-1" />
+                        {lang === 'sw' ? 'Ondoka' : 'Leave'}
+                      </Button>
                     </div>
                   ) : (
                     <Button

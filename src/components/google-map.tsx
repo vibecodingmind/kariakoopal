@@ -17,6 +17,18 @@ import {
   ChevronUp,
 } from 'lucide-react';
 
+// ── Deterministic offset utility for SVG map ──
+// Stable hash-based offset so vendor/guide positions don't jitter on re-render.
+function deterministicSvgOffset(id: string, index: number, range: number): number {
+  let hash = 0;
+  const str = id + String(index);
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash) + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return ((hash % 1000) / 1000 - 0.5) * 2 * range;
+}
+
 // ── Conditional rendering: use real Google Maps if API key is available ──
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
 
@@ -208,21 +220,36 @@ function SvgMapFallback({
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Try to get user location
+  // Try to get user location via browser geolocation API
+  // geoStatus: 'idle' → 'requested' → 'success' | 'failed'
+  const [geoPosition, setGeoPosition] = useState<{ lat: number; lng: number } | null>(null);
+  const [geoStatus, setGeoStatus] = useState<'idle' | 'requested' | 'success' | 'failed'>('idle');
   useEffect(() => {
     if (!showUserLocation) return;
-    if (navigator.geolocation) {
+    // Schedule the status update asynchronously to satisfy the lint rule
+    const raf = requestAnimationFrame(() => {
+      if (!navigator.geolocation) {
+        setGeoStatus('failed');
+        return;
+      }
+      setGeoStatus('requested');
       navigator.geolocation.getCurrentPosition(
-        (pos) => setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-        () => setUserLocation(KARIAKOO_CENTER) // fallback to Kariakoo center
+        (pos) => {
+          setGeoPosition({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+          setGeoStatus('success');
+        },
+        () => setGeoStatus('failed')
       );
-    } else {
-      setUserLocation(KARIAKOO_CENTER);
-    }
+    });
+    return () => cancelAnimationFrame(raf);
   }, [showUserLocation]);
+
+  // Derive userLocation: use geo if available, otherwise fall back to Kariakoo center
+  const userLocation = showUserLocation
+    ? (geoPosition ?? (geoStatus === 'failed' ? KARIAKOO_CENTER : null))
+    : null;
 
   // ── Coordinate mapping ──
   // Convert lat/lng to SVG coordinates
@@ -257,15 +284,15 @@ function SvgMapFallback({
 
   // Map vendor data to SVG
   const vendorSvgData = useMemo(() => {
-    return vendors.map((v) => {
+    return vendors.map((v, idx) => {
       const coords = v.lat && v.lng ? latLngToSvg(v.lat, v.lng) : null;
       if (!coords) {
-        // Assign position based on zone
+        // Assign position based on zone with deterministic jitter
         const zoneKey = v.zoneId || '';
         const zonePath = SVG_ZONE_PATHS[zoneKey] || SVG_ZONE_PATHS[`zone_${(v.zoneId || '').toLowerCase()}`];
         if (zonePath) {
-          const jitterX = (Math.random() - 0.5) * 30;
-          const jitterY = (Math.random() - 0.5) * 20;
+          const jitterX = deterministicSvgOffset(v.id, idx * 2, 30);
+          const jitterY = deterministicSvgOffset(v.id, idx * 2 + 1, 20);
           return { ...v, svgX: zonePath.cx + jitterX, svgY: zonePath.cy + jitterY };
         }
         return { ...v, svgX: 200, svgY: 180 };
@@ -276,12 +303,12 @@ function SvgMapFallback({
 
   // Map guide data to SVG
   const guideSvgData = useMemo(() => {
-    return guides.map((g) => {
+    return guides.map((g, idx) => {
       const coords = g.lat && g.lng ? latLngToSvg(g.lat, g.lng) : null;
       if (!coords) {
-        // Place near center with some spread
-        const jitterX = (Math.random() - 0.5) * 100;
-        const jitterY = (Math.random() - 0.5) * 80;
+        // Place near center with deterministic spread
+        const jitterX = deterministicSvgOffset(g.id, idx * 2, 100);
+        const jitterY = deterministicSvgOffset(g.id, idx * 2 + 1, 80);
         return { ...g, svgX: 200 + jitterX, svgY: 180 + jitterY };
       }
       return { ...g, svgX: coords.x, svgY: coords.y };

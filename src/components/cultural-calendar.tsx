@@ -31,7 +31,7 @@ import {
 } from '@/components/ui/select';
 import { t, type Language } from '@/lib/i18n';
 import { useAuthStore } from '@/lib/stores/auth-store';
-import { seasonalEventsApi, zonesApi, type SeasonalEvent, type Zone } from '@/lib/api';
+import { seasonalEventsApi, zonesApi, calendarRemindersApi, type SeasonalEvent, type Zone, type CalendarReminderData } from '@/lib/api';
 import { cn } from '@/lib/utils';
 
 // ── Types ──
@@ -224,6 +224,7 @@ export function CulturalCalendar({ className }: CulturalCalendarProps) {
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [reminderSet, setReminderSet] = useState<Set<string>>(new Set());
+  const [reminderRecords, setReminderRecords] = useState<CalendarReminderData[]>([]);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [filterZone, setFilterZone] = useState<string>('all');
   const [filterType, setFilterType] = useState<string>('all');
@@ -254,6 +255,21 @@ export function CulturalCalendar({ className }: CulturalCalendarProps) {
         }
       } catch {
         // API not available, use demo data
+      }
+
+      // Load reminders from API
+      const currentUser = useAuthStore.getState().user;
+      if (currentUser?.id) {
+        try {
+          const reminderResult = await calendarRemindersApi.list({ userId: currentUser.id });
+          if (reminderResult.items) {
+            setReminderRecords(reminderResult.items);
+            const eventIds = new Set(reminderResult.items.map((r) => r.eventId));
+            setReminderSet(eventIds);
+          }
+        } catch {
+          // API not available
+        }
       }
     }
     loadData();
@@ -350,9 +366,51 @@ export function CulturalCalendar({ className }: CulturalCalendarProps) {
     }
   }, [currentMonth]);
 
-  const handleSetReminder = useCallback((eventId: string) => {
+  const handleSetReminder = useCallback(async (eventId: string) => {
+    // Optimistic update
     setReminderSet((prev) => new Set(prev).add(eventId));
+
+    // Persist to API
+    const currentUser = useAuthStore.getState().user;
+    if (currentUser?.id) {
+      try {
+        const result = await calendarRemindersApi.create({ userId: currentUser.id, eventId });
+        if (result.item) {
+          setReminderRecords((prev) => [...prev, result.item]);
+        }
+      } catch {
+        // Revert on failure
+        setReminderSet((prev) => {
+          const next = new Set(prev);
+          next.delete(eventId);
+          return next;
+        });
+      }
+    }
   }, []);
+
+  const handleRemoveReminder = useCallback(async (eventId: string) => {
+    // Find the reminder record
+    const record = reminderRecords.find((r) => r.eventId === eventId);
+
+    // Optimistic update
+    setReminderSet((prev) => {
+      const next = new Set(prev);
+      next.delete(eventId);
+      return next;
+    });
+
+    // Delete from API
+    if (record) {
+      try {
+        await calendarRemindersApi.delete(record.id);
+        setReminderRecords((prev) => prev.filter((r) => r.id !== record.id));
+      } catch {
+        // Revert on failure
+        setReminderSet((prev) => new Set(prev).add(eventId));
+      }
+    }
+  }, [reminderRecords]);
 
   const handleDayClick = useCallback((day: CalendarDay) => {
     if (day.events.length > 0) {
@@ -704,9 +762,20 @@ export function CulturalCalendar({ className }: CulturalCalendarProps) {
 
                 {/* Reminder button */}
                 {hasReminder ? (
-                  <div className="flex items-center gap-1.5 text-[11px] text-emerald-600 dark:text-emerald-400">
-                    <CheckCircle2 className="size-3.5" />
-                    {t('calendar_reminder_set', lang)}
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5 text-[11px] text-emerald-600 dark:text-emerald-400 flex-1">
+                      <CheckCircle2 className="size-3.5" />
+                      {t('calendar_reminder_set', lang)}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 px-2 text-[10px] font-medium border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                      onClick={() => handleRemoveReminder(selectedEvent.id)}
+                    >
+                      <X className="size-3 mr-0.5" />
+                      {lang === 'sw' ? 'Ondoa' : 'Remove'}
+                    </Button>
                   </div>
                 ) : (
                   <Button

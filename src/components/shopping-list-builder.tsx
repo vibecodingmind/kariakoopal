@@ -33,7 +33,7 @@ import {
 } from '@/components/ui/select';
 import { t, type Language } from '@/lib/i18n';
 import { useAuthStore } from '@/lib/stores/auth-store';
-import { priceRadarApi, zonesApi, type PriceRadarEntry, type Zone } from '@/lib/api';
+import { priceRadarApi, zonesApi, shoppingListsApi, type PriceRadarEntry, type Zone, type ShoppingListData } from '@/lib/api';
 import { cn } from '@/lib/utils';
 
 // ── Types ──
@@ -106,6 +106,7 @@ function suggestZone(category: string, priceData: PriceRadarEntry[]): string {
 export function ShoppingListBuilder({ className }: ShoppingListBuilderProps) {
   const storeLanguage = useAuthStore((s) => s.language);
   const lang = (storeLanguage as Language) || 'sw';
+  const userId = useAuthStore((s) => s.user?.id) || '';
 
   // ── Load initial data from localStorage lazily ──
   const loadInitialLists = (): SavedList[] => {
@@ -140,6 +141,8 @@ export function ShoppingListBuilder({ className }: ShoppingListBuilderProps) {
   const [savedLists, setSavedLists] = useState<SavedList[]>(initialLists);
   const [activeListId, setActiveListId] = useState<string | null>(initialActiveId);
   const [showSavedLists, setShowSavedLists] = useState(false);
+  // Map from local list IDs to API list IDs
+  const [apiListIdMap, setApiListIdMap] = useState<Map<string, string>>(new Map());
 
   // Form state
   const [newItemName, setNewItemName] = useState('');
@@ -151,6 +154,38 @@ export function ShoppingListBuilder({ className }: ShoppingListBuilderProps) {
   // Toast state
   const [copied, setCopied] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
+
+  // ── Map API list to local type ──
+  const mapApiListToLocal = useCallback((apiList: ShoppingListData): SavedList => {
+    const apiItems: ShoppingItem[] = (apiList.items || []).map((i, idx) => ({
+      id: `item-${apiList.id}-${idx}`,
+      name: i.name,
+      quantity: i.quantity,
+      estimatedPrice: i.price,
+      zone: i.zone,
+      category: i.category,
+      checked: i.purchased,
+    }));
+    return {
+      id: apiList.id,
+      name: apiList.name,
+      items: apiItems,
+      createdAt: apiList.createdAt,
+      updatedAt: apiList.updatedAt,
+    };
+  }, []);
+
+  // ── Map local items to API items format ──
+  const mapLocalItemsToApi = useCallback((localItems: ShoppingItem[]) => {
+    return localItems.map((i) => ({
+      name: i.name,
+      quantity: i.quantity,
+      price: i.estimatedPrice,
+      category: i.category,
+      zone: i.zone,
+      purchased: i.checked,
+    }));
+  }, []);
 
   // ── Load data ──
   useEffect(() => {
@@ -168,9 +203,37 @@ export function ShoppingListBuilder({ className }: ShoppingListBuilderProps) {
       } catch {
         // API not available
       }
+
+      // Load shopping lists from API
+      if (userId) {
+        try {
+          const listResult = await shoppingListsApi.list({ userId });
+          if (listResult.items && listResult.items.length > 0) {
+            const mapped: SavedList[] = listResult.items.map(mapApiListToLocal);
+            const idMap = new Map<string, string>();
+            listResult.items.forEach((apiList) => {
+              const local = mapped.find((m) => m.name === apiList.name && m.createdAt === apiList.createdAt);
+              if (local) idMap.set(local.id, apiList.id);
+            });
+            setSavedLists(mapped);
+            setApiListIdMap(idMap);
+            // Auto-load the most recent list
+            if (!activeListId && mapped.length > 0) {
+              const latest = mapped[0];
+              setItems(latest.items);
+              setActiveListId(latest.id);
+              try {
+                localStorage.setItem(ACTIVE_LIST_KEY, latest.id);
+              } catch { /* noop */ }
+            }
+          }
+        } catch {
+          // API not available, keep localStorage data
+        }
+      }
     }
     loadData();
-  }, []);
+  }, [userId]);
 
   // ── Auto-suggest zone when category changes (computed, not effect) ──
   const autoSuggestedZone = useMemo(
@@ -283,7 +346,7 @@ export function ShoppingListBuilder({ className }: ShoppingListBuilderProps) {
     );
   }, []);
 
-  const handleSaveList = useCallback(() => {
+  const handleSaveList = useCallback(async () => {
     const listName = lang === 'sw'
       ? `Orodha ya ${new Date().toLocaleDateString('sw')}`
       : `List ${new Date().toLocaleDateString()}`;
@@ -303,6 +366,7 @@ export function ShoppingListBuilder({ className }: ShoppingListBuilderProps) {
     setSavedLists(updatedLists);
     setActiveListId(list.id);
 
+    // Save to localStorage as cache
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedLists));
       localStorage.setItem(ACTIVE_LIST_KEY, list.id);
@@ -310,9 +374,34 @@ export function ShoppingListBuilder({ className }: ShoppingListBuilderProps) {
       // localStorage not available
     }
 
+    // Save to API
+    if (userId) {
+      try {
+        const apiItems = mapLocalItemsToApi(items);
+        const existingApiId = apiListIdMap.get(list.id) || (activeListId ? apiListIdMap.get(activeListId) : null);
+
+        if (existingApiId) {
+          // Update existing list
+          await shoppingListsApi.update(existingApiId, { name: listName, items: apiItems });
+        } else {
+          // Create new list
+          const result = await shoppingListsApi.create({ userId, name: listName, items: apiItems });
+          if (result.item) {
+            setApiListIdMap((prev) => {
+              const next = new Map(prev);
+              next.set(list.id, result.item.id);
+              return next;
+            });
+          }
+        }
+      } catch {
+        // API save failed, localStorage is the fallback
+      }
+    }
+
     setSaveMessage(lang === 'sw' ? 'Imehifadhiwa!' : 'Saved!');
     setTimeout(() => setSaveMessage(''), 2000);
-  }, [items, activeListId, savedLists, lang]);
+  }, [items, activeListId, savedLists, lang, userId, apiListIdMap, mapLocalItemsToApi]);
 
   const handleLoadList = useCallback((list: SavedList) => {
     setItems(list.items);
@@ -462,13 +551,27 @@ export function ShoppingListBuilder({ className }: ShoppingListBuilderProps) {
                     variant="ghost"
                     size="sm"
                     className="size-6 p-0 text-red-400 hover:text-red-500 shrink-0"
-                    onClick={(e) => {
+                    onClick={async (e) => {
                       e.stopPropagation();
                       const updated = savedLists.filter((l) => l.id !== list.id);
                       setSavedLists(updated);
                       try {
                         localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
                       } catch { /* noop */ }
+                      // Delete from API
+                      const apiId = apiListIdMap.get(list.id);
+                      if (apiId && userId) {
+                        try {
+                          await shoppingListsApi.delete(apiId);
+                          setApiListIdMap((prev) => {
+                            const next = new Map(prev);
+                            next.delete(list.id);
+                            return next;
+                          });
+                        } catch {
+                          // API delete failed
+                        }
+                      }
                       if (list.id === activeListId) handleNewList();
                     }}
                   >

@@ -479,6 +479,87 @@ export const guideSubscriptionsApi = {
   create: (data: Partial<GuideSubscription>) => api.post<GuideSubscription>('/guide-subscriptions', data),
 };
 
+// ── Group Tour APIs
+
+export interface GroupTour {
+  id: string;
+  guideId: string;
+  zoneId: string;
+  title: string;
+  description: string;
+  descriptionSw: string;
+  maxParticipants: number;
+  currentCount: number;
+  soloPrice: number;
+  groupPrice: number;
+  timeSlot: string;
+  date: string;
+  status: 'open' | 'full' | 'cancelled' | 'completed';
+  participantIds: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const groupToursApi = {
+  list: (params?: Record<string, string>) => {
+    const query = params ? '?' + new URLSearchParams(params).toString() : '';
+    return api.get<{ items: GroupTour[] }>(`/group-tours${query}`);
+  },
+  get: (id: string) => api.get<{ item: GroupTour }>(`/group-tours/${id}`),
+  create: (data: Record<string, unknown>) => api.post<{ item: GroupTour }>('/group-tours', data),
+  update: (id: string, data: Record<string, unknown>) => api.patch<{ item: GroupTour }>(`/group-tours/${id}`, data),
+};
+
+// ── Shopping List APIs
+
+export interface ShoppingListItem {
+  name: string;
+  quantity: number;
+  price: number;
+  category: string;
+  zone: string;
+  purchased: boolean;
+}
+
+export interface ShoppingListData {
+  id: string;
+  userId: string;
+  name: string;
+  items: ShoppingListItem[];
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const shoppingListsApi = {
+  list: (params?: Record<string, string>) => {
+    const query = params ? '?' + new URLSearchParams(params).toString() : '';
+    return api.get<{ items: ShoppingListData[] }>(`/shopping-lists${query}`);
+  },
+  get: (id: string) => api.get<{ item: ShoppingListData }>(`/shopping-lists/${id}`),
+  create: (data: Record<string, unknown>) => api.post<{ item: ShoppingListData }>('/shopping-lists', data),
+  update: (id: string, data: Record<string, unknown>) => api.patch<{ item: ShoppingListData }>(`/shopping-lists/${id}`, data),
+  delete: (id: string) => api.delete<{ success: boolean }>(`/shopping-lists/${id}`),
+};
+
+// ── Calendar Reminder APIs
+
+export interface CalendarReminderData {
+  id: string;
+  userId: string;
+  eventId: string;
+  createdAt: string;
+}
+
+export const calendarRemindersApi = {
+  list: (params?: Record<string, string>) => {
+    const query = params ? '?' + new URLSearchParams(params).toString() : '';
+    return api.get<{ items: CalendarReminderData[] }>(`/calendar-reminders${query}`);
+  },
+  create: (data: Record<string, unknown>) => api.post<{ item: CalendarReminderData }>('/calendar-reminders', data),
+  delete: (id: string) => api.delete<{ success: boolean }>(`/calendar-reminders/${id}`),
+};
+
 // ── Admin APIs ──
 
 export interface AdminStats {

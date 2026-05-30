@@ -27,6 +27,9 @@ async function main() {
 
   // ─── Clear existing data (respect foreign key order) ───
   console.log('🧹 Clearing existing data...');
+  await prisma.calendarReminder.deleteMany();
+  await prisma.shoppingList.deleteMany();
+  await prisma.groupTour.deleteMany();
   await prisma.message.deleteMany();
   await prisma.session.deleteMany();
   await prisma.fraudAlert.deleteMany();
@@ -911,6 +914,43 @@ async function main() {
   console.log(`  Messages:      4`);
   console.log(`  Payouts:       ${payoutCount}`);
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+
+  // ─── Feature: Group Tours (3) ───
+  console.log('🚌 Creating group tours...');
+  const groupTours = await Promise.all([
+    prisma.groupTour.create({
+      data: { guideId: guides[0].user.id, zoneId: vyomboZone.id, title: 'Kitchenware Group Hunt', description: 'Join fellow seekers for a group tour of the best kitchenware stalls.', descriptionSw: 'Jiunge na watafuta wenzako kwa ziara ya kikundi ya stendi bora za vyombo.', maxParticipants: 5, currentCount: 3, soloPrice: 15000, groupPrice: 8000, timeSlot: '09:00-11:00', date: '2026-06-15', status: 'open', participantIds: JSON.stringify([seekers[0].id, seekers[1].id]) },
+    }),
+    prisma.groupTour.create({
+      data: { guideId: guides[1].user.id, zoneId: fabricZone.id, title: 'Fabric Discovery Tour', description: 'Group tour through the vibrant fabric zone with expert guidance.', descriptionSw: 'Ziara ya kikundi kupitia eneo la vitambaa lenye rangi na mwongozo bora.', maxParticipants: 4, currentCount: 4, soloPrice: 12000, groupPrice: 7000, timeSlot: '14:00-16:00', date: '2026-06-20', status: 'full', participantIds: JSON.stringify([seekers[0].id, seekers[1].id, seekers[2].id]) },
+    }),
+    prisma.groupTour.create({
+      data: { guideId: guides[2].user.id, zoneId: spicesZone.id, title: 'Spice Route Adventure', description: 'Explore the aromatic spice markets in a group and save!', descriptionSw: 'Chunguza masoko ya viungo yenye manukato kwa kikundi na okoa!', maxParticipants: 6, currentCount: 2, soloPrice: 18000, groupPrice: 9000, timeSlot: '10:00-12:30', date: '2026-06-25', status: 'open', participantIds: JSON.stringify([seekers[2].id]) },
+    }),
+  ]);
+  console.log(`  ✅ Created ${groupTours.length} group tours`);
+
+  // ─── Feature: Shopping Lists (2) ───
+  console.log('🛍️ Creating shopping lists...');
+  const shoppingLists = await Promise.all([
+    prisma.shoppingList.create({
+      data: { userId: seekers[0].id, name: 'Kitchen Essentials', items: JSON.stringify([{ name: 'Large Sufuria', quantity: 2, price: 12000, category: 'Kitchenware', zone: 'Vyombo', purchased: false }, { name: 'Gas Cooker', quantity: 1, price: 45000, category: 'Kitchenware', zone: 'Vyombo', purchased: false }, { name: 'Kitchen Knife Set', quantity: 1, price: 10000, category: 'Kitchenware', zone: 'Vyombo', purchased: true }]) },
+    }),
+    prisma.shoppingList.create({
+      data: { userId: seekers[1].id, name: 'Fabric Shopping', items: JSON.stringify([{ name: 'Kitenge Fabric (6 yards)', quantity: 3, price: 25000, category: 'Fabric', zone: 'Fabric', purchased: false }, { name: 'Kanga Pair', quantity: 2, price: 8000, category: 'Fabric', zone: 'Fabric', purchased: true }]) },
+    }),
+  ]);
+  console.log(`  ✅ Created ${shoppingLists.length} shopping lists`);
+
+  // ─── Feature: Calendar Reminders (2) ───
+  console.log('🔔 Creating calendar reminders...');
+  await Promise.all([
+    prisma.calendarReminder.create({ data: { userId: seekers[0].id, eventId: seasonalEvents[0].id } }),
+    prisma.calendarReminder.create({ data: { userId: seekers[1].id, eventId: seasonalEvents[2].id } }),
+  ]);
+  console.log('  ✅ Created 2 calendar reminders');
+
+  console.log('🎉 Seeding complete!');
 }
 
 main()

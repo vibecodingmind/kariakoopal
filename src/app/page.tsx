@@ -21,6 +21,13 @@ function NextAuthSessionSync() {
   const { setUser, setGuideProfile, isAuthenticated } = useAuthStore();
   const syncedRef = useRef(false);
 
+  // Reset sync flag when user logs out so a future social login can re-sync
+  useEffect(() => {
+    if (!isAuthenticated) {
+      syncedRef.current = false;
+    }
+  }, [isAuthenticated]);
+
   useEffect(() => {
     if (session?.user && !isAuthenticated && !syncedRef.current) {
       syncedRef.current = true;
