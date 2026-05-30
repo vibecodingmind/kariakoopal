@@ -1,17 +1,13 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { PWARegister } from "@/components/pwa-register";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  display: "swap",
 });
 
 export const viewport: Viewport = {
@@ -61,8 +57,9 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="Kariako Guide" />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
+        className={`${inter.variable} antialiased bg-background text-foreground relative`}
       >
+        <div className="mesh-gradient" aria-hidden="true" />
         {children}
         <Toaster />
         <PWARegister />

@@ -65,21 +65,40 @@ import {
   CalendarCheck,
   Trophy,
   Medal,
+  WifiOff,
+  GraduationCap,
+  Calendar,
+  Mic,
+  BarChart3,
+  Navigation,
+  BookOpen,
 } from 'lucide-react';
 
 // Shared components
 import { SessionTracker } from '@/components/session-tracker';
 import { SessionChat } from '@/components/session-chat';
-import { MapView } from '@/components/map-view';
+import { GoogleMap } from '@/components/google-map';
 import { BadgeDisplay } from '@/components/badge-display';
 import { RatingStars } from '@/components/rating-stars';
 import { EscrowPayment } from '@/components/escrow-payment';
 import { EmergencyPanel } from '@/components/emergency-panel';
+import { SubscriptionTiers } from '@/components/subscription-tiers';
+import { PackageDeals } from '@/components/package-deals';
+import { MentorshipProgram } from '@/components/mentorship-program';
+import { SeasonalCalendar } from '@/components/seasonal-calendar';
+import MarketStoriesComp from '@/components/market-stories';
+import { USSDOfflineMode } from '@/components/ussd-offline-mode';
+import { GuideInsights } from '@/components/guide-insights';
+import { VoiceMessages } from '@/components/voice-messages';
+import { MultiCurrency } from '@/components/multi-currency';
+import { SessionRecording } from '@/components/session-recording';
+import { SmartTimeout } from '@/components/smart-timeout';
+import { IndoorNavigation } from '@/components/indoor-navigation';
 import { toast } from 'sonner';
 
 // ── Types ──
 
-type GuideView = 'home' | 'requests' | 'session' | 'earnings' | 'badges' | 'profile';
+type GuideView = 'home' | 'requests' | 'session' | 'earnings' | 'badges' | 'profile' | 'subscription' | 'packages' | 'mentorship' | 'calendar' | 'stories' | 'insights';
 
 interface Zone {
   id: string;
@@ -347,8 +366,7 @@ export function GuideDashboard() {
 
   // Active session state
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
-  const [showChat, setShowChat] = useState(false);
-  const [showMap, setShowMap] = useState(false);
+
   const [checklist, setChecklist] = useState<{ id: string; text: string; completed: boolean }[]>([
     { id: 'cl_1', text: lang === 'sw' ? 'Kutana na muombaji' : 'Meet seeker', completed: false },
     { id: 'cl_2', text: lang === 'sw' ? 'Thibitisha kodi ya kikao' : 'Confirm session code', completed: false },
@@ -366,6 +384,18 @@ export function GuideDashboard() {
   const [editLanguages, setEditLanguages] = useState<string[]>([]);
   const [isProfileEditing, setIsProfileEditing] = useState(false);
   const [isProfileSaving, setIsProfileSaving] = useState(false);
+
+  // Session feature state
+  const [sessionTab, setSessionTab] = useState<'chat' | 'map' | 'navigation'>('chat');
+  const [isVoiceRecording, setIsVoiceRecording] = useState(false);
+  const [voiceRecordings, setVoiceRecordings] = useState<Array<{ id: string; duration: number; transcription: string; timestamp: number }>>([]);
+  const [isSessionRecording, setIsSessionRecording] = useState(false);
+  const [sessionRecordingDuration, setSessionRecordingDuration] = useState(0);
+  const [guideRecordingConsent, setGuideRecordingConsent] = useState(false);
+  const [seekerRecordingConsent, setSeekerRecordingConsent] = useState(false);
+  const [lastSessionActivity, setLastSessionActivity] = useState(Date.now());
+  const [isUssdOffline, setIsUssdOffline] = useState(false);
+  const [selectedCurrency, setSelectedCurrency] = useState('TZS');
 
   // Error state
   const [error, setError] = useState<string | null>(null);
@@ -1122,6 +1152,95 @@ export function GuideDashboard() {
         </div>
       )}
 
+      {/* Subscription Status Card */}
+      <Card className="border-amber-200 dark:border-amber-800 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/20 cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigateTo('subscription')}>
+        <CardContent className="p-4 flex items-center gap-3">
+          <div className="size-10 rounded-full bg-amber-200 dark:bg-amber-800 flex items-center justify-center shrink-0">
+            <Crown className="size-5 text-amber-700 dark:text-amber-300" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-foreground text-sm">{lang === 'sw' ? 'Usajili wako' : 'Your Subscription'}</p>
+            <p className="text-xs text-muted-foreground">{lang === 'sw' ? 'Starter - Boresha hadi Pro' : 'Starter - Upgrade to Pro'}</p>
+          </div>
+          <Badge className="bg-amber-200 text-amber-800 dark:bg-amber-800 dark:text-amber-200 text-xs">Starter</Badge>
+        </CardContent>
+      </Card>
+
+      {/* USSD Offline Info Card */}
+      <Card className="border-gray-200 dark:border-gray-700 bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-900/30 dark:to-slate-900/20 cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigateTo('profile')}>
+        <CardContent className="p-4">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="size-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center shrink-0">
+              <WifiOff className="size-5 text-gray-600 dark:text-gray-300" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-foreground text-sm">{lang === 'sw' ? 'Hali ya Nje ya Mtandao' : 'Offline Mode'}</p>
+              <p className="text-xs text-muted-foreground">{lang === 'sw' ? 'Tumia USSD bila mtandao' : 'Use USSD without internet'}</p>
+            </div>
+            <Badge variant="outline" className="text-xs">{isUssdOffline ? (lang === 'sw' ? 'Nje' : 'Offline') : (lang === 'sw' ? 'Mtandaoni' : 'Online')}</Badge>
+          </div>
+          <div className="flex items-center gap-3 bg-white/60 dark:bg-gray-800/40 rounded-lg px-4 py-3 border border-gray-200 dark:border-gray-700">
+            <Phone className="size-5 text-gray-600 dark:text-gray-300 shrink-0" />
+            <p className="text-xl font-mono font-bold tracking-wider text-foreground">*150*99#</p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Feature Quick Links */}
+      <div>
+        <h2 className="text-lg font-bold text-foreground mb-3">{lang === 'sw' ? 'Zaidi ya Huduma' : 'More Features'}</h2>
+        <div className="grid grid-cols-3 gap-3">
+          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigateTo('packages')}>
+            <CardContent className="p-3 text-center">
+              <div className="size-10 rounded-full bg-orange-100 dark:bg-orange-900/40 flex items-center justify-center mx-auto mb-1.5">
+                <Package className="size-5 text-orange-600 dark:text-orange-400" />
+              </div>
+              <p className="text-[11px] font-medium text-foreground">{lang === 'sw' ? 'Vifurushi' : 'Packages'}</p>
+            </CardContent>
+          </Card>
+          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigateTo('mentorship')}>
+            <CardContent className="p-3 text-center">
+              <div className="size-10 rounded-full bg-violet-100 dark:bg-violet-900/40 flex items-center justify-center mx-auto mb-1.5">
+                <GraduationCap className="size-5 text-violet-600 dark:text-violet-400" />
+              </div>
+              <p className="text-[11px] font-medium text-foreground">{lang === 'sw' ? 'Ushauri' : 'Mentorship'}</p>
+            </CardContent>
+          </Card>
+          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigateTo('calendar')}>
+            <CardContent className="p-3 text-center">
+              <div className="size-10 rounded-full bg-teal-100 dark:bg-teal-900/40 flex items-center justify-center mx-auto mb-1.5">
+                <Calendar className="size-5 text-teal-600 dark:text-teal-400" />
+              </div>
+              <p className="text-[11px] font-medium text-foreground">{lang === 'sw' ? 'Kalenda' : 'Calendar'}</p>
+            </CardContent>
+          </Card>
+          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigateTo('stories')}>
+            <CardContent className="p-3 text-center">
+              <div className="size-10 rounded-full bg-rose-100 dark:bg-rose-900/40 flex items-center justify-center mx-auto mb-1.5">
+                <BookOpen className="size-5 text-rose-600 dark:text-rose-400" />
+              </div>
+              <p className="text-[11px] font-medium text-foreground">{lang === 'sw' ? 'Hadithi' : 'Stories'}</p>
+            </CardContent>
+          </Card>
+          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigateTo('insights')}>
+            <CardContent className="p-3 text-center">
+              <div className="size-10 rounded-full bg-sky-100 dark:bg-sky-900/40 flex items-center justify-center mx-auto mb-1.5">
+                <BarChart3 className="size-5 text-sky-600 dark:text-sky-400" />
+              </div>
+              <p className="text-[11px] font-medium text-foreground">{lang === 'sw' ? 'Uchambuzi' : 'Insights'}</p>
+            </CardContent>
+          </Card>
+          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigateTo('subscription')}>
+            <CardContent className="p-3 text-center">
+              <div className="size-10 rounded-full bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center mx-auto mb-1.5">
+                <Crown className="size-5 text-amber-600 dark:text-amber-400" />
+              </div>
+              <p className="text-[11px] font-medium text-foreground">{lang === 'sw' ? 'Usajili' : 'Plans'}</p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
       {/* Guide of the Week banner */}
       {guideOfWeek && (
         <div>
@@ -1352,6 +1471,17 @@ export function GuideDashboard() {
 
     return (
       <div className="space-y-4">
+        {/* Smart Timeout Indicator */}
+        <SmartTimeout
+          sessionId={activeSessionData.id}
+          lastActivityTime={lastSessionActivity}
+          isActive={!!activeSessionId}
+          onStillHere={() => setLastSessionActivity(Date.now())}
+          onAutoComplete={handleCompleteSession}
+          language={lang}
+          className="!p-3 !space-y-0"
+        />
+
         {/* Session Tracker */}
         <SessionTracker
           sessionCode={activeSessionData.sessionCode}
@@ -1404,66 +1534,112 @@ export function GuideDashboard() {
           </Card>
         )}
 
-        {/* Chat/Map toggle */}
+        {/* Chat/Map/Navigation toggle */}
         <div className="flex gap-2">
           <Button
-            variant={showChat ? 'default' : 'outline'}
+            variant={sessionTab === 'chat' ? 'default' : 'outline'}
             className="flex-1 h-10 gap-2"
-            onClick={() => { setShowChat(true); setShowMap(false); }}
+            onClick={() => setSessionTab('chat')}
           >
             <MessageSquare className="size-4" />
             {lang === 'sw' ? 'Mazungumzo' : 'Chat'}
           </Button>
           <Button
-            variant={showMap ? 'default' : 'outline'}
+            variant={sessionTab === 'map' ? 'default' : 'outline'}
             className="flex-1 h-10 gap-2"
-            onClick={() => { setShowMap(true); setShowChat(false); }}
+            onClick={() => setSessionTab('map')}
           >
             <MapPin className="size-4" />
             {lang === 'sw' ? 'Ramani' : 'Map'}
           </Button>
+          <Button
+            variant={sessionTab === 'navigation' ? 'default' : 'outline'}
+            className="flex-1 h-10 gap-2"
+            onClick={() => setSessionTab('navigation')}
+          >
+            <Navigation className="size-4" />
+            {lang === 'sw' ? 'Urambazaji' : 'Navigate'}
+          </Button>
         </div>
 
         {/* Chat view */}
-        {showChat && (
-          <Card className="overflow-hidden">
-            <SessionChat
-              sessionId={activeSessionData.id}
-              currentUserId={user?.id || ''}
-              messages={sessionMessages.map((m) => ({
-                id: m.id,
-                sessionId: m.sessionId,
-                senderId: m.senderId,
-                content: m.content,
-                translatedContent: m.translatedContent,
-                createdAt: m.createdAt,
-                senderName: m.sender?.name,
-              }))}
-              onSendMessage={handleSendMessage}
-              isLoading={isLoadingSession}
-              className="h-[350px]"
+        {sessionTab === 'chat' && (
+          <>
+            <Card className="overflow-hidden">
+              <SessionChat
+                sessionId={activeSessionData.id}
+                currentUserId={user?.id || ''}
+                messages={sessionMessages.map((m) => ({
+                  id: m.id,
+                  sessionId: m.sessionId,
+                  senderId: m.senderId,
+                  content: m.content,
+                  translatedContent: m.translatedContent,
+                  createdAt: m.createdAt,
+                  senderName: m.sender?.name,
+                }))}
+                onSendMessage={handleSendMessage}
+                isLoading={isLoadingSession}
+                className="h-[300px]"
+              />
+            </Card>
+            {/* Voice Messages in session */}
+            <VoiceMessages
+              onSendVoice={(recording) => {
+                handleSendMessage(`[Voice] ${recording.transcription}`);
+              }}
+              onRecordStart={() => setIsVoiceRecording(true)}
+              onRecordStop={() => setIsVoiceRecording(false)}
+              isRecording={isVoiceRecording}
+              recordings={voiceRecordings}
+              language={lang}
+              className="!p-3"
             />
-          </Card>
+          </>
         )}
 
         {/* Map view */}
-        {showMap && (
-          <MapView
+        {sessionTab === 'map' && (
+          <GoogleMap
             zones={zones.map((z) => ({
               id: z.id,
               name: z.name,
               nameKey: z.nameKey,
-              color: '',
-              bgColor: '',
-              x: 5 + Math.random() * 70,
-              y: 5 + Math.random() * 60,
-              w: 25 + Math.random() * 10,
-              h: 25 + Math.random() * 15,
             }))}
-            userLocation={{ x: 50, y: 50 }}
-            guides={[{ id: user?.id || 'me', name: user?.name || 'You', x: 48, y: 52 }]}
+            guides={[{ id: user?.id || 'me', name: user?.name || 'You', isOnline: true }]}
+            showUserLocation={true}
+            interactive={true}
           />
         )}
+
+        {/* Indoor Navigation tab */}
+        {sessionTab === 'navigation' && (
+          <IndoorNavigation
+            zoneId={profile?.zones[0] || 'zone_vyombo'}
+            waypoints={[
+              { id: 'wp1', label: lang === 'sw' ? 'Lango Kuu' : 'Main Entrance', x: 20, y: 80, type: 'exit' as const, direction: 'straight' as const, distance: '50m' },
+              { id: 'wp2', label: lang === 'sw' ? 'Makutano ya Kwanza' : 'First Junction', x: 40, y: 60, type: 'junction' as const, direction: 'right' as const, distance: '30m', landmark: lang === 'sw' ? 'Duka la chuma' : 'Hardware shop' },
+              { id: 'wp3', label: lang === 'sw' ? 'Duka la Vyombo' : 'Utensils Stall', x: 60, y: 40, type: 'stall' as const, direction: 'left' as const, distance: '20m' },
+              { id: 'wp4', label: lang === 'sw' ? 'Alama ya Soko' : 'Market Landmark', x: 80, y: 30, type: 'landmark' as const, direction: 'straight' as const, distance: '40m' },
+            ]}
+            currentWaypointId="wp1"
+            language={lang}
+          />
+        )}
+
+        {/* Session Recording controls */}
+        <SessionRecording
+          sessionId={activeSessionData.id}
+          guideConsent={guideRecordingConsent}
+          seekerConsent={seekerRecordingConsent}
+          isRecording={isSessionRecording}
+          duration={sessionRecordingDuration}
+          onGrantConsent={() => setGuideRecordingConsent(true)}
+          onStartRecording={() => setIsSessionRecording(true)}
+          onStopRecording={() => setIsSessionRecording(false)}
+          language={lang}
+          className="!p-3"
+        />
 
         {/* Mark Complete button (large, prominent) */}
         <Button
@@ -1627,6 +1803,28 @@ export function GuideDashboard() {
         <DollarSign className="size-5" />
         {lang === 'sw' ? 'Omba malipo' : 'Request Payout'}
       </Button>
+
+      {/* Multi-Currency Display */}
+      <MultiCurrency
+        amountInTZS={earningsData.released}
+        onCurrencyChange={setSelectedCurrency}
+        showMore={false}
+        language={lang}
+      />
+
+      {/* Quick link to Insights */}
+      <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigateTo('insights')}>
+        <CardContent className="p-4 flex items-center gap-3">
+          <div className="size-10 rounded-full bg-sky-100 dark:bg-sky-900/40 flex items-center justify-center shrink-0">
+            <BarChart3 className="size-5 text-sky-600 dark:text-sky-400" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-foreground text-sm">{lang === 'sw' ? 'Uchambuzi wa Utendaji' : 'Performance Insights'}</p>
+            <p className="text-xs text-muted-foreground">{lang === 'sw' ? 'Tazama takwimu zako' : 'View your stats'}</p>
+          </div>
+          <ArrowLeft className="size-4 text-muted-foreground rotate-180" />
+        </CardContent>
+      </Card>
 
       {/* Payout History */}
       <div>
@@ -1902,6 +2100,118 @@ export function GuideDashboard() {
     </div>
   );
 
+  // ─── SUBSCRIPTION VIEW ───
+  const renderSubscription = () => (
+    <div className="space-y-6 p-4">
+      {renderBackButton()}
+      <SubscriptionTiers
+        currentTier="starter"
+        onUpgrade={(tier) => {
+          toast.success(lang === 'sw' ? `Umehamia ${tier}!` : `Upgraded to ${tier}!`);
+        }}
+        language={lang}
+      />
+    </div>
+  );
+
+  // ─── PACKAGES VIEW ───
+  const renderPackages = () => (
+    <div className="space-y-6 p-4">
+      {renderBackButton()}
+      <PackageDeals
+        packages={[
+          { id: 'pkg1', title: lang === 'sw' ? 'Safari ya Soko la Vyombo' : 'Kitchenware Market Tour', duration: 2, zones: [lang === 'sw' ? 'Vyombo' : 'Utensils'], price: 45000, deliveryIncluded: true, sessionsCompleted: 12, isPopular: true },
+          { id: 'pkg2', title: lang === 'sw' ? 'Uzalishaji wa Elektroniki' : 'Electronics Wholesale Run', duration: 3, zones: [lang === 'sw' ? 'Elektroniki' : 'Electronics'], price: 85000, deliveryIncluded: false, sessionsCompleted: 8 },
+          { id: 'pkg3', title: lang === 'sw' ? 'Kitenge na Nguo' : 'Kitenge & Fabric Trail', duration: 2, zones: [lang === 'sw' ? 'Kitambaa' : 'Fabric'], price: 35000, deliveryIncluded: true, sessionsCompleted: 15 },
+        ]}
+        guideName={user?.name || ''}
+        onBook={(pkgId) => {
+          toast.success(lang === 'sw' ? 'Kifurushi kimehifadhiwa!' : 'Package booked!');
+        }}
+        language={lang}
+      />
+    </div>
+  );
+
+  // ─── MENTORSHIP VIEW ───
+  const renderMentorship = () => (
+    <div className="space-y-6 p-4">
+      {renderBackButton()}
+      <MentorshipProgram
+        menteeSessionsCompleted={profile?.totalSessions || 0}
+        menteeSessionsRequired={10}
+        isEligible={(profile?.totalSessions || 0) >= 10 && (profile?.avgRating || 0) >= 4.0}
+        isMentee={false}
+        availableMentors={[
+          { id: 'mentor1', name: 'Mama Asha', rating: 4.9, specialties: [lang === 'sw' ? 'Vyombo' : 'Utensils', lang === 'sw' ? 'Vyakula' : 'Spices'], totalSessions: 250, menteesCount: 5 },
+          { id: 'mentor2', name: 'Uncle Juma', rating: 4.8, specialties: [lang === 'sw' ? 'Elektroniki' : 'Electronics'], totalSessions: 180, menteesCount: 3 },
+        ]}
+        onRequestMentor={(mentorId) => {
+          toast.success(lang === 'sw' ? 'Ombi la ushauri limetumwa!' : 'Mentorship request sent!');
+        }}
+        language={lang}
+      />
+    </div>
+  );
+
+  // ─── CALENDAR VIEW ───
+  const renderCalendar = () => (
+    <div className="space-y-6 p-4">
+      {renderBackButton()}
+      <SeasonalCalendar
+        events={[
+          { id: 'evt1', title: lang === 'sw' ? 'Siku ya Wafanyabiashara' : 'Traders Day', date: '2026-06-15', type: 'commercial', zonesAffected: [lang === 'sw' ? 'Vyombo' : 'Utensils', lang === 'sw' ? 'Elektroniki' : 'Electronics'], insiderTip: lang === 'sw' ? 'Bei zinashuka asubuhi' : 'Prices drop in the morning' },
+          { id: 'evt2', title: lang === 'sw' ? 'Idd el Fitr' : 'Eid al-Fitr', date: '2026-06-28', type: 'religious', zonesAffected: [lang === 'sw' ? 'Vyakula' : 'Spices'], insiderTip: lang === 'sw' ? 'Soko hufungwa mapema' : 'Market closes early', dateRange: '3 days' },
+          { id: 'evt3', title: lang === 'sw' ? 'Mashujaa Day' : 'Heroes Day', date: '2026-07-01', type: 'cultural', zonesAffected: [lang === 'sw' ? 'Jumla' : 'Wholesale'], insiderTip: lang === 'sw' ? 'Watu wengi wanakuja' : 'Large crowds expected' },
+          { id: 'evt4', title: lang === 'sw' ? 'Msimu wa Matunda' : 'Fruit Season Peak', date: '2026-07-15', type: 'seasonal', zonesAffected: [lang === 'sw' ? 'Vyakula' : 'Spices'], insiderTip: lang === 'sw' ? 'Matunda ya bei chini' : 'Best fruit prices' },
+        ]}
+        onSetReminder={(eventId) => {
+          toast.success(lang === 'sw' ? 'Kumbusho limewekwa!' : 'Reminder set!');
+        }}
+        language={lang}
+      />
+    </div>
+  );
+
+  // ─── STORIES VIEW ───
+  const renderStories = () => (
+    <div className="space-y-6 p-4">
+      {renderBackButton()}
+      <MarketStoriesComp
+        stories={[
+          { id: 'story1', guideName: user?.name || 'Guide', vendorName: 'Mama Halima', zoneName: lang === 'sw' ? 'Vyombo' : 'Utensils', text: 'The best kitchenware deals in Kariakoo are found in the early morning hours when the wholesale trucks arrive. Mama Halima has been selling here for 20 years and knows every vendor.', textSw: 'Mashauri mazuri ya vyombo vya chakula Kariakoo yanapatikana asubuhi mapema wakati malori ya jumla yanapowasili. Mama Halima ameuza hapa kwa miaka 20 na anamfahamu kila muuzaji.', tags: ['kitchenware', 'wholesale', 'tips'], createdAt: new Date(Date.now() - 86400000).toISOString() },
+          { id: 'story2', guideName: 'Uncle Juma', vendorName: 'Ali Electronics', zoneName: lang === 'sw' ? 'Elektroniki' : 'Electronics', text: 'When buying electronics in Kariakoo, always ask about the warranty. Ali Electronics offers a 6-month guarantee on most items, which is rare in this market.', textSw: 'Unaponunua elektroniki Kariakoo, daima uliza kuhusu dhamana. Ali Electronics inatoa dhamana ya miezi 6 kwa vitu vingi, jambo ambalo ni nadra sokoni.', tags: ['electronics', 'warranty', 'advice'], createdAt: new Date(Date.now() - 172800000).toISOString() },
+        ]}
+        language={lang}
+        onPlayAudio={(storyId) => {
+          toast.info(lang === 'sw' ? 'Inacheza sauti...' : 'Playing audio...');
+        }}
+        onAddStory={() => {
+          toast.info(lang === 'sw' ? 'Ongeza hadithi yako!' : 'Add your story!');
+        }}
+      />
+    </div>
+  );
+
+  // ─── INSIGHTS VIEW ───
+  const renderInsights = () => (
+    <div className="space-y-6 p-4">
+      {renderBackButton()}
+      <GuideInsights
+        avgDuration={45}
+        percentile={78}
+        topZone={lang === 'sw' ? 'Vyombo' : 'Utensils'}
+        revenue={earningsData.total}
+        repeatRate={32}
+        weeklyEarnings={weeklyEarningsData.map((d) => d.amount)}
+        growthPercent={15}
+        bestCategory={lang === 'sw' ? 'Vyombo vya Chakula' : 'Kitchenware'}
+        suggestion={lang === 'sw' ? 'Elektroniki - mahali pa kuzingatia' : 'Electronics - area to focus on'}
+        language={lang}
+      />
+    </div>
+  );
+
   // ─── PROFILE VIEW ───
   const renderProfile = () => (
     <div className="space-y-6">
@@ -2099,6 +2409,39 @@ export function GuideDashboard() {
           </div>
         </CardContent>
       </Card>
+
+      {/* USSD Offline Mode */}
+      <Card className="cursor-pointer hover:shadow-md transition-shadow">
+        <CardContent className="p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <WifiOff className="size-4 text-gray-600 dark:text-gray-400" />
+            <span className="text-sm font-medium text-foreground">{lang === 'sw' ? 'Hali ya Nje ya Mtandao' : 'Offline Mode'}</span>
+          </div>
+          <USSDOfflineMode
+            ussdCode="*150*99#"
+            onToggleOffline={(isOffline) => {
+              setIsUssdOffline(isOffline);
+              toast.info(isOffline ? (lang === 'sw' ? 'Umehamia hali ya USSD' : 'Switched to USSD mode') : (lang === 'sw' ? 'Umerudi mtandaoni' : 'Back online'));
+            }}
+            language={lang}
+            className="!p-0 !border-0 !shadow-none"
+          />
+        </CardContent>
+      </Card>
+
+      {/* Subscription Link */}
+      <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigateTo('subscription')}>
+        <CardContent className="p-4 flex items-center gap-3">
+          <div className="size-10 rounded-full bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center shrink-0">
+            <Crown className="size-5 text-amber-600 dark:text-amber-400" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-foreground text-sm">{lang === 'sw' ? 'Usajili wako' : 'Your Subscription'}</p>
+            <p className="text-xs text-muted-foreground">Starter - {lang === 'sw' ? 'Boresha hadi Pro' : 'Upgrade to Pro'}</p>
+          </div>
+          <ArrowLeft className="size-4 text-muted-foreground rotate-180" />
+        </CardContent>
+      </Card>
     </div>
   );
 
@@ -2174,6 +2517,12 @@ export function GuideDashboard() {
             {view === 'earnings' && renderEarnings()}
             {view === 'badges' && renderBadges()}
             {view === 'profile' && renderProfile()}
+            {view === 'subscription' && renderSubscription()}
+            {view === 'packages' && renderPackages()}
+            {view === 'mentorship' && renderMentorship()}
+            {view === 'calendar' && renderCalendar()}
+            {view === 'stories' && renderStories()}
+            {view === 'insights' && renderInsights()}
           </>
         )}
       </main>

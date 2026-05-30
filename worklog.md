@@ -254,3 +254,89 @@ Stage Summary:
 - Full integration of escrow payment and emergency panel into both role dashboards
 - Zero build errors, zero lint errors
 - Platform is feature-complete with all original spec items implemented
+
+---
+Task IDs: 2a, 3
+Agent: full-stack-developer
+Task: Build Google Maps component, Social Login component, and update dashboard integrations
+
+Work Log:
+- Created /src/components/google-map.tsx with enhanced interactive SVG map (hybrid approach — Google Maps API key check with SVG fallback)
+- SVG map includes real Kariakoo coordinates: center (-6.8264, 39.2695), Vyombo, Electronics, Fabric, Spices, Wholesale zones
+- Implemented zone polygons with approximate real market layout shapes, gradient fills, and interactive hover/click
+- Added realistic street grid pattern (12 paths including diagonal alleys), building shapes (20 rectangles), and zone labels
+- Built animated guide markers (pulsing green dots with name labels and hover tooltips showing rating)
+- Built vendor markers (store icon rectangles with hover tooltips showing name)
+- Built user location marker (pulsing blue dot with accuracy circle and navigation arrow)
+- Implemented compass rose indicator (north arrow in red), scale indicator (~100m), and Kariakoo title
+- Added zoom controls (+ / -) with glassmorphism styling, pan/drag support, wheel zoom
+- Added search/filter for zones with glass search panel
+- Added "Center on me" button using browser Geolocation API with Kariakoo fallback
+- Zone detail panel with vendor/guide counts and colored icon
+- All controls use glass utility classes (.glass-card, .gradient-border) from globals.css
+- Dark/light theme support throughout
+- Created /src/components/social-login.tsx with three glass-styled social login buttons
+- Google: white/light glass with colored "G" gradient text icon
+- Facebook: blue-tinted glass with "f" icon
+- Apple: dark glass with Apple SVG icon
+- Each button has gradient-border effect, hover lift + glow, loading spinner per-provider
+- Divider line with "or" text using i18n
+- Added 4 new i18n keys to /src/lib/i18n.ts: sign_in_google, sign_in_facebook, sign_in_apple, or_divider (both Swahili and English)
+- Updated /src/components/seeker-dashboard.tsx: replaced MapView with GoogleMap (2 instances — home view + session view)
+- Updated /src/components/guide-dashboard.tsx: replaced MapView with GoogleMap (1 instance — session view)
+- All prop mappings updated to use GoogleMap props format (zones with id/name/nameKey, vendors with id/name/zoneId, guides with id/name/rating/isOnline)
+- ESLint passes clean with zero errors
+
+Stage Summary:
+- GoogleMap component: full-featured interactive SVG map of Kariakoo with zones, markers, controls, search, glassmorphism
+- SocialLogin component: three glass-styled social buttons with loading states and bilingual text
+- Both dashboards updated to use the new GoogleMap component
+- 4 new i18n keys added for social login
+- Zero lint errors
+Task ID: 1b
+Agent: full-stack-developer
+Task: Glassy UI - Auth screen, Layout, Page redesign
+
+Work Log:
+- Updated /src/app/layout.tsx: replaced Geist fonts with Inter from next/font/google, added `relative` class to body, added `.mesh-gradient` div right after body opening for animated background, kept all PWA meta tags and head elements
+- Updated /src/app/globals.css: changed --font-sans and --font-mono from --font-geist-sans/--font-geist-mono to --font-inter for font consistency
+- Added 6 new i18n keys to /src/lib/i18n.ts for both Swahili and English: social_login, google_login, facebook_login, apple_login, or_continue_with, demo_mode
+- Completely rewrote /src/app/page.tsx AuthScreen with glassmorphism UI:
+  - Full-screen layout with mesh-gradient background (inherited from layout)
+  - Floating compass icon with animate-float and amber-glow-sm
+  - App name with gradient-text styling
+  - Language toggle as glass pill (fixed top-right)
+  - Phone input with glass-input styling
+  - OTP input with glass-input and large tracking
+  - Role selection cards with glass-card, gradient-border, and ring highlights
+  - Send OTP and Verify buttons using glass-button
+  - Social login section (Google with multicolor SVG, Facebook with blue SVG, Apple with black SVG) with glass-styled buttons that show toast "Coming soon"
+  - Quick demo login buttons as glass pills at the bottom
+  - Removed unused Card/CardContent/CardHeader imports, replaced with glass utilities
+- Redesigned AppShell header:
+  - glass-nav for the header bar
+  - Logo + app name with gradient-text
+  - Glass pill language toggle
+  - Glass dark mode toggle (rounded)
+  - User avatar with gradient ring and hover effect
+  - User menu dropdown as glass-card with glass-border separator
+  - Close-on-outside-click using ref and mousedown listener
+- Redesigned /src/components/onboarding.tsx:
+  - Removed shadcn Button dependency, uses glass-button instead
+  - Floating icon animations (animate-float) on each onboarding step
+  - Glass cards for onboarding content with gradient icons inside
+  - Gradient-text onboarding titles
+  - Glass-styled navigation dots (active dot uses glass-button, inactive uses glass)
+  - Glass-styled next/get-started button
+  - Glass pill skip button
+- All existing functionality preserved: auth flow, role routing, onboarding, dark mode, etc.
+- Lint passes clean with zero errors
+- Dev server compiles successfully
+
+Stage Summary:
+- Complete glassmorphism UI redesign of Auth Screen, App Shell header, and Onboarding
+- Inter font replaces Geist for modern feel
+- Mesh gradient animated background applied globally
+- Social login buttons (Google, Facebook, Apple) with toast "Coming soon" feedback
+- 6 new i18n keys added for social login labels
+- Zero lint errors, dev server compiling

@@ -170,3 +170,156 @@ model Badge {
   user         User          @relation(fields: [guideId], references: [id], onDelete: Cascade)
   guideProfile GuideProfile? @relation(fields: [guideId], references: [userId])
 }
+
+// ── Feature: Vendor Verified Badge (4) ──
+model VendorVerification {
+  id            String   @id @default(cuid())
+  vendorId      String   @unique
+  isVerified    Boolean  @default(false)
+  verifiedAt    DateTime?
+  expiresAt     DateTime?
+  monthlyFee    Float    @default(5000)
+  qrCode        String   @default("")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// ── Feature: Guide Subscription Tiers (5) ──
+model GuideSubscription {
+  id          String    @id @default(cuid())
+  guideId     String    @unique
+  tier        String    @default("starter") // starter, pro, elite
+  startDate   DateTime  @default(now())
+  endDate     DateTime?
+  autoRenew   Boolean   @default(false)
+  paymentRef  String    @default("")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// ── Feature: Package Deals (6) ──
+model PackageDeal {
+  id              String   @id @default(cuid())
+  guideId         String
+  title           String
+  description     String   @default("")
+  duration        Float    @default(2) // hours
+  zoneIds         String   @default("[]") // JSON array
+  price           Float    @default(0)
+  includesDelivery Boolean @default(false)
+  sessionsCompleted Int    @default(0)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// ── Feature: Live Session Recording (7) ──
+model SessionRecording {
+  id            String   @id @default(cuid())
+  sessionId     String   @unique
+  isRecording   Boolean  @default(false)
+  guideConsent  Boolean  @default(false)
+  seekerConsent Boolean  @default(false)
+  duration      Float    @default(0) // seconds
+  storageUrl    String   @default("")
+  expiresAt     DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// ── Feature: Buddy System (8) ──
+model BuddyMatch {
+  id            String   @id @default(cuid())
+  seeker1Id     String
+  seeker2Id     String
+  zoneId        String
+  timeSlot      String
+  guideId       String?
+  status        String   @default("pending") // pending, matched, active, completed
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// ── Feature: Indoor Navigation Waypoints (10) ──
+model NavWaypoint {
+  id          String   @id @default(cuid())
+  zoneId      String
+  label       String
+  labelSw     String   @default("")
+  qrCode      String   @default("")
+  floorPlanX  Float    @default(0)
+  floorPlanY  Float    @default(0)
+  type        String   @default("junction") // junction, stall, exit, landmark
+  directions  String   @default("{}") // JSON: { left: waypointId, right: waypointId, straight: waypointId }
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ── Feature: Market Stories (13) ──
+model MarketStory {
+  id          String   @id @default(cuid())
+  guideId     String
+  vendorId    String?
+  zoneId      String
+  title       String
+  content     String
+  audioUrl    String?
+  tags        String   @default("[]") // JSON array
+  isPublic    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ── Feature: Guide Mentorship (14) ──
+model Mentorship {
+  id          String   @id @default(cuid())
+  mentorId    String
+  menteeId    String
+  status      String   @default("active") // active, completed, cancelled
+  sessionsDone Int     @default(0)
+  sessionsRequired Int @default(5)
+  bonusPercent Float   @default(0.03)
+  startDate   DateTime @default(now())
+  endDate     DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ── Feature: Seasonal Calendar (15) ──
+model SeasonalEvent {
+  id            String   @id @default(cuid())
+  title         String
+  titleSw       String   @default("")
+  description   String   @default("")
+  type          String   @default("cultural") // cultural, religious, seasonal, commercial
+  startDate     DateTime
+  endDate       DateTime?
+  affectedZones String   @default("[]") // JSON array of zone IDs
+  insiderTip    String   @default("")
+  insiderTipSw  String   @default("")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// ── Feature: Fraud Detection (20) ──
+model FraudAlert {
+  id          String   @id @default(cuid())
+  entityType  String   @default("guide") // guide, seeker, vendor
+  entityId    String
+  alertType   String   @default("fast_completion") // fast_completion, serial_disputer, recommendation_spike, rating_manipulation
+  confidence  Float    @default(0)
+  details     String   @default("{}") // JSON
+  status      String   @default("pending") // pending, investigated, dismissed, actioned
+  reviewedBy  String?
+  reviewedAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ── Feature: Exchange Rates (18) ──
+model ExchangeRate {
+  id        String   @id @default(cuid())
+  currency  String   @unique // USD, EUR, KES, UGX
+  rate      Float    // rate to TZS
+  updatedAt DateTime @updatedAt
+}

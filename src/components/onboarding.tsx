@@ -7,7 +7,6 @@ import {
   CarouselItem,
   type CarouselApi,
 } from '@/components/ui/carousel';
-import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { useAppStore } from '@/lib/stores/app-store';
 import { t, type Language } from '@/lib/i18n';
@@ -20,8 +19,7 @@ interface OnboardingProps {
 
 interface OnboardScreen {
   icon: React.ElementType;
-  iconBg: string;
-  iconColor: string;
+  iconGradient: string;
   titleKey: string;
   descKey: string;
 }
@@ -29,22 +27,19 @@ interface OnboardScreen {
 const screens: OnboardScreen[] = [
   {
     icon: MapPin,
-    iconBg: 'bg-emerald-50 dark:bg-emerald-950/50',
-    iconColor: 'text-emerald-600 dark:text-emerald-400',
+    iconGradient: 'from-emerald-400 to-teal-500',
     titleKey: 'onboard_1_title',
     descKey: 'onboard_1_desc',
   },
   {
     icon: TrendingUp,
-    iconBg: 'bg-amber-50 dark:bg-amber-950/50',
-    iconColor: 'text-amber-600 dark:text-amber-400',
+    iconGradient: 'from-amber-400 to-orange-500',
     titleKey: 'onboard_2_title',
     descKey: 'onboard_2_desc',
   },
   {
     icon: ShieldCheck,
-    iconBg: 'bg-sky-50 dark:bg-sky-950/50',
-    iconColor: 'text-sky-600 dark:text-sky-400',
+    iconGradient: 'from-sky-400 to-indigo-500',
     titleKey: 'onboard_3_title',
     descKey: 'onboard_3_desc',
   },
@@ -74,18 +69,16 @@ export function Onboarding({ className }: OnboardingProps) {
   const isLast = current === screens.length - 1;
 
   return (
-    <div className={cn('fixed inset-0 z-50 bg-background flex flex-col', className)}>
+    <div className={cn('fixed inset-0 z-50 flex flex-col', className)}>
       {/* Skip button */}
       {!isLast && (
         <div className="flex justify-end p-4">
-          <Button
-            variant="ghost"
-            size="sm"
+          <button
             onClick={completeOnboarding}
-            className="text-muted-foreground"
+            className="glass px-3 py-1.5 rounded-full text-xs font-medium text-muted-foreground hover:bg-[var(--glass-hover)] transition-colors"
           >
             {t('cancel', language)}
-          </Button>
+          </button>
         </div>
       )}
 
@@ -98,18 +91,24 @@ export function Onboarding({ className }: OnboardingProps) {
               return (
                 <CarouselItem key={idx}>
                   <div className="flex flex-col items-center text-center gap-6 py-8">
-                    {/* Icon illustration */}
-                    <div
-                      className={cn(
-                        'size-28 rounded-3xl flex items-center justify-center',
-                        screen.iconBg
-                      )}
-                    >
-                      <Icon className={cn('size-14', screen.iconColor)} />
+                    {/* Floating icon */}
+                    <div className="animate-float">
+                      <div className={cn(
+                        'size-28 rounded-3xl glass-card flex items-center justify-center',
+                        idx === 0 && 'amber-glow-sm',
+                        idx === 1 && 'amber-glow-sm',
+                      )}>
+                        <div className={cn(
+                          'w-16 h-16 rounded-2xl bg-gradient-to-br flex items-center justify-center',
+                          screen.iconGradient
+                        )}>
+                          <Icon className="w-8 h-8 text-white" />
+                        </div>
+                      </div>
                     </div>
 
                     {/* Title */}
-                    <h2 className="text-xl font-bold text-foreground px-4">
+                    <h2 className="text-xl font-bold gradient-text px-4">
                       {t(screen.titleKey, language)}
                     </h2>
 
@@ -135,8 +134,8 @@ export function Onboarding({ className }: OnboardingProps) {
               className={cn(
                 'h-2 rounded-full transition-all duration-300',
                 idx === current
-                  ? 'w-6 bg-primary'
-                  : 'w-2 bg-muted-foreground/30'
+                  ? 'w-6 glass-button !rounded-full !h-2 !p-0'
+                  : 'w-2 glass !rounded-full'
               )}
               onClick={() => api?.scrollTo(idx)}
               aria-label={`Go to slide ${idx + 1}`}
@@ -145,9 +144,7 @@ export function Onboarding({ className }: OnboardingProps) {
         </div>
 
         {/* Action button */}
-        <Button
-          size="lg"
-          className="w-full max-w-sm h-12 text-base"
+        <button
           onClick={() => {
             if (isLast) {
               completeOnboarding();
@@ -155,10 +152,11 @@ export function Onboarding({ className }: OnboardingProps) {
               api?.scrollNext();
             }
           }}
+          className="glass-button w-full max-w-sm h-12 flex items-center justify-center gap-2 text-base"
         >
           {isLast ? t('get_started', language) : t('next', language)}
-          <ArrowRight className="size-4 ml-1" />
-        </Button>
+          <ArrowRight className="w-4 h-4" />
+        </button>
       </div>
     </div>
   );

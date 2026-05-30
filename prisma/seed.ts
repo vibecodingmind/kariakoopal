@@ -29,6 +29,17 @@ async function main() {
   console.log('🧹 Clearing existing data...');
   await prisma.message.deleteMany();
   await prisma.session.deleteMany();
+  await prisma.fraudAlert.deleteMany();
+  await prisma.seasonalEvent.deleteMany();
+  await prisma.mentorship.deleteMany();
+  await prisma.marketStory.deleteMany();
+  await prisma.navWaypoint.deleteMany();
+  await prisma.buddyMatch.deleteMany();
+  await prisma.sessionRecording.deleteMany();
+  await prisma.packageDeal.deleteMany();
+  await prisma.guideSubscription.deleteMany();
+  await prisma.vendorVerification.deleteMany();
+  await prisma.exchangeRate.deleteMany();
   await prisma.badge.deleteMany();
   await prisma.payout.deleteMany();
   await prisma.priceRadar.deleteMany();
@@ -720,6 +731,170 @@ async function main() {
     payoutCount++;
   }
   console.log(`  ✅ Created ${payoutCount} payouts`);
+
+  // ─── Feature: Exchange Rates (18) ───
+  console.log('💱 Creating exchange rates...');
+  const exchangeRates = await Promise.all([
+    prisma.exchangeRate.create({ data: { currency: 'USD', rate: 2580 } }),
+    prisma.exchangeRate.create({ data: { currency: 'EUR', rate: 2800 } }),
+    prisma.exchangeRate.create({ data: { currency: 'KES', rate: 19.8 } }),
+    prisma.exchangeRate.create({ data: { currency: 'UGX', rate: 0.69 } }),
+  ]);
+  console.log(`  ✅ Created ${exchangeRates.length} exchange rates`);
+
+  // ─── Feature: Vendor Verifications (4) ───
+  console.log('✅ Creating vendor verifications...');
+  const vendorVerifications = await Promise.all([
+    prisma.vendorVerification.create({
+      data: { vendorId: vendors[0].id, isVerified: true, verifiedAt: new Date('2024-11-01'), expiresAt: new Date('2025-11-01'), monthlyFee: 5000, qrCode: 'QR-V-101' },
+    }),
+    prisma.vendorVerification.create({
+      data: { vendorId: vendors[8].id, isVerified: true, verifiedAt: new Date('2024-10-15'), expiresAt: new Date('2025-10-15'), monthlyFee: 10000, qrCode: 'QR-F-301' },
+    }),
+    prisma.vendorVerification.create({
+      data: { vendorId: vendors[16].id, isVerified: true, verifiedAt: new Date('2024-09-01'), expiresAt: new Date('2025-09-01'), monthlyFee: 7500, qrCode: 'QR-W-501' },
+    }),
+    prisma.vendorVerification.create({
+      data: { vendorId: vendors[4].id, isVerified: false, monthlyFee: 5000 },
+    }),
+  ]);
+  console.log(`  ✅ Created ${vendorVerifications.length} vendor verifications`);
+
+  // ─── Feature: Guide Subscriptions (5) ───
+  console.log('📋 Creating guide subscriptions...');
+  const subscriptions = await Promise.all([
+    prisma.guideSubscription.create({ data: { guideId: guides[0].user.id, tier: 'elite', autoRenew: true } }),
+    prisma.guideSubscription.create({ data: { guideId: guides[1].user.id, tier: 'elite', autoRenew: true } }),
+    prisma.guideSubscription.create({ data: { guideId: guides[2].user.id, tier: 'pro', autoRenew: true } }),
+    prisma.guideSubscription.create({ data: { guideId: guides[3].user.id, tier: 'pro', autoRenew: false } }),
+    prisma.guideSubscription.create({ data: { guideId: guides[4].user.id, tier: 'starter' } }),
+  ]);
+  console.log(`  ✅ Created ${subscriptions.length} guide subscriptions`);
+
+  // ─── Feature: Package Deals (6) ───
+  console.log('📦 Creating package deals...');
+  const packageDeals = await Promise.all([
+    prisma.packageDeal.create({
+      data: { guideId: guides[0].user.id, title: 'Kitchenware Safari', description: 'Complete kitchen shopping tour with delivery', duration: 3, zoneIds: JSON.stringify([zones[0].id]), price: 45000, includesDelivery: true, sessionsCompleted: 23 },
+    }),
+    prisma.packageDeal.create({
+      data: { guideId: guides[1].user.id, title: 'Textile Treasure Hunt', description: 'Best fabric deals with quality assurance', duration: 2.5, zoneIds: JSON.stringify([zones[2].id, zones[4].id]), price: 35000, includesDelivery: false, sessionsCompleted: 18 },
+    }),
+    prisma.packageDeal.create({
+      data: { guideId: guides[2].user.id, title: 'Spice Route Experience', description: 'Aromatic journey through Kariakoo spices', duration: 2, zoneIds: JSON.stringify([zones[3].id]), price: 25000, includesDelivery: false, sessionsCompleted: 12 },
+    }),
+    prisma.packageDeal.create({
+      data: { guideId: guides[5].user.id, title: 'Full Kariakoo Experience', description: 'All zones tour with lunch break and delivery', duration: 5, zoneIds: JSON.stringify(zones.map(z => z.id)), price: 85000, includesDelivery: true, sessionsCompleted: 31 },
+    }),
+    prisma.packageDeal.create({
+      data: { guideId: guides[6].user.id, title: 'Wholesale Bulk Buy', description: 'Best wholesale deals with airport delivery', duration: 3, zoneIds: JSON.stringify([zones[4].id]), price: 55000, includesDelivery: true, sessionsCompleted: 9 },
+    }),
+    prisma.packageDeal.create({
+      data: { guideId: guides[4].user.id, title: 'Electronics Expo', description: 'Gadgets and tech tour with warranty assistance', duration: 2, zoneIds: JSON.stringify([zones[1].id]), price: 30000, includesDelivery: false, sessionsCompleted: 15 },
+    }),
+  ]);
+  console.log(`  ✅ Created ${packageDeals.length} package deals`);
+
+  // ─── Feature: Session Recording (2) ───
+  console.log('🎙️ Creating session recordings...');
+  await Promise.all([
+    prisma.sessionRecording.create({
+      data: { sessionId: session1.id, isRecording: false, guideConsent: true, seekerConsent: true, duration: 9000, storageUrl: '/recordings/KRK-2024-001.webm', expiresAt: new Date(Date.now() + 30 * 86400000) },
+    }),
+    prisma.sessionRecording.create({
+      data: { sessionId: session2.id, isRecording: false, guideConsent: true, seekerConsent: true, duration: 9900, storageUrl: '/recordings/KRK-2024-002.webm', expiresAt: new Date(Date.now() + 30 * 86400000) },
+    }),
+  ]);
+  console.log('  ✅ Created 2 session recordings');
+
+  // ─── Feature: Buddy Matches (1) ───
+  console.log('👥 Creating buddy matches...');
+  await prisma.buddyMatch.create({
+    data: { seeker1Id: seekers[0].id, seeker2Id: seekers[2].id, zoneId: vyomboZone.id, timeSlot: '2025-01-15T10:00:00Z', guideId: guides[3].user.id, status: 'completed' },
+  });
+  console.log('  ✅ Created 1 buddy match');
+
+  // ─── Feature: Nav Waypoints (10) ───
+  console.log('🧭 Creating navigation waypoints...');
+  const waypointData = [
+    { zone: vyomboZone, label: 'Junction A1', labelSw: 'Kivuko A1', type: 'junction', x: 25, y: 30 },
+    { zone: vyomboZone, label: "Mama Kitenge's Stall", labelSw: 'Stendi ya Mama Kitenge', type: 'stall', x: 35, y: 45 },
+    { zone: electronicsZone, label: 'Junction B1', labelSw: 'Kivuko B1', type: 'junction', x: 55, y: 25 },
+    { zone: electronicsZone, label: 'Tech Hub Entry', labelSw: 'Mlango wa Tech Hub', type: 'landmark', x: 60, y: 40 },
+    { zone: fabricZone, label: 'Junction C1', labelSw: 'Kivuko C1', type: 'junction', x: 15, y: 50 },
+    { zone: fabricZone, label: 'Textile Row Exit', labelSw: 'Toka Njia ya Vitambaa', type: 'exit', x: 20, y: 65 },
+    { zone: spicesZone, label: 'Junction D1', labelSw: 'Kivuko D1', type: 'junction', x: 45, y: 70 },
+    { zone: spicesZone, label: 'Aromatics Corner', labelSw: 'Kona ya Manukato', type: 'landmark', x: 50, y: 80 },
+    { zone: wholesaleZone, label: 'Junction E1', labelSw: 'Kivuko E1', type: 'junction', x: 75, y: 60 },
+    { zone: wholesaleZone, label: 'Main Exit', labelSw: 'Toka Kuu', type: 'exit', x: 85, y: 75 },
+  ];
+  for (const wp of waypointData) {
+    await prisma.navWaypoint.create({
+      data: { zoneId: wp.zone.id, label: wp.label, labelSw: wp.labelSw, type: wp.type, floorPlanX: wp.x, floorPlanY: wp.y, directions: JSON.stringify({}) },
+    });
+  }
+  console.log(`  ✅ Created ${waypointData.length} navigation waypoints`);
+
+  // ─── Feature: Market Stories (5) ───
+  console.log('📖 Creating market stories...');
+  const stories = await Promise.all([
+    prisma.marketStory.create({
+      data: { guideId: guides[0].user.id, vendorId: vendors[0].id, zoneId: vyomboZone.id, title: 'The Copper Pot Legacy', content: 'Mzee Juma has been selling copper pots here since 1987. His grandmother started this stall after independence, and the craftsmanship has been passed down three generations. Every pot is hand-hammered using traditional techniques.', tags: JSON.stringify(['history', 'copper', 'tradition']), isPublic: true },
+    }),
+    prisma.marketStory.create({
+      data: { guideId: guides[1].user.id, vendorId: vendors[8].id, zoneId: fabricZone.id, title: 'The Secret of Kitenge Patterns', content: 'Each kitenge pattern tells a story. The "Khanga" pattern was originally used to send messages between women. The patterns you see in Kariakoo today still carry these hidden meanings - from wedding blessings to political statements.', tags: JSON.stringify(['culture', 'fabric', 'patterns']), isPublic: true },
+    }),
+    prisma.marketStory.create({
+      data: { guideId: guides[2].user.id, vendorId: vendors[13].id, zoneId: spicesZone.id, title: 'Zanzibar Spice Route', content: 'The spices in Kariakoo arrived via the ancient trade routes from Zanzibar. Many of the vendors here are descendants of the original spice traders who sailed the Indian Ocean centuries ago.', tags: JSON.stringify(['spices', 'history', 'zanzibar']), isPublic: true },
+    }),
+    prisma.marketStory.create({
+      data: { guideId: guides[5].user.id, zoneId: wholesaleZone.id, title: 'The Wholesale Secrets', content: 'The best wholesale deals happen before 8 AM. That is when the truck deliveries arrive fresh from the port. Smart buyers know to arrive early for first pick of the new stock.', tags: JSON.stringify(['tips', 'wholesale', 'timing']), isPublic: true },
+    }),
+    prisma.marketStory.create({
+      data: { guideId: guides[4].user.id, vendorId: vendors[4].id, zoneId: electronicsZone.id, title: 'Phone Market Survival Guide', content: 'Not all phones in Kariakoo are genuine. Learn the "IMEI check" trick: dial *#06# to verify the serial number matches the box. Authentic vendors will let you check before buying.', tags: JSON.stringify(['electronics', 'tips', 'safety']), isPublic: true },
+    }),
+  ]);
+  console.log(`  ✅ Created ${stories.length} market stories`);
+
+  // ─── Feature: Mentorships (1) ───
+  console.log('🎓 Creating mentorships...');
+  await prisma.mentorship.create({
+    data: { mentorId: guides[0].user.id, menteeId: guides[7].user.id, status: 'active', sessionsDone: 2, sessionsRequired: 5, bonusPercent: 0.03 },
+  });
+  console.log('  ✅ Created 1 mentorship');
+
+  // ─── Feature: Seasonal Events (4) ───
+  console.log('📅 Creating seasonal events...');
+  const seasonalEvents = await Promise.all([
+    prisma.seasonalEvent.create({
+      data: { title: 'Ramadan Prep Season', titleSw: 'Msimu wa Maandalizi ya Ramadhani', description: 'Spices zone is busiest during Ramadan preparation. Book early for the best deals on cardamom, cloves, and dates.', type: 'religious', startDate: new Date('2025-02-15'), endDate: new Date('2025-03-15'), affectedZones: JSON.stringify([zones[3].id]), insiderTip: 'Visit spices zone at 7 AM before the crowds arrive for freshest stock.', insiderTipSw: 'Tembelea eneo la viungo saa 1 asubuhi kabla ya msongamano kwa bidhaa safi zaidi.' },
+    }),
+    prisma.seasonalEvent.create({
+      data: { title: 'Kwanzaa Export Season', titleSw: 'Msimu wa Usafirishaji wa Kwanzaa', description: 'Best wholesale deals on fabrics and crafts. International buyers flock for Kwanzaa gifts and decorations.', type: 'cultural', startDate: new Date('2025-12-01'), endDate: new Date('2025-12-26'), affectedZones: JSON.stringify([zones[2].id, zones[4].id]), insiderTip: 'Buy fabrics in bulk on weekdays for 20% lower prices than weekends.', insiderTipSw: 'Nunua vitambaa kwa wingi siku za kazi kwa bei ndogo 20% kuliko wikiendi.' },
+    }),
+    prisma.seasonalEvent.create({
+      data: { title: 'Dar es Salaam Trade Fair', titleSw: 'Maonyesho ya Biashara ya Dar es Salaam', description: 'Annual trade fair brings extra visitors to Kariakoo. Electronics and wholesale zones see massive discounts.', type: 'commercial', startDate: new Date('2025-07-01'), endDate: new Date('2025-07-15'), affectedZones: JSON.stringify([zones[1].id, zones[4].id]), insiderTip: 'Vendors are willing to negotiate more during the fair to move volume.', insiderTipSw: 'Wauzaji wanakubali kujadili zaidi wakati wa maonyesho ili kuuzia haraka.' },
+    }),
+    prisma.seasonalEvent.create({
+      data: { title: 'Harvest Season Bulk Sales', titleSw: 'Mauzo ya Jumla ya Mavuno', description: 'Post-harvest season brings the cheapest wholesale prices on rice, flour, and cooking oil.', type: 'seasonal', startDate: new Date('2025-09-01'), endDate: new Date('2025-11-30'), affectedZones: JSON.stringify([zones[4].id]), insiderTip: 'Prices drop further in October when the second harvest arrives.', insiderTipSw: 'Bei zinashuka zaidi Oktoba wakati mavuno ya pili yanapowasili.' },
+    }),
+  ]);
+  console.log(`  ✅ Created ${seasonalEvents.length} seasonal events`);
+
+  // ─── Feature: Fraud Alerts (3) ───
+  console.log('🚨 Creating fraud alerts...');
+  const fraudAlerts = await Promise.all([
+    prisma.fraudAlert.create({
+      data: { entityType: 'guide', entityId: guides[9].user.id, alertType: 'fast_completion', confidence: 0.85, details: JSON.stringify({ avgSessionDuration: '12 minutes', threshold: '30 minutes', sessionCount: 5 }), status: 'pending' },
+    }),
+    prisma.fraudAlert.create({
+      data: { entityType: 'seeker', entityId: seekers[2].id, alertType: 'serial_disputer', confidence: 0.72, details: JSON.stringify({ disputeRate: '60%', totalSessions: 5, disputesFiled: 3 }), status: 'pending' },
+    }),
+    prisma.fraudAlert.create({
+      data: { entityType: 'vendor', entityId: vendors[4].id, alertType: 'recommendation_spike', confidence: 0.65, details: JSON.stringify({ previousRecs: 23, currentRecs: 67, spikePercent: '191%' }), status: 'investigated' },
+    }),
+  ]);
+  console.log(`  ✅ Created ${fraudAlerts.length} fraud alerts`);
 
   // ─── Summary ───
   console.log('\n🎉 Seed completed successfully!');

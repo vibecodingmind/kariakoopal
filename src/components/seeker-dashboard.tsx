@@ -54,6 +54,15 @@ import {
   X,
   Radio,
   Bell,
+  ShoppingCart,
+  Package,
+  Navigation,
+  Mic,
+  Scale,
+  ThermometerSun,
+  BookOpen,
+  Heart,
+  Route,
 } from 'lucide-react';
 
 // Shared components
@@ -61,12 +70,28 @@ import { SessionTracker } from '@/components/session-tracker';
 import { SessionChat } from '@/components/session-chat';
 import { PriceRadarPanel } from '@/components/price-radar-panel';
 import { VendorDirectory } from '@/components/vendor-directory';
-import { MapView } from '@/components/map-view';
+import { GoogleMap } from '@/components/google-map';
 import { GuideCard } from '@/components/guide-card';
 import { RatingStars } from '@/components/rating-stars';
 import { Leaderboard } from '@/components/leaderboard';
 import { EscrowPayment } from '@/components/escrow-payment';
 import { EmergencyPanel } from '@/components/emergency-panel';
+
+// Feature components
+import { HagglingAssistant } from '@/components/haggling-assistant';
+import { GroupTour } from '@/components/group-tour';
+import { MarketHeatmap } from '@/components/market-heatmap';
+import { ShoppingList } from '@/components/shopping-list';
+import { RouteOptimizer, type RouteStop } from '@/components/route-optimizer';
+import MarketStories from '@/components/market-stories';
+import { SeasonalCalendar } from '@/components/seasonal-calendar';
+import { IndoorNavigation } from '@/components/indoor-navigation';
+import { SessionRecording } from '@/components/session-recording';
+import { BuddySystem } from '@/components/buddy-system';
+import { SmartTimeout } from '@/components/smart-timeout';
+import { VoiceMessages } from '@/components/voice-messages';
+import { MultiCurrency } from '@/components/multi-currency';
+import { PackageDeals } from '@/components/package-deals';
 import { toast } from 'sonner';
 
 // ── Types ──
@@ -79,7 +104,15 @@ type SeekerView =
   | 'session'
   | 'history'
   | 'price-radar'
-  | 'vendors';
+  | 'vendors'
+  | 'haggling'
+  | 'group-tour'
+  | 'heatmap'
+  | 'shopping-list'
+  | 'stories'
+  | 'calendar'
+  | 'buddy'
+  | 'packages';
 
 interface Zone {
   id: string;
@@ -304,6 +337,21 @@ export function SeekerDashboard() {
 
   // Error state
   const [error, setError] = useState<string | null>(null);
+
+  // ── Feature component state ──
+  // Haggling
+  const [hagglingCategory, setHagglingCategory] = useState('electronics');
+  const [hagglingVendorPrice, setHagglingVendorPrice] = useState(150000);
+
+  // Session enhancements
+  const [sessionSidebarTab, setSessionSidebarTab] = useState<'tools' | 'indoor' | 'recording' | 'haggling'>('tools');
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingDuration, setRecordingDuration] = useState(0);
+  const [isVoiceRecording, setIsVoiceRecording] = useState(false);
+  const [voiceRecordings, setVoiceRecordings] = useState<Array<{ id: string; duration: number; transcription: string; timestamp: number }>>([]);
+  const [seekerRecordingConsent, setSeekerRecordingConsent] = useState(false);
+  const [lastActivityTime, setLastActivityTime] = useState(Date.now());
+  const [showRouteOptimizer, setShowRouteOptimizer] = useState(false);
 
   // ── Data Fetching ──
 
@@ -887,23 +935,124 @@ export function SeekerDashboard() {
         </Card>
       </div>
 
+      {/* Feature quick actions */}
+      <div>
+        <h2 className="text-lg font-bold text-foreground mb-3">{lang === 'sw' ? 'Vipengee Zaidi' : 'More Features'}</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <Card
+            className="cursor-pointer hover:shadow-md transition-shadow group"
+            onClick={() => navigateTo('group-tour')}
+          >
+            <CardContent className="p-4 flex flex-col items-center gap-2 text-center">
+              <div className="size-11 rounded-xl bg-violet-100 dark:bg-violet-900/40 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Users className="size-5 text-violet-600 dark:text-violet-400" />
+              </div>
+              <span className="text-xs font-medium text-foreground">{lang === 'sw' ? 'Safari ya Kikundi' : 'Group Tour'}</span>
+            </CardContent>
+          </Card>
+
+          <Card
+            className="cursor-pointer hover:shadow-md transition-shadow group"
+            onClick={() => navigateTo('heatmap')}
+          >
+            <CardContent className="p-4 flex flex-col items-center gap-2 text-center">
+              <div className="size-11 rounded-xl bg-red-100 dark:bg-red-900/40 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <ThermometerSun className="size-5 text-red-600 dark:text-red-400" />
+              </div>
+              <span className="text-xs font-medium text-foreground">{lang === 'sw' ? 'Joto la Soko' : 'Market Heatmap'}</span>
+            </CardContent>
+          </Card>
+
+          <Card
+            className="cursor-pointer hover:shadow-md transition-shadow group"
+            onClick={() => navigateTo('shopping-list')}
+          >
+            <CardContent className="p-4 flex flex-col items-center gap-2 text-center">
+              <div className="size-11 rounded-xl bg-orange-100 dark:bg-orange-900/40 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <ShoppingCart className="size-5 text-orange-600 dark:text-orange-400" />
+              </div>
+              <span className="text-xs font-medium text-foreground">{lang === 'sw' ? 'Orodha ya Ununuzi' : 'Shopping List'}</span>
+            </CardContent>
+          </Card>
+
+          <Card
+            className="cursor-pointer hover:shadow-md transition-shadow group"
+            onClick={() => navigateTo('packages')}
+          >
+            <CardContent className="p-4 flex flex-col items-center gap-2 text-center">
+              <div className="size-11 rounded-xl bg-teal-100 dark:bg-teal-900/40 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Package className="size-5 text-teal-600 dark:text-teal-400" />
+              </div>
+              <span className="text-xs font-medium text-foreground">{lang === 'sw' ? 'Vifurushi' : 'Package Deals'}</span>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* More feature links */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <Card
+          className="cursor-pointer hover:shadow-md transition-shadow group"
+          onClick={() => navigateTo('stories')}
+        >
+          <CardContent className="p-4 flex flex-col items-center gap-2 text-center">
+            <div className="size-11 rounded-xl bg-pink-100 dark:bg-pink-900/40 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <BookOpen className="size-5 text-pink-600 dark:text-pink-400" />
+            </div>
+            <span className="text-xs font-medium text-foreground">{lang === 'sw' ? 'Hadithi za Soko' : 'Market Stories'}</span>
+          </CardContent>
+        </Card>
+
+        <Card
+          className="cursor-pointer hover:shadow-md transition-shadow group"
+          onClick={() => navigateTo('calendar')}
+        >
+          <CardContent className="p-4 flex flex-col items-center gap-2 text-center">
+            <div className="size-11 rounded-xl bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Calendar className="size-5 text-indigo-600 dark:text-indigo-400" />
+            </div>
+            <span className="text-xs font-medium text-foreground">{lang === 'sw' ? 'Kalenda ya Msimu' : 'Seasonal Calendar'}</span>
+          </CardContent>
+        </Card>
+
+        <Card
+          className="cursor-pointer hover:shadow-md transition-shadow group"
+          onClick={() => navigateTo('buddy')}
+        >
+          <CardContent className="p-4 flex flex-col items-center gap-2 text-center">
+            <div className="size-11 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Heart className="size-5 text-emerald-600 dark:text-emerald-400" />
+            </div>
+            <span className="text-xs font-medium text-foreground">{lang === 'sw' ? 'Rafiki Pamoja' : 'Buddy System'}</span>
+          </CardContent>
+        </Card>
+
+        <Card
+          className="cursor-pointer hover:shadow-md transition-shadow group"
+          onClick={() => navigateTo('haggling')}
+        >
+          <CardContent className="p-4 flex flex-col items-center gap-2 text-center">
+            <div className="size-11 rounded-xl bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Scale className="size-5 text-amber-600 dark:text-amber-400" />
+            </div>
+            <span className="text-xs font-medium text-foreground">{lang === 'sw' ? 'Msaidizi wa Bishi' : 'Haggling Helper'}</span>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Map overview */}
       <div>
         <h2 className="text-lg font-bold text-foreground mb-3">{lang === 'sw' ? 'Ramani ya Kariakoo' : 'Kariakoo Map'}</h2>
-        <MapView
+        <GoogleMap
           zones={zones.map((z) => ({
             id: z.id,
             name: z.name,
             nameKey: z.nameKey,
-            color: '',
-            bgColor: '',
-            x: 5 + Math.random() * 70,
-            y: 5 + Math.random() * 60,
-            w: 25 + Math.random() * 10,
-            h: 25 + Math.random() * 15,
           }))}
-          vendors={vendors.slice(0, 7).map((v) => ({ id: v.id, name: v.name, zoneId: v.zoneId, x: v.x || 50, y: v.y || 50 }))}
-          guides={guides.filter((g) => g.currentStatus === 'online').slice(0, 3).map((g) => ({ id: g.id, name: g.name, x: 15 + Math.random() * 70, y: 15 + Math.random() * 60 }))}
+          vendors={vendors.slice(0, 7).map((v) => ({ id: v.id, name: v.name, zoneId: v.zoneId }))}
+          guides={guides.filter((g) => g.currentStatus === 'online').slice(0, 3).map((g) => ({ id: g.id, name: g.name, rating: g.rating, isOnline: g.currentStatus === 'online' }))}
+          showUserLocation={true}
+          interactive={true}
         />
       </div>
 
@@ -1119,6 +1268,28 @@ export function SeekerDashboard() {
               </>
             )}
           </Button>
+
+          {/* Quick links */}
+          <div className="flex gap-2 pt-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1 h-9 text-xs gap-1.5"
+              onClick={() => navigateTo('shopping-list')}
+            >
+              <ShoppingCart className="size-3.5" />
+              {lang === 'sw' ? 'Orodha ya Ununuzi' : 'Shopping List'}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1 h-9 text-xs gap-1.5"
+              onClick={() => navigateTo('buddy')}
+            >
+              <Heart className="size-3.5" />
+              {lang === 'sw' ? 'Rafiki Pamoja' : 'Buddy System'}
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>
@@ -1436,6 +1607,16 @@ export function SeekerDashboard() {
         </div>
       ) : (
         <>
+          {/* SmartTimeout indicator at top */}
+          <SmartTimeout
+            sessionId={activeSessionData.id}
+            lastActivityTime={lastActivityTime}
+            isActive={!activeSessionData.completedAt && activeSessionData.escrowStatus === 'held'}
+            onStillHere={() => setLastActivityTime(Date.now())}
+            onAutoComplete={handleCompleteSession}
+            language={lang}
+          />
+
           {/* Session Tracker */}
           <SessionTracker
             sessionCode={activeSessionData.sessionCode}
@@ -1499,13 +1680,23 @@ export function SeekerDashboard() {
             </Card>
           )}
 
-          {/* Toggle: Chat / Map */}
+          {/* MultiCurrency for session amount */}
+          {activeSessionData.amount > 0 && (
+            <MultiCurrency
+              amountInTZS={activeSessionData.amount}
+              onCurrencyChange={() => {}}
+              showMore={false}
+              language={lang}
+            />
+          )}
+
+          {/* Toggle: Chat / Map / Tools */}
           <div className="flex gap-2">
             <Button
               variant={showChat ? 'default' : 'outline'}
               size="sm"
               className="flex-1 h-10 gap-1.5"
-              onClick={() => { setShowChat(true); setShowMap(false); }}
+              onClick={() => { setShowChat(true); setShowMap(false); setSessionSidebarTab('tools'); }}
             >
               <MessageSquare className="size-4" />
               {lang === 'sw' ? 'Mazungumzo' : 'Chat'}
@@ -1514,14 +1705,23 @@ export function SeekerDashboard() {
               variant={showMap ? 'default' : 'outline'}
               size="sm"
               className="flex-1 h-10 gap-1.5"
-              onClick={() => { setShowMap(true); setShowChat(false); }}
+              onClick={() => { setShowMap(true); setShowChat(false); setSessionSidebarTab('tools'); }}
             >
               <MapPin className="size-4" />
               {lang === 'sw' ? 'Ramani' : 'Map'}
             </Button>
+            <Button
+              variant={!showChat && !showMap ? 'default' : 'outline'}
+              size="sm"
+              className="flex-1 h-10 gap-1.5"
+              onClick={() => { setShowChat(false); setShowMap(false); }}
+            >
+              <Zap className="size-4" />
+              {lang === 'sw' ? 'Zana' : 'Tools'}
+            </Button>
           </div>
 
-          {/* Chat */}
+          {/* Chat with VoiceMessages */}
           {showChat && (
             <Card className="overflow-hidden">
               <SessionChat
@@ -1539,84 +1739,175 @@ export function SeekerDashboard() {
                 language={lang}
                 onSendMessage={handleSendMessage}
               />
+              {/* Voice Messages */}
+              <div className="border-t p-3">
+                <VoiceMessages
+                  onSendVoice={(recording) => {
+                    setVoiceRecordings((prev) => [...prev, recording]);
+                    handleSendMessage(recording.transcription);
+                  }}
+                  onRecordStart={() => setIsVoiceRecording(true)}
+                  onRecordStop={() => setIsVoiceRecording(false)}
+                  isRecording={isVoiceRecording}
+                  recordings={voiceRecordings}
+                  language={lang}
+                />
+              </div>
             </Card>
           )}
 
           {/* Map */}
           {showMap && (
-            <MapView
+            <GoogleMap
               zones={zones.map((z) => ({
                 id: z.id,
                 name: z.name,
                 nameKey: z.nameKey,
-                color: '',
-                bgColor: '',
-                x: 5 + Math.random() * 70,
-                y: 5 + Math.random() * 60,
-                w: 25 + Math.random() * 10,
-                h: 25 + Math.random() * 15,
               }))}
               guides={activeSessionData.guide ? [{
                 id: activeSessionData.guide.id,
                 name: activeSessionData.guide.name,
-                x: 20 + Math.random() * 60,
-                y: 20 + Math.random() * 60,
               }] : []}
               className="w-full"
+              showUserLocation={true}
+              interactive={true}
             />
           )}
 
-          {/* Escrow Payment */}
-          <EscrowPayment
-            amount={activeSessionData.amount}
-            platformFee={activeSessionData.platformFee}
-            escrowStatus={activeSessionData.escrowStatus as 'pending' | 'held' | 'released' | 'refunded' | 'disputed'}
-            isGuide={false}
-            language={lang}
-            onPaymentComplete={() => {
-              toast.success(lang === 'sw' ? 'Malipo yamefanikiwa!' : 'Payment successful!');
-              fetchActiveSession(activeSessionData.id);
-            }}
-            onReleaseEscrow={async () => {
-              try {
-                await fetch(`/api/sessions/${activeSessionData.id}`, {
-                  method: 'PATCH',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ action: 'release' }),
-                });
-                toast.success(lang === 'sw' ? 'Malipo yametolewa!' : 'Payment released!');
-                fetchActiveSession(activeSessionData.id);
-              } catch {
-                toast.error(lang === 'sw' ? 'Imeshindwa kutoa malipo' : 'Failed to release payment');
-              }
-            }}
-            onDisputeEscrow={async (reason) => {
-              try {
-                await fetch(`/api/sessions/${activeSessionData.id}`, {
-                  method: 'PATCH',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ action: 'dispute', disputeReason: reason }),
-                });
-                toast.success(lang === 'sw' ? 'Mgogoro umetumwa' : 'Dispute submitted');
-                fetchActiveSession(activeSessionData.id);
-              } catch {
-                toast.error(lang === 'sw' ? 'Imeshindwa kuwasilisha mgogoro' : 'Failed to submit dispute');
-              }
-            }}
-          />
+          {/* Session Tools (tabbed sidebar) */}
+          {!showChat && !showMap && (
+            <div className="space-y-4">
+              {/* Tool tabs */}
+              <div className="flex gap-1.5 overflow-x-auto pb-1">
+                {[
+                  { id: 'tools' as const, icon: Zap, label: lang === 'sw' ? 'Zana' : 'Tools' },
+                  { id: 'indoor' as const, icon: Navigation, label: lang === 'sw' ? 'Ndani' : 'Indoor' },
+                  { id: 'recording' as const, icon: Mic, label: lang === 'sw' ? 'Rekodi' : 'Record' },
+                  { id: 'haggling' as const, icon: Scale, label: lang === 'sw' ? 'Bishi' : 'Haggle' },
+                ].map((tab) => (
+                  <Button
+                    key={tab.id}
+                    variant={sessionSidebarTab === tab.id ? 'default' : 'outline'}
+                    size="sm"
+                    className="h-8 text-xs shrink-0 gap-1"
+                    onClick={() => setSessionSidebarTab(tab.id)}
+                  >
+                    <tab.icon className="size-3.5" />
+                    {tab.label}
+                  </Button>
+                ))}
+              </div>
 
-          {/* Emergency Panel */}
-          <EmergencyPanel
-            sessionId={activeSessionData.id}
-            sessionCode={activeSessionData.sessionCode}
-            guideName={activeSessionData.guide?.name}
-            seekerName={user?.name}
-            language={lang}
-            onEmergencyTriggered={(data) => {
-              handleEmergency();
-              console.log('Emergency triggered:', data);
-            }}
-          />
+              {/* Tools tab content */}
+              {sessionSidebarTab === 'tools' && (
+                <>
+                  {/* Escrow Payment */}
+                  <EscrowPayment
+                    amount={activeSessionData.amount}
+                    platformFee={activeSessionData.platformFee}
+                    escrowStatus={activeSessionData.escrowStatus as 'pending' | 'held' | 'released' | 'refunded' | 'disputed'}
+                    isGuide={false}
+                    language={lang}
+                    onPaymentComplete={() => {
+                      toast.success(lang === 'sw' ? 'Malipo yamefanikiwa!' : 'Payment successful!');
+                      fetchActiveSession(activeSessionData.id);
+                    }}
+                    onReleaseEscrow={async () => {
+                      try {
+                        await fetch(`/api/sessions/${activeSessionData.id}`, {
+                          method: 'PATCH',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ action: 'release' }),
+                        });
+                        toast.success(lang === 'sw' ? 'Malipo yametolewa!' : 'Payment released!');
+                        fetchActiveSession(activeSessionData.id);
+                      } catch {
+                        toast.error(lang === 'sw' ? 'Imeshindwa kutoa malipo' : 'Failed to release payment');
+                      }
+                    }}
+                    onDisputeEscrow={async (reason) => {
+                      try {
+                        await fetch(`/api/sessions/${activeSessionData.id}`, {
+                          method: 'PATCH',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ action: 'dispute', disputeReason: reason }),
+                        });
+                        toast.success(lang === 'sw' ? 'Mgogoro umetumwa' : 'Dispute submitted');
+                        fetchActiveSession(activeSessionData.id);
+                      } catch {
+                        toast.error(lang === 'sw' ? 'Imeshindwa kuwasilisha mgogoro' : 'Failed to submit dispute');
+                      }
+                    }}
+                  />
+
+                  {/* Emergency Panel */}
+                  <EmergencyPanel
+                    sessionId={activeSessionData.id}
+                    sessionCode={activeSessionData.sessionCode}
+                    guideName={activeSessionData.guide?.name}
+                    seekerName={user?.name}
+                    language={lang}
+                    onEmergencyTriggered={(data) => {
+                      handleEmergency();
+                      console.log('Emergency triggered:', data);
+                    }}
+                  />
+                </>
+              )}
+
+              {/* Indoor Navigation tab */}
+              {sessionSidebarTab === 'indoor' && (
+                <IndoorNavigation
+                  zoneId={activeSessionData.request?.description?.includes('spice') ? 'zone_spices' : 'zone_vyombo'}
+                  waypoints={[
+                    { id: 'wp-1', label: lang === 'sw' ? 'Lango Kuu' : 'Main Entrance', x: 10, y: 90, type: 'exit' as const, direction: 'straight' as const, distance: '0m', landmark: lang === 'sw' ? 'Mlango mkuu' : 'Main gate' },
+                    { id: 'wp-2', label: lang === 'sw' ? 'Mkutano A' : 'Junction A', x: 30, y: 70, type: 'junction' as const, direction: 'right' as const, distance: '20m', landmark: lang === 'sw' ? 'Duka la chai' : 'Tea shop' },
+                    { id: 'wp-3', label: lang === 'sw' ? 'Duka la Mama Asha' : 'Mama Asha Stall', x: 50, y: 50, type: 'stall' as const, direction: 'left' as const, distance: '15m', landmark: lang === 'sw' ? 'Alama ya rangi nyekundu' : 'Red sign' },
+                    { id: 'wp-4', label: lang === 'sw' ? 'Duka la Bwana Hassan' : 'Bwana Hassan Stall', x: 70, y: 30, type: 'stall' as const, direction: 'straight' as const, distance: '25m', landmark: lang === 'sw' ? 'Karibu na dirisha' : 'Near window' },
+                    { id: 'wp-5', label: lang === 'sw' ? 'Lango la Mashariki' : 'East Exit', x: 90, y: 10, type: 'exit' as const, direction: 'right' as const, distance: '30m' },
+                  ]}
+                  currentWaypointId="wp-1"
+                  language={lang}
+                />
+              )}
+
+              {/* Session Recording tab */}
+              {sessionSidebarTab === 'recording' && (
+                <SessionRecording
+                  sessionId={activeSessionData.id}
+                  guideConsent={true}
+                  seekerConsent={seekerRecordingConsent}
+                  isRecording={isRecording}
+                  duration={recordingDuration}
+                  onGrantConsent={() => setSeekerRecordingConsent(true)}
+                  onStartRecording={() => {
+                    setIsRecording(true);
+                    setRecordingDuration(0);
+                  }}
+                  onStopRecording={() => {
+                    setIsRecording(false);
+                    toast.success(lang === 'sw' ? 'Rekodi imehifadhiwa!' : 'Recording saved!');
+                  }}
+                  language={lang}
+                />
+              )}
+
+              {/* Haggling Assistant tab */}
+              {sessionSidebarTab === 'haggling' && prices.length > 0 && (
+                <HagglingAssistant
+                  category={prices[0].category}
+                  vendorPrice={prices[0].maxPrice}
+                  fairMin={prices[0].minPrice}
+                  fairMax={prices[0].maxPrice}
+                  zoneName={lang === 'sw' ? 'Kariakoo' : 'Kariakoo'}
+                  language={lang}
+                  onAcceptCounter={(price) => {
+                    toast.success(lang === 'sw' ? `Umekubali TZS ${price.toLocaleString()}` : `Accepted TZS ${price.toLocaleString()}`);
+                  }}
+                />
+              )}
+            </div>
+          )}
         </>
       )}
     </div>
@@ -1782,6 +2073,17 @@ export function SeekerDashboard() {
   const renderPriceRadar = () => (
     <div className="space-y-4">
       {renderBackButton()}
+
+      {/* MultiCurrency at top */}
+      {prices.length > 0 && (
+        <MultiCurrency
+          amountInTZS={prices[0].maxPrice}
+          onCurrencyChange={() => {}}
+          showMore={false}
+          language={lang}
+        />
+      )}
+
       <PriceRadarPanel
         prices={prices}
         zones={zones.map((z) => ({ id: z.id, nameKey: z.nameKey }))}
@@ -1791,6 +2093,32 @@ export function SeekerDashboard() {
           toast.success(lang === 'sw' ? 'Mapendekezo yamewasilishwa!' : 'Suggestion submitted!');
         }}
       />
+
+      {/* Negotiate button */}
+      {prices.length > 0 && (
+        <Card className="border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/20">
+          <CardContent className="p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="size-10 rounded-full bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center">
+                <Scale className="size-5 text-amber-600 dark:text-amber-400" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-foreground">{lang === 'sw' ? 'Piga Bishi' : 'Negotiate Prices'}</p>
+                <p className="text-xs text-muted-foreground">{lang === 'sw' ? 'Pata bei ya haki kwa kutumia msaidizi wetu' : 'Get fair prices with our assistant'}</p>
+              </div>
+            </div>
+            <Button size="sm" className="gap-1.5" onClick={() => {
+              const firstPrice = prices[0];
+              setHagglingCategory(firstPrice.category);
+              setHagglingVendorPrice(firstPrice.maxPrice);
+              navigateTo('haggling');
+            }}>
+              <Scale className="size-3.5" />
+              {lang === 'sw' ? 'Bishi' : 'Negotiate'}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 
@@ -1806,6 +2134,352 @@ export function SeekerDashboard() {
         onRegisterVendor={(data) => {
           toast.success(lang === 'sw' ? 'Muuzaji amesajiliwa!' : 'Vendor registered!');
         }}
+      />
+    </div>
+  );
+
+  // ─── HAGGLING ASSISTANT VIEW ───
+  const renderHaggling = () => {
+    const priceEntry = prices.find((p) => p.category === hagglingCategory) || prices[0];
+    return (
+      <div className="space-y-6">
+        {renderBackButton('price-radar')}
+        <div>
+          <h1 className="text-xl font-bold text-foreground">{lang === 'sw' ? 'Msaidizi wa Bishi' : 'Haggling Assistant'}</h1>
+          <p className="text-sm text-muted-foreground mt-1">{lang === 'sw' ? 'Pata bei ya haki kwa bidhaa zako' : 'Get fair prices for your items'}</p>
+        </div>
+
+        {/* Category selector */}
+        <div className="flex flex-wrap gap-2">
+          {prices.map((p) => (
+            <Button
+              key={p.id}
+              variant={hagglingCategory === p.category ? 'default' : 'outline'}
+              size="sm"
+              className="h-8 text-xs"
+              onClick={() => {
+                setHagglingCategory(p.category);
+                setHagglingVendorPrice(p.maxPrice);
+              }}
+            >
+              {p.category}
+            </Button>
+          ))}
+        </div>
+
+        {priceEntry ? (
+          <HagglingAssistant
+            category={priceEntry.category}
+            vendorPrice={hagglingVendorPrice}
+            fairMin={priceEntry.minPrice}
+            fairMax={priceEntry.maxPrice}
+            zoneName={lang === 'sw' ? 'Kariakoo' : 'Kariakoo'}
+            language={lang}
+            onAcceptCounter={(price) => {
+              toast.success(lang === 'sw' ? `Umekubali TZS ${price.toLocaleString()}` : `Accepted TZS ${price.toLocaleString()}`);
+            }}
+          />
+        ) : (
+          <Card>
+            <CardContent className="p-6 text-center text-muted-foreground">
+              <Scale className="size-8 mx-auto mb-2 opacity-50" />
+              <p className="text-sm">{lang === 'sw' ? 'Hakuna data ya bei' : 'No price data available'}</p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    );
+  };
+
+  // ─── GROUP TOUR VIEW ───
+  const renderGroupTour = () => (
+    <div className="space-y-6">
+      {renderBackButton()}
+      <div>
+        <h1 className="text-xl font-bold text-foreground">{lang === 'sw' ? 'Safari ya Kikundi' : 'Group Tour'}</h1>
+        <p className="text-sm text-muted-foreground mt-1">{lang === 'sw' ? 'Onga na wengine na okoa pesa' : 'Join others and save money'}</p>
+      </div>
+      <GroupTour
+        guideName={guides[0]?.name || (lang === 'sw' ? 'Mwongozo' : 'Guide')}
+        zoneName={lang === 'sw' ? 'Kariakoo - Vyombo' : 'Kariakoo - Utensils'}
+        maxSeekers={4}
+        currentSeekers={2}
+        pricePerSeeker={25000}
+        soloPrice={45000}
+        discountPercent={44}
+        timeSlot="10:00 AM - 12:00 PM"
+        language={lang}
+        onJoinGroup={() => toast.success(lang === 'sw' ? 'Umejiunga na kikundi!' : 'You joined the group!')}
+        onCreateGroup={() => toast.success(lang === 'sw' ? 'Kikundi kimeundwa!' : 'Group created!')}
+      />
+    </div>
+  );
+
+  // ─── MARKET HEATMAP VIEW ───
+  const renderHeatmap = () => (
+    <div className="space-y-6">
+      {renderBackButton()}
+      <div>
+        <h1 className="text-xl font-bold text-foreground">{lang === 'sw' ? 'Joto la Soko' : 'Market Heatmap'}</h1>
+        <p className="text-sm text-muted-foreground mt-1">{lang === 'sw' ? 'Tazama msongamano wa maeneo' : 'See crowd density by zone'}</p>
+      </div>
+      <MarketHeatmap
+        zones={zones.map((z) => ({
+          zoneId: z.id,
+          zoneName: z.name,
+          zoneNameKey: z.nameKey,
+          color: z.color,
+          currentDensity: 30 + Math.floor(Math.random() * 60),
+          bestTime: lang === 'sw' ? '8:00 AM' : '8:00 AM',
+          busiestTime: lang === 'sw' ? '12:00 PM' : '12:00 PM',
+          avgSessionDuration: 25 + Math.floor(Math.random() * 30),
+        }))}
+        language={lang}
+      />
+    </div>
+  );
+
+  // ─── SHOPPING LIST VIEW ───
+  const renderShoppingList = () => {
+    const shoppingPrices = prices.map((p) => ({
+      category: p.category,
+      zoneId: p.zoneId,
+      min: p.minPrice,
+      max: p.maxPrice,
+    }));
+
+    const routeStops: RouteStop[] = zones.slice(0, 3).map((z, i) => ({
+      id: z.id,
+      zoneId: z.id,
+      zoneName: z.name,
+      zoneNameKey: z.nameKey,
+      items: [lang === 'sw' ? 'Bidhaa 1' : 'Item 1', lang === 'sw' ? 'Bidhaa 2' : 'Item 2'],
+      estimatedTime: 15 + i * 10,
+      color: z.color,
+    }));
+
+    return (
+      <div className="space-y-6">
+        {renderBackButton()}
+        <div>
+          <h1 className="text-xl font-bold text-foreground">{lang === 'sw' ? 'Orodha ya Ununuzi' : 'Shopping List'}</h1>
+          <p className="text-sm text-muted-foreground mt-1">{lang === 'sw' ? 'Panga bidhaa zako na pata bei' : 'Organize your items and get prices'}</p>
+        </div>
+
+        <ShoppingList
+          zones={zones}
+          prices={shoppingPrices}
+          language={lang}
+          onOptimizeRoute={() => setShowRouteOptimizer(true)}
+        />
+
+        {/* Route Optimizer toggle */}
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            className="flex-1 h-10 gap-2 border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400"
+            onClick={() => setShowRouteOptimizer(!showRouteOptimizer)}
+          >
+            <Route className="size-4" />
+            {showRouteOptimizer
+              ? (lang === 'sw' ? 'Ficha Njia' : 'Hide Route')
+              : (lang === 'sw' ? 'Boresha Njia' : 'Optimize Route')}
+          </Button>
+        </div>
+
+        {showRouteOptimizer && (
+          <RouteOptimizer
+            stops={routeStops}
+            totalTime={routeStops.reduce((sum, s) => sum + s.estimatedTime, 0)}
+            totalDistance="1.2 km"
+            language={lang}
+            onReorder={(newStops) => {
+              toast.success(lang === 'sw' ? 'Njia imeboreshwa!' : 'Route optimized!');
+            }}
+            onStartRoute={() => {
+              toast.success(lang === 'sw' ? 'Njia imeanza!' : 'Route started!');
+            }}
+          />
+        )}
+      </div>
+    );
+  };
+
+  // ─── MARKET STORIES VIEW ───
+  const renderStories = () => (
+    <div className="space-y-6">
+      {renderBackButton()}
+      <div>
+        <h1 className="text-xl font-bold text-foreground">{lang === 'sw' ? 'Hadithi za Soko' : 'Market Stories'}</h1>
+        <p className="text-sm text-muted-foreground mt-1">{lang === 'sw' ? 'Sikiliza kutoka kwa waongozaji na wauzaji' : 'Hear from guides and vendors'}</p>
+      </div>
+      <MarketStories
+        stories={[
+          {
+            id: 'story-1',
+            guideName: guides[0]?.name || 'Mwongozo',
+            vendorName: 'Mama Asha',
+            zoneName: lang === 'sw' ? 'Eneo la Vyombo' : 'Utensils Zone',
+            audioUrl: 'mock-audio.mp3',
+            text: 'The best time to buy utensils in Kariakoo is early morning when vendors are setting up. You can find great deals on stainless steel pots and traditional clay cookware. Always check the quality by tapping - a clear ring means good metal.',
+            textSw: 'Wakati bora wa kununua vyombo Kariakoo ni asasili wakati wauzaji wanapoweka bidhaa. Unaweza kupata punguzo kubwa kwa sufuria za chuma na vyombo vya udongo vya jadi. Daima angalia ubora kwa kugonga - sauti ya wazi inamaanisha chuma chema.',
+            tags: ['utensils', 'morning', 'deals'],
+            createdAt: new Date(Date.now() - 86400000).toISOString(),
+          },
+          {
+            id: 'story-2',
+            guideName: guides[1]?.name || 'Mwongozo Mwingine',
+            vendorName: 'Bwana Hassan',
+            zoneName: lang === 'sw' ? 'Eneo la Viungo' : 'Spices Zone',
+            text: 'Spices in Kariakoo are freshest on Saturdays when the wholesale deliveries arrive. Look for turmeric with a deep orange color and cardamom pods that are still green. The vendors near the east entrance usually have the best selection.',
+            textSw: 'Viungo Kariakoo ni vyanga zaidi Jumamosi wakati usafirishaji wa jumla unapowasili. Tafuta kurkumiti yenye rangi ya chungwa ya kina na vibanda vya iliki ambavyo bado ni kijani. Wauzaji karibu na mlango wa mashariki kwa kawaida wana uteuzi bora.',
+            tags: ['spices', 'saturday', 'fresh'],
+            createdAt: new Date(Date.now() - 172800000).toISOString(),
+          },
+          {
+            id: 'story-3',
+            guideName: guides[2]?.name || 'Mwongozo Tatu',
+            vendorName: 'Bi Fatima',
+            zoneName: lang === 'sw' ? 'Eneo la Vitambaa' : 'Fabric Zone',
+            text: 'When buying kanga fabric, always ask for the full bolt - per-meter prices are higher. The patterns with proverbs are the most authentic. Negotiate by starting at 60% of the asking price for the best deal.',
+            textSw: 'Unaponunua kitambaa cha kanga, daima ulize kwa jumla - bei ya kila mita ni ya juu zaidi. Miradi yenye methali ni halali zaidi. Jadiliana kwa kuanzia 60% ya bei ili kupata punguzo bora.',
+            tags: ['fabric', 'kanga', 'negotiate'],
+            createdAt: new Date(Date.now() - 345600000).toISOString(),
+          },
+        ]}
+        language={lang}
+        onPlayAudio={(storyId) => {
+          toast.info(lang === 'sw' ? 'Inacheza sauti...' : 'Playing audio...');
+        }}
+        onAddStory={() => {
+          toast.info(lang === 'sw' ? 'Shiriki hadithi yako!' : 'Share your story!');
+        }}
+      />
+    </div>
+  );
+
+  // ─── SEASONAL CALENDAR VIEW ───
+  const renderCalendar = () => (
+    <div className="space-y-6">
+      {renderBackButton()}
+      <div>
+        <h1 className="text-xl font-bold text-foreground">{lang === 'sw' ? 'Kalenda ya Msimu' : 'Seasonal Calendar'}</h1>
+        <p className="text-sm text-muted-foreground mt-1">{lang === 'sw' ? 'Matukio ya soko na nyakati bora' : 'Market events and best times'}</p>
+      </div>
+      <SeasonalCalendar
+        events={[
+          {
+            id: 'evt-1',
+            title: lang === 'sw' ? 'Ramadhani - Bei ndogo za viungo' : 'Ramadan - Lower spice prices',
+            date: 'March 1-31',
+            type: 'religious',
+            zonesAffected: ['Spices', 'Vyombo'],
+            insiderTip: lang === 'sw' ? 'Nunua viungo wiki kabla ya Ramadhani - bei hushuka 20%' : 'Buy spices a week before Ramadan - prices drop 20%',
+            dateRange: '2025',
+          },
+          {
+            id: 'evt-2',
+            title: lang === 'sw' ? 'Siku ya Uhuru - Soko limejaa' : 'Independence Day - Market packed',
+            date: 'December 9',
+            type: 'cultural',
+            zonesAffected: ['Fabric', 'Electronics', 'Wholesale'],
+            insiderTip: lang === 'sw' ? 'Njia mbadala kupitia eneo la jumla - msongamano ni mdogo' : 'Use alternative route through wholesale zone - less crowded',
+          },
+          {
+            id: 'evt-3',
+            title: lang === 'sw' ? 'Msimu wa Shule - Vitambaa vinauzwa haraka' : 'Back to School - Fabric sells fast',
+            date: 'January',
+            type: 'seasonal',
+            zonesAffected: ['Fabric', 'Wholesale'],
+            insiderTip: lang === 'sw' ? 'Nunuza mapema asubuhi - rangi maarufu zinamalizika haraka' : 'Shop early morning - popular colors sell out fast',
+          },
+          {
+            id: 'evt-4',
+            title: lang === 'sw' ? 'Mkutano wa Biashara wa Kariakoo' : 'Kariakoo Trade Expo',
+            date: 'July 15-20',
+            type: 'commercial',
+            zonesAffected: ['All Zones'],
+            insiderTip: lang === 'sw' ? 'Wauzaji wengi wanatoa punguzo maalum wakati wa maonyesho' : 'Many vendors offer special discounts during the expo',
+          },
+        ]}
+        onSetReminder={(eventId) => {
+          toast.success(lang === 'sw' ? 'Kumbusho limewekwa!' : 'Reminder set!');
+        }}
+        language={lang}
+      />
+    </div>
+  );
+
+  // ─── BUDDY SYSTEM VIEW ───
+  const renderBuddy = () => (
+    <div className="space-y-6">
+      {renderBackButton()}
+      <div>
+        <h1 className="text-xl font-bold text-foreground">{lang === 'sw' ? 'Rafiki Pamoja' : 'Buddy System'}</h1>
+        <p className="text-sm text-muted-foreground mt-1">{lang === 'sw' ? 'Onga na watafuta wengine kwa usalama' : 'Join other seekers for safety'}</p>
+      </div>
+      <BuddySystem
+        zoneId={zones[0]?.id || 'zone_1'}
+        zoneName={zones[0] ? (lang === 'sw' ? zones[0].nameSw : zones[0].name) : 'Kariakoo'}
+        timeSlot="10:00 AM - 12:00 PM"
+        currentBuddies={[
+          { id: 'buddy-1', name: 'Amina J.', rating: 4.5, sessionsCompleted: 8 },
+          { id: 'buddy-2', name: 'David M.', rating: 4.2, sessionsCompleted: 5 },
+          { id: 'buddy-3', name: 'Fatma K.', rating: 4.8, sessionsCompleted: 12 },
+        ]}
+        seekerRating={4.3}
+        onInvite={(buddyId) => {
+          toast.success(lang === 'sw' ? 'Umekaribisha rafiki!' : 'You invited a buddy!');
+        }}
+        language={lang}
+      />
+    </div>
+  );
+
+  // ─── PACKAGE DEALS VIEW ───
+  const renderPackages = () => (
+    <div className="space-y-6">
+      {renderBackButton()}
+      <div>
+        <h1 className="text-xl font-bold text-foreground">{lang === 'sw' ? 'Vifurushi' : 'Package Deals'}</h1>
+        <p className="text-sm text-muted-foreground mt-1">{lang === 'sw' ? 'Vifurushi vya bei nafuu kutoka kwa waongozaji' : 'Discounted bundles from guides'}</p>
+      </div>
+      <PackageDeals
+        packages={[
+          {
+            id: 'pkg-1',
+            title: lang === 'sw' ? 'Kamili ya Kariakoo' : 'Kariakoo Complete',
+            duration: 4,
+            zones: ['Vyombo', 'Spices', 'Fabric'],
+            price: 85000,
+            deliveryIncluded: true,
+            sessionsCompleted: 42,
+            isPopular: true,
+          },
+          {
+            id: 'pkg-2',
+            title: lang === 'sw' ? 'Haraka ya Jumla' : 'Wholesale Express',
+            duration: 2,
+            zones: ['Wholesale'],
+            price: 40000,
+            deliveryIncluded: false,
+            sessionsCompleted: 28,
+          },
+          {
+            id: 'pkg-3',
+            title: lang === 'sw' ? 'Vitambaa na Mitindo' : 'Fabric & Fashion',
+            duration: 3,
+            zones: ['Fabric', 'Electronics'],
+            price: 65000,
+            deliveryIncluded: true,
+            sessionsCompleted: 15,
+          },
+        ]}
+        guideName={guides[0]?.name || (lang === 'sw' ? 'Mwongozo' : 'Guide')}
+        onBook={(packageId) => {
+          toast.success(lang === 'sw' ? 'Kifurushi kimehifadhiwa!' : 'Package booked!');
+        }}
+        language={lang}
       />
     </div>
   );
@@ -1837,6 +2511,14 @@ export function SeekerDashboard() {
               {view === 'history' && t('session_history', lang)}
               {view === 'price-radar' && t('price_radar_title', lang)}
               {view === 'vendors' && t('vendor_directory', lang)}
+              {view === 'haggling' && (lang === 'sw' ? 'Msaidizi wa Bishi' : 'Haggling Assistant')}
+              {view === 'group-tour' && (lang === 'sw' ? 'Safari ya Kikundi' : 'Group Tour')}
+              {view === 'heatmap' && (lang === 'sw' ? 'Joto la Soko' : 'Market Heatmap')}
+              {view === 'shopping-list' && (lang === 'sw' ? 'Orodha ya Ununuzi' : 'Shopping List')}
+              {view === 'stories' && (lang === 'sw' ? 'Hadithi za Soko' : 'Market Stories')}
+              {view === 'calendar' && (lang === 'sw' ? 'Kalenda ya Msimu' : 'Seasonal Calendar')}
+              {view === 'buddy' && (lang === 'sw' ? 'Rafiki Pamoja' : 'Buddy System')}
+              {view === 'packages' && (lang === 'sw' ? 'Vifurushi' : 'Package Deals')}
             </h1>
           </div>
           <div className="flex items-center gap-1.5">
@@ -1892,6 +2574,14 @@ export function SeekerDashboard() {
         {view === 'history' && renderSessionHistory()}
         {view === 'price-radar' && renderPriceRadar()}
         {view === 'vendors' && renderVendors()}
+        {view === 'haggling' && renderHaggling()}
+        {view === 'group-tour' && renderGroupTour()}
+        {view === 'heatmap' && renderHeatmap()}
+        {view === 'shopping-list' && renderShoppingList()}
+        {view === 'stories' && renderStories()}
+        {view === 'calendar' && renderCalendar()}
+        {view === 'buddy' && renderBuddy()}
+        {view === 'packages' && renderPackages()}
       </main>
 
       {/* Bottom navigation */}

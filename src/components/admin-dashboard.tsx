@@ -59,6 +59,7 @@ import {
   BarChart3,
   Users,
   ShieldCheck,
+  ShieldAlert,
   MapPin,
   DollarSign,
   Star,
@@ -100,6 +101,19 @@ import {
   Info,
   ColorPicker,
   Save,
+  Store,
+  Package,
+  ArrowLeftRight,
+  Sparkles,
+  Church,
+  Sun,
+  ShoppingBag,
+  Lightbulb,
+  Bell,
+  Truck,
+  Tag,
+  Zap,
+  ArrowRight,
 } from 'lucide-react';
 import {
   BarChart,
@@ -119,7 +133,7 @@ import {
 
 // ── Types ──
 
-type AdminView = 'overview' | 'verification' | 'zones' | 'price-radar' | 'analytics' | 'users' | 'disputes';
+type AdminView = 'overview' | 'verification' | 'zones' | 'price-radar' | 'analytics' | 'users' | 'disputes' | 'fraud' | 'vendors' | 'calendar' | 'packages';
 
 interface AdminStats {
   users: { seekers: number; guides: number; admins: number; total: number };
@@ -204,6 +218,72 @@ interface DisputeItem {
   messages: { id: string; content: string; senderId: string; sender: { id: string; name: string }; createdAt: string }[];
 }
 
+interface FraudAlertItem {
+  id: string;
+  entityType: string;
+  entityId: string;
+  alertType: string;
+  confidence: number;
+  details: string;
+  status: string;
+  reviewedBy: string | null;
+  reviewedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface VendorWithVerification {
+  id: string;
+  name: string;
+  zoneId: string;
+  categories: string;
+  stallNumber: string;
+  contact: string;
+  approved: boolean;
+  recommendations: number;
+  openHours: string;
+  createdAt: string;
+  updatedAt: string;
+  zone: { id: string; name: string; nameSw: string; color: string };
+  verification?: {
+    id: string;
+    isVerified: boolean;
+    verifiedAt: string | null;
+    monthlyFee: number;
+    qrCode: string;
+  } | null;
+}
+
+interface SeasonalEventItem {
+  id: string;
+  title: string;
+  titleSw: string;
+  description: string;
+  type: string;
+  startDate: string;
+  endDate: string | null;
+  affectedZones: string;
+  insiderTip: string;
+  insiderTipSw: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface PackageDealItem {
+  id: string;
+  guideId: string;
+  title: string;
+  description: string;
+  duration: number;
+  zoneIds: string;
+  price: number;
+  includesDelivery: boolean;
+  sessionsCompleted: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // ── Zone color mapping ──
 const zoneColors: Record<string, string> = {
   vyombo: '#F97316',
@@ -255,8 +335,12 @@ function getAvatarColor(id: string): string {
 const navItems: { key: AdminView; icon: typeof LayoutDashboard; labelKey: string }[] = [
   { key: 'overview', icon: LayoutDashboard, labelKey: 'admin_dashboard' },
   { key: 'verification', icon: ClipboardCheck, labelKey: 'verification_queue' },
+  { key: 'vendors', icon: Store, labelKey: 'vendor_directory' },
+  { key: 'fraud', icon: ShieldAlert, labelKey: 'fraud_title' },
   { key: 'zones', icon: MapPin, labelKey: 'zone_management' },
   { key: 'price-radar', icon: BarChart3, labelKey: 'price_radar_mgmt' },
+  { key: 'calendar', icon: Calendar, labelKey: 'calendar_title' },
+  { key: 'packages', icon: Package, labelKey: 'package_title' },
   { key: 'analytics', icon: TrendingUp, labelKey: 'analytics' },
   { key: 'users', icon: UserCog, labelKey: 'user_management' },
   { key: 'disputes', icon: Scale, labelKey: 'dispute_resolution' },
@@ -314,6 +398,10 @@ export function AdminDashboard() {
   const [priceEntries, setPriceEntries] = useState<PriceRadarEntry[]>([]);
   const [users, setUsers] = useState<UserItem[]>([]);
   const [disputes, setDisputes] = useState<DisputeItem[]>([]);
+  const [fraudAlerts, setFraudAlerts] = useState<FraudAlertItem[]>([]);
+  const [vendorsWithVer, setVendorsWithVer] = useState<VendorWithVerification[]>([]);
+  const [seasonalEvents, setSeasonalEvents] = useState<SeasonalEventItem[]>([]);
+  const [packageDeals, setPackageDeals] = useState<PackageDealItem[]>([]);
 
   // Fetch all data
   const fetchStats = useCallback(async () => {
@@ -376,6 +464,56 @@ export function AdminDashboard() {
     }
   }, [lang]);
 
+  const fetchFraudAlerts = useCallback(async () => {
+    try {
+      const res = await fetch('/api/fraud-alerts');
+      const data = await res.json();
+      setFraudAlerts(data.items || []);
+    } catch {
+      toast.error(lang === 'sw' ? 'Hitilafu ya kupata tahadhari' : 'Failed to load fraud alerts');
+    }
+  }, [lang]);
+
+  const fetchVendorsWithVerification = useCallback(async () => {
+    try {
+      const [verRes, venRes] = await Promise.all([
+        fetch('/api/vendor-verifications'),
+        fetch('/api/vendors'),
+      ]);
+      const verData = await verRes.json();
+      const venData = await venRes.json();
+      const verifications = verData.items || [];
+      const vendors = venData.vendors || [];
+      const merged = vendors.map((v: VendorWithVerification) => {
+        const ver = verifications.find((vv: { id: string; vendorId: string; isVerified: boolean; verifiedAt: string | null; monthlyFee: number; qrCode: string }) => vv.vendorId === v.id);
+        return { ...v, verification: ver || null };
+      });
+      setVendorsWithVer(merged);
+    } catch {
+      toast.error(lang === 'sw' ? 'Hitilafu ya kupata wauzaji' : 'Failed to load vendors');
+    }
+  }, [lang]);
+
+  const fetchSeasonalEvents = useCallback(async () => {
+    try {
+      const res = await fetch('/api/seasonal-events');
+      const data = await res.json();
+      setSeasonalEvents(data.items || []);
+    } catch {
+      toast.error(lang === 'sw' ? 'Hitilafu ya kupata matukio' : 'Failed to load seasonal events');
+    }
+  }, [lang]);
+
+  const fetchPackageDeals = useCallback(async () => {
+    try {
+      const res = await fetch('/api/package-deals');
+      const data = await res.json();
+      setPackageDeals(data.items || []);
+    } catch {
+      toast.error(lang === 'sw' ? 'Hitilafu ya kupata vifurushi' : 'Failed to load package deals');
+    }
+  }, [lang]);
+
   // Initial load
   useEffect(() => {
     const load = async () => {
@@ -387,11 +525,15 @@ export function AdminDashboard() {
         fetchPriceEntries(),
         fetchUsers(),
         fetchDisputes(),
+        fetchFraudAlerts(),
+        fetchVendorsWithVerification(),
+        fetchSeasonalEvents(),
+        fetchPackageDeals(),
       ]);
       setLoading(false);
     };
     load();
-  }, [fetchStats, fetchPendingGuides, fetchZones, fetchPriceEntries, fetchUsers, fetchDisputes]);
+  }, [fetchStats, fetchPendingGuides, fetchZones, fetchPriceEntries, fetchUsers, fetchDisputes, fetchFraudAlerts, fetchVendorsWithVerification, fetchSeasonalEvents, fetchPackageDeals]);
 
   return (
     <div className="min-h-screen flex bg-background">
@@ -434,10 +576,14 @@ export function AdminDashboard() {
         <div className="flex-1 p-4 md:p-6 overflow-auto">
           {loading ? <LoadingSkeleton /> : (
             <>
-              {view === 'overview' && <OverviewView lang={lang} stats={stats} zones={zones} disputes={disputes} pendingGuides={pendingGuides} users={users} onNavigate={setView} />}
+              {view === 'overview' && <OverviewView lang={lang} stats={stats} zones={zones} disputes={disputes} pendingGuides={pendingGuides} users={users} onNavigate={setView} fraudAlerts={fraudAlerts} />}
               {view === 'verification' && <VerificationView lang={lang} guides={pendingGuides} onRefresh={fetchPendingGuides} />}
+              {view === 'vendors' && <VendorsView lang={lang} vendors={vendorsWithVer} zones={zones} onRefresh={fetchVendorsWithVerification} />}
+              {view === 'fraud' && <FraudView lang={lang} alerts={fraudAlerts} onRefresh={fetchFraudAlerts} />}
               {view === 'zones' && <ZonesView lang={lang} zones={zones} onRefresh={fetchZones} />}
               {view === 'price-radar' && <PriceRadarView lang={lang} entries={priceEntries} zones={zones} onRefresh={fetchPriceEntries} />}
+              {view === 'calendar' && <CalendarView lang={lang} events={seasonalEvents} zones={zones} onRefresh={fetchSeasonalEvents} />}
+              {view === 'packages' && <PackagesView lang={lang} deals={packageDeals} onRefresh={fetchPackageDeals} />}
               {view === 'analytics' && <AnalyticsView lang={lang} stats={stats} zones={zones} users={users} />}
               {view === 'users' && <UsersView lang={lang} users={users} onRefresh={fetchUsers} />}
               {view === 'disputes' && <DisputesView lang={lang} disputes={disputes} onRefresh={fetchDisputes} />}
@@ -487,10 +633,10 @@ function LoadingSkeleton() {
 }
 
 // ── 1. Overview Dashboard ──
-function OverviewView({ lang, stats, zones, disputes, pendingGuides, users, onNavigate }: {
+function OverviewView({ lang, stats, zones, disputes, pendingGuides, users, onNavigate, fraudAlerts }: {
   lang: Language; stats: AdminStats | null; zones: ZoneItem[];
   disputes: DisputeItem[]; pendingGuides: PendingGuide[]; users: UserItem[];
-  onNavigate: (v: AdminView) => void;
+  onNavigate: (v: AdminView) => void; fraudAlerts: FraudAlertItem[];
 }) {
   if (!stats) return null;
 
@@ -502,7 +648,7 @@ function OverviewView({ lang, stats, zones, disputes, pendingGuides, users, onNa
     { label: t('active_sessions_a', lang), value: stats.sessions.active, icon: Activity, sub: `${onlineGuides} ${t('online', lang)}`, color: 'text-sky-600', bg: 'bg-sky-50 dark:bg-sky-950/30' },
     { label: t('total_revenue', lang), value: formatTZS(stats.revenue.total), icon: DollarSign, sub: `${stats.sessions.total} ${t('total', lang)}`, color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-950/30' },
     { label: t('avg_rating', lang), value: stats.rating.average.toFixed(1), icon: Star, sub: '/ 5.0', color: 'text-violet-600', bg: 'bg-violet-50 dark:bg-violet-950/30' },
-    { label: t('fraud_flags', lang), value: fraudFlags, icon: AlertTriangle, sub: disputes.length + ' ' + t('dispute_resolution', lang).toLowerCase(), color: 'text-rose-600', bg: 'bg-rose-50 dark:bg-rose-950/30' },
+    { label: t('fraud_flags', lang), value: fraudAlerts.filter(a => a.status === 'pending').length, icon: AlertTriangle, sub: fraudAlerts.length + ' ' + (lang === 'sw' ? 'tahadhari jumla' : 'total alerts'), color: 'text-rose-600', bg: 'bg-rose-50 dark:bg-rose-950/30' },
     { label: t('requests', lang) || 'Requests', value: stats.requests.open + stats.requests.matched, icon: FileText, sub: `${stats.requests.open} open / ${stats.requests.matched} matched`, color: 'text-teal-600', bg: 'bg-teal-50 dark:bg-teal-950/30' },
   ];
 
