@@ -7,4 +7,4 @@ cmds = ["npm ci"]
 cmds = ["npx prisma generate", "npm run build"]
 
 [start]
-cmd = "npx prisma db push --skip-generate && NODE_ENV=production node .next/standalone/server.js"
+cmd = "npx prisma db push --skip-generate 2>/dev/null; node .next/standalone/server.js"
