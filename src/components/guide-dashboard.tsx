@@ -73,6 +73,8 @@ import { SessionChat } from '@/components/session-chat';
 import { MapView } from '@/components/map-view';
 import { BadgeDisplay } from '@/components/badge-display';
 import { RatingStars } from '@/components/rating-stars';
+import { EscrowPayment } from '@/components/escrow-payment';
+import { EmergencyPanel } from '@/components/emergency-panel';
 import { toast } from 'sonner';
 
 // ── Types ──
@@ -1472,15 +1474,44 @@ export function GuideDashboard() {
           {t('mark_complete', lang)}
         </Button>
 
-        {/* Emergency button - always visible during session */}
-        <Button
-          variant="destructive"
-          className="w-full h-12 text-base font-bold gap-2 bg-red-600 hover:bg-red-700"
-          onClick={handleEmergency}
-        >
-          <AlertTriangle className="size-5" />
-          {t('emergency_button', lang)}
-        </Button>
+        {/* Escrow Payment */}
+        <EscrowPayment
+          amount={activeSessionData.amount}
+          platformFee={activeSessionData.platformFee}
+          escrowStatus={activeSessionData.escrowStatus as 'pending' | 'held' | 'released' | 'refunded' | 'disputed'}
+          isGuide={true}
+          language={lang}
+          onPaymentComplete={() => {
+            toast.success(lang === 'sw' ? 'Malipo yamefanikiwa!' : 'Payment successful!');
+            fetchActiveSession(activeSessionData.id);
+          }}
+          onReleaseEscrow={async () => {
+            try {
+              await fetch(`/api/sessions/${activeSessionData.id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'release' }),
+              });
+              toast.success(lang === 'sw' ? 'Malipo yametolewa!' : 'Payment released!');
+              fetchActiveSession(activeSessionData.id);
+            } catch {
+              toast.error(lang === 'sw' ? 'Imeshindwa kutoa malipo' : 'Failed to release payment');
+            }
+          }}
+        />
+
+        {/* Emergency Panel */}
+        <EmergencyPanel
+          sessionId={activeSessionData.id}
+          sessionCode={activeSessionData.sessionCode}
+          guideName={user?.name}
+          seekerName={activeSessionData.seeker?.name}
+          language={lang}
+          onEmergencyTriggered={(data) => {
+            handleEmergency();
+            console.log('Emergency triggered:', data);
+          }}
+        />
 
         {/* Both parties confirmation note */}
         <p className="text-xs text-center text-muted-foreground">

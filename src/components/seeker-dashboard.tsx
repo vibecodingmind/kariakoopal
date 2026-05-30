@@ -65,6 +65,8 @@ import { MapView } from '@/components/map-view';
 import { GuideCard } from '@/components/guide-card';
 import { RatingStars } from '@/components/rating-stars';
 import { Leaderboard } from '@/components/leaderboard';
+import { EscrowPayment } from '@/components/escrow-payment';
+import { EmergencyPanel } from '@/components/emergency-panel';
 import { toast } from 'sonner';
 
 // ── Types ──
@@ -1564,26 +1566,57 @@ export function SeekerDashboard() {
             />
           )}
 
-          {/* Emergency button (prominent) */}
-          <Button
-            variant="destructive"
-            className="w-full h-14 text-base font-bold gap-2"
-            onClick={handleEmergency}
-          >
-            <AlertTriangle className="size-5" />
-            {t('emergency_button', lang)}
-          </Button>
+          {/* Escrow Payment */}
+          <EscrowPayment
+            amount={activeSessionData.amount}
+            platformFee={activeSessionData.platformFee}
+            escrowStatus={activeSessionData.escrowStatus as 'pending' | 'held' | 'released' | 'refunded' | 'disputed'}
+            isGuide={false}
+            language={lang}
+            onPaymentComplete={() => {
+              toast.success(lang === 'sw' ? 'Malipo yamefanikiwa!' : 'Payment successful!');
+              fetchActiveSession(activeSessionData.id);
+            }}
+            onReleaseEscrow={async () => {
+              try {
+                await fetch(`/api/sessions/${activeSessionData.id}`, {
+                  method: 'PATCH',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ action: 'release' }),
+                });
+                toast.success(lang === 'sw' ? 'Malipo yametolewa!' : 'Payment released!');
+                fetchActiveSession(activeSessionData.id);
+              } catch {
+                toast.error(lang === 'sw' ? 'Imeshindwa kutoa malipo' : 'Failed to release payment');
+              }
+            }}
+            onDisputeEscrow={async (reason) => {
+              try {
+                await fetch(`/api/sessions/${activeSessionData.id}`, {
+                  method: 'PATCH',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ action: 'dispute', disputeReason: reason }),
+                });
+                toast.success(lang === 'sw' ? 'Mgogoro umetumwa' : 'Dispute submitted');
+                fetchActiveSession(activeSessionData.id);
+              } catch {
+                toast.error(lang === 'sw' ? 'Imeshindwa kuwasilisha mgogoro' : 'Failed to submit dispute');
+              }
+            }}
+          />
 
-          {/* Confirm Session Complete */}
-          {!activeSessionData.completedAt && (
-            <Button
-              className="w-full h-12 gap-2"
-              onClick={handleCompleteSession}
-            >
-              <CheckCircle2 className="size-4" />
-              {lang === 'sw' ? 'Thibitisha Kikao Kimemalizika' : 'Confirm Session Complete'}
-            </Button>
-          )}
+          {/* Emergency Panel */}
+          <EmergencyPanel
+            sessionId={activeSessionData.id}
+            sessionCode={activeSessionData.sessionCode}
+            guideName={activeSessionData.guide?.name}
+            seekerName={user?.name}
+            language={lang}
+            onEmergencyTriggered={(data) => {
+              handleEmergency();
+              console.log('Emergency triggered:', data);
+            }}
+          />
         </>
       )}
     </div>
