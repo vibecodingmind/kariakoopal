@@ -358,3 +358,126 @@
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;
 }
+
+/* ── Landing Page Animations ── */
+
+@keyframes fade-in-up {
+  0% {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  33% { transform: translateY(-12px) rotate(1deg); }
+  66% { transform: translateY(-6px) rotate(-1deg); }
+}
+
+@keyframes float-reverse {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  33% { transform: translateY(8px) rotate(-1deg); }
+  66% { transform: translateY(4px) rotate(1deg); }
+}
+
+@keyframes spin-slow {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px var(--amber-glow);
+  }
+  50% {
+    box-shadow: 0 0 40px var(--amber-glow), 0 0 60px var(--amber-glow);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.7s ease-out forwards;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out forwards;
+}
+
+.animate-float-slow {
+  animation: float-slow 6s ease-in-out infinite;
+}
+
+.animate-float-reverse {
+  animation: float-reverse 5s ease-in-out infinite;
+}
+
+.animate-spin-slow {
+  animation: spin-slow 20s linear infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+/* Delay utilities for staggered animations */
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-400 { animation-delay: 400ms; }
+.delay-500 { animation-delay: 500ms; }
+.delay-600 { animation-delay: 600ms; }
+.delay-700 { animation-delay: 700ms; }
+.delay-800 { animation-delay: 800ms; }
+
+/* Smooth scroll for landing page */
+html {
+  scroll-behavior: smooth;
+}
+
+/* ── Emerald Glow Effects ── */
+
+.emerald-glow {
+  box-shadow: 0 0 40px oklch(0.7 0.15 160 / 15%), 0 0 80px oklch(0.7 0.15 160 / 10%);
+}
+
+.emerald-glow-sm {
+  box-shadow: 0 0 20px oklch(0.7 0.15 160 / 12%);
+}
+
+.emerald-gradient-text {
+  background: linear-gradient(135deg, oklch(0.72 0.17 160), oklch(0.65 0.2 140));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.glass-button-emerald {
+  background: linear-gradient(135deg, oklch(0.65 0.17 160), oklch(0.6 0.2 140));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid oklch(0.75 0.12 160 / 30%);
+  border-radius: 0.75rem;
+  color: white;
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 16px oklch(0.6 0.18 160 / 25%);
+}
+
+.glass-button-emerald:hover {
+  background: linear-gradient(135deg, oklch(0.68 0.18 160), oklch(0.62 0.21 140));
+  box-shadow: 0 6px 24px oklch(0.6 0.18 160 / 35%);
+  transform: translateY(-1px);
+}
+
+.glass-button-emerald:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px oklch(0.6 0.18 160 / 20%);
+}
