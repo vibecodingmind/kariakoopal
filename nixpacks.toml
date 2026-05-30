@@ -4,7 +4,7 @@
 cmds = ["npm ci"]
 
 [phases.build]
-cmds = ["npm run build"]
+cmds = ["npx prisma generate", "npm run build"]
 
 [start]
-cmd = "NODE_ENV=production node .next/standalone/server.js"
+cmd = "npx prisma db push && NODE_ENV=production node .next/standalone/server.js"
