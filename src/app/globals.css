@@ -55,9 +55,9 @@
   --card-foreground: #212529;
   --popover: #FFFFFF;
   --popover-foreground: #212529;
-  --primary: #0B5D3A;
+  --primary: #0A4D3C;
   --primary-foreground: #FFFFFF;
-  --secondary: #FFD700;
+  --secondary: #FFD23F;
   --secondary-foreground: #212529;
   --muted: #F1F3F5;
   --muted-foreground: #6C757D;
@@ -66,26 +66,26 @@
   --destructive: #E63946;
   --border: #E9ECEF;
   --input: #E9ECEF;
-  --ring: #0B5D3A;
-  --chart-1: #0B5D3A;
-  --chart-2: #FFD700;
+  --ring: #0A4D3C;
+  --chart-1: #0A4D3C;
+  --chart-2: #FFD23F;
   --chart-3: #0077B6;
   --chart-4: #8A2BE2;
   --chart-5: #FFA500;
   /* Kariako brand */
-  --kariako-green: #0B5D3A;
-  --kariako-yellow: #FFD700;
+  --kariako-green: #0A4D3C;
+  --kariako-yellow: #FFD23F;
   --kariako-green-light: #E8F5EE;
-  --kariako-green-dark: #084A2E;
+  --kariako-green-dark: #073B2A;
   /* Sidebar */
   --sidebar: #FFFFFF;
   --sidebar-foreground: #212529;
-  --sidebar-primary: #0B5D3A;
+  --sidebar-primary: #0A4D3C;
   --sidebar-primary-foreground: #FFFFFF;
   --sidebar-accent: #E8F5EE;
-  --sidebar-accent-foreground: #0B5D3A;
+  --sidebar-accent-foreground: #0A4D3C;
   --sidebar-border: #E9ECEF;
-  --sidebar-ring: #0B5D3A;
+  --sidebar-ring: #0A4D3C;
 }
 
 .dark {
@@ -797,3 +797,323 @@ html {
 .animate-float-slow { animation: float 6s ease-in-out infinite; }
 .animate-float-reverse { animation: float 5s ease-in-out infinite reverse; }
 .animate-gradient { background-size: 200% 200%; }
+
+/* ═══════════════════════════════════════════════════
+   NEW LANDING PAGE DESIGN TOKENS & UTILITIES
+   ═══════════════════════════════════════════════════ */
+
+/* ── New Brand Colors as CSS Variables ── */
+:root {
+  --kc-primary: #0A4D3C;
+  --kc-primary-dark: #073B2A;
+  --kc-accent: #FFD23F;
+  --kc-accent-hover: #FFC107;
+  --kc-text-dark: #333333;
+  --kc-text-light: #FFFFFF;
+  --kc-text-gray: #666666;
+  --kc-bg-white: #FFFFFF;
+  --kc-bg-light: #F5F5F5;
+  --kc-bg-green: #0A4D3C;
+}
+
+/* ── Landing Page Navigation ── */
+.landing-nav {
+  background: #0A4D3C;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.landing-nav-link {
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 500;
+  font-size: 0.875rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.landing-nav-link:hover {
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* ── Landing Page Buttons ── */
+.lbtn-primary {
+  background: #FFD23F;
+  color: #0A4D3C;
+  font-weight: 700;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.9375rem;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  text-decoration: none;
+}
+
+.lbtn-primary:hover {
+  background: #FFC107;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(255, 210, 63, 0.4);
+}
+
+.lbtn-secondary {
+  background: transparent;
+  color: #FFFFFF;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.9375rem;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  text-decoration: none;
+}
+
+.lbtn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.7);
+}
+
+.lbtn-green {
+  background: #0A4D3C;
+  color: #FFFFFF;
+  font-weight: 700;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.9375rem;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  text-decoration: none;
+}
+
+.lbtn-green:hover {
+  background: #073B2A;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(10, 77, 60, 0.3);
+}
+
+.lbtn-nav-ghost {
+  background: transparent;
+  color: #FFFFFF;
+  font-weight: 500;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  text-decoration: none;
+}
+
+.lbtn-nav-ghost:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.lbtn-nav-green {
+  background: #0A4D3C;
+  color: #FFFFFF;
+  font-weight: 600;
+  border-radius: 6px;
+  padding: 0.5rem 1.25rem;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  text-decoration: none;
+}
+
+.lbtn-nav-green:hover {
+  background: #073B2A;
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* ── Landing Page Cards ── */
+.lcard {
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: all 0.2s ease;
+}
+
+.lcard:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.lcard-profile {
+  background: #FFFFFF;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+}
+
+.lcard-category {
+  border-radius: 8px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 140px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.lcard-category:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* ── Landing Page Tags ── */
+.ltag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.ltag-price {
+  background: #F3F4F6;
+  color: #666666;
+}
+
+.ltag-verified {
+  background: #E8F5EE;
+  color: #0A4D3C;
+}
+
+.ltag-top {
+  background: #FFD23F;
+  color: #0A4D3C;
+}
+
+.ltag-fair {
+  background: #E8F5EE;
+  color: #0A4D3C;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.625rem;
+  border-radius: 4px;
+}
+
+/* ── Yellow Underline ── */
+.yellow-underline {
+  position: relative;
+  display: inline-block;
+}
+
+.yellow-underline::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  width: 100%;
+  height: 3px;
+  background: #FFD23F;
+  border-radius: 2px;
+}
+
+/* ── Hero Section Texture ── */
+.hero-gradient {
+  background: linear-gradient(135deg, #0A4D3C 0%, #073B2A 100%);
+  position: relative;
+}
+
+.hero-gradient::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  pointer-events: none;
+}
+
+/* ── Security Section ── */
+.security-section {
+  background: #0A4D3C;
+  position: relative;
+}
+
+.security-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.02' fill-rule='evenodd'%3E%3Cpath d='M0 40L40 0H20L0 20M40 40V20L20 40'/%3E%3C/g%3E%3C/svg%3E");
+  pointer-events: none;
+}
+
+/* ── Step Number ── */
+.step-number {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #FFD23F;
+  letter-spacing: 0.15em;
+}
+
+/* ── Stat Card ── */
+.stat-card {
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.stat-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+/* ── Mobile Menu ── */
+.mobile-menu-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 100;
+  transition: opacity 0.3s ease;
+}
+
+.mobile-menu-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 280px;
+  background: #0A4D3C;
+  z-index: 101;
+  padding: 1.5rem;
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+}
+
+.mobile-menu-panel.open {
+  transform: translateX(0);
+}
