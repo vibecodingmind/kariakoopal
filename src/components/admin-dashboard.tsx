@@ -350,32 +350,34 @@ const navItems: { key: AdminView; icon: typeof LayoutDashboard; labelKey: string
 function AdminSidebar({ lang, view, onNavigate }: { lang: Language; view: AdminView; onNavigate: (v: AdminView) => void }) {
   return (
     <div className="flex flex-col h-full">
-      <div className="p-4 border-b">
+      <div className="p-4 border-b border-[var(--glass-border)]">
         <h2 className="font-bold text-lg flex items-center gap-2">
-          <ShieldCheck className="h-5 w-5 text-emerald-500" />
-          {t('admin_dashboard', lang)}
+          <div className="w-8 h-8 rounded-lg glass-card flex items-center justify-center amber-glow-sm">
+            <ShieldCheck className="h-4 w-4 gradient-text" />
+          </div>
+          <span className="gradient-text">{t('admin_dashboard', lang)}</span>
         </h2>
         <p className="text-xs text-muted-foreground mt-1">Kariako Guide Admin</p>
       </div>
-      <nav className="flex-1 p-2 space-y-1">
+      <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
         {navItems.map(item => (
           <button
             key={item.key}
             onClick={() => onNavigate(item.key)}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all ${
               view === item.key
-                ? 'bg-primary text-primary-foreground font-medium'
-                : 'hover:bg-muted text-muted-foreground hover:text-foreground'
+                ? 'glass-button font-medium'
+                : 'glass hover:bg-[var(--glass-hover)] text-muted-foreground hover:text-foreground'
             }`}
           >
-            <item.icon className="h-4 w-4" />
+            <item.icon className={`h-4 w-4 ${view === item.key ? '' : 'text-muted-foreground'}`} />
             {t(item.labelKey, lang)}
           </button>
         ))}
       </nav>
-      <div className="p-4 border-t">
+      <div className="p-4 border-t border-[var(--glass-border)]">
         <div className="text-xs text-muted-foreground">
-          <p>v1.0.0 • Kariako Guide</p>
+          <p>v1.0.0 &bull; Kariako Guide</p>
         </div>
       </div>
     </div>
@@ -538,13 +540,13 @@ export function AdminDashboard() {
   return (
     <div className="min-h-screen flex bg-background">
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex lg:w-64 lg:flex-col border-r bg-card">
+      <aside className="hidden lg:flex lg:w-64 lg:flex-col glass-strong">
         <AdminSidebar lang={lang} view={view} onNavigate={(v) => { setView(v); setSidebarOpen(false); }} />
       </aside>
 
       {/* Mobile Sidebar */}
       <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-        <SheetContent side="left" className="w-64 p-0">
+        <SheetContent side="left" className="w-64 p-0 glass-strong border-r-0">
           <SheetHeader className="sr-only">
             <SheetTitle>Navigation</SheetTitle>
           </SheetHeader>
@@ -555,20 +557,26 @@ export function AdminDashboard() {
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0">
         {/* Header */}
-        <header className="sticky top-0 z-40 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
+        <header className="glass-nav sticky top-0 z-40">
           <div className="flex items-center gap-3 px-4 py-3">
-            <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setSidebarOpen(true)}>
+            <button
+              className="lg:hidden glass w-9 h-9 rounded-lg flex items-center justify-center hover:bg-[var(--glass-hover)] transition-colors"
+              onClick={() => setSidebarOpen(true)}
+            >
               <Menu className="h-5 w-5" />
-            </Button>
+            </button>
             <div className="flex-1">
-              <h1 className="font-semibold text-base">
+              <h1 className="font-semibold text-base gradient-text">
                 {t(navItems.find(n => n.key === view)?.labelKey || 'admin_dashboard', lang)}
               </h1>
             </div>
-            <Button variant="outline" size="sm" onClick={() => { fetchStats(); fetchPendingGuides(); fetchDisputes(); }} className="gap-1.5">
+            <button
+              onClick={() => { fetchStats(); fetchPendingGuides(); fetchDisputes(); }}
+              className="glass flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-[var(--glass-hover)] transition-colors"
+            >
               <RefreshCw className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">{t('refresh', lang)}</span>
-            </Button>
+            </button>
           </div>
         </header>
 
@@ -592,14 +600,14 @@ export function AdminDashboard() {
         </div>
 
         {/* Mobile Bottom Navigation */}
-        <nav className="lg:hidden border-t bg-card">
+        <nav className="lg:hidden glass-nav border-t-0">
           <div className="flex overflow-x-auto">
             {navItems.map(item => (
               <button
                 key={item.key}
                 onClick={() => setView(item.key)}
-                className={`flex-1 min-w-[60px] flex flex-col items-center gap-0.5 py-2 text-[10px] transition-colors ${
-                  view === item.key ? 'text-primary' : 'text-muted-foreground'
+                className={`flex-1 min-w-[60px] flex flex-col items-center gap-0.5 py-2 text-[10px] transition-all ${
+                  view === item.key ? 'gradient-text font-semibold' : 'text-muted-foreground'
                 }`}
               >
                 <item.icon className="h-4 w-4" />
@@ -619,15 +627,15 @@ function LoadingSkeleton() {
     <div className="space-y-4">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <Card key={i}><CardContent className="p-4"><Skeleton className="h-20 w-full" /></CardContent></Card>
+          <div key={i} className="glass-card gradient-border p-4"><div className="h-20 w-full shimmer rounded-lg" /></div>
         ))}
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {Array.from({ length: 2 }).map((_, i) => (
-          <Card key={i}><CardContent className="p-4"><Skeleton className="h-48 w-full" /></CardContent></Card>
+          <div key={i} className="glass-card gradient-border p-4"><div className="h-48 w-full shimmer rounded-lg" /></div>
         ))}
       </div>
-      <Card><CardContent className="p-4"><Skeleton className="h-32 w-full" /></CardContent></Card>
+      <div className="glass-card gradient-border p-4"><div className="h-32 w-full shimmer rounded-lg" /></div>
     </div>
   );
 }
@@ -698,29 +706,27 @@ function OverviewView({ lang, stats, zones, disputes, pendingGuides, users, onNa
       {/* Metric Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
         {metrics.map((m, i) => (
-          <Card key={i} className="hover:shadow-md transition-shadow">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-2">
-                <div className={`p-2 rounded-lg ${m.bg}`}>
-                  <m.icon className={`h-4 w-4 ${m.color}`} />
-                </div>
+          <div key={i} className="glass-card gradient-border p-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className={`p-2 rounded-lg glass ${m.bg}`}>
+                <m.icon className={`h-4 w-4 ${m.color}`} />
               </div>
-              <div className="text-2xl font-bold">{m.value}</div>
-              <div className="text-xs text-muted-foreground mt-1">{m.label}</div>
-              <div className="text-[10px] text-muted-foreground mt-0.5">{m.sub}</div>
-            </CardContent>
-          </Card>
+            </div>
+            <div className="text-2xl font-bold">{m.value}</div>
+            <div className="text-xs text-muted-foreground mt-1">{m.label}</div>
+            <div className="text-[10px] text-muted-foreground mt-0.5">{m.sub}</div>
+          </div>
         ))}
       </div>
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Requests per Zone */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">{lang === 'sw' ? 'Maombi kwa Eneo' : 'Requests per Zone'}</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div className="glass-card gradient-border">
+          <div className="p-4 pb-2">
+            <h3 className="text-sm font-medium gradient-text">{lang === 'sw' ? 'Maombi kwa Eneo' : 'Requests per Zone'}</h3>
+          </div>
+          <div className="p-4 pt-0">
             <div className="h-48">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={requestsPerZone}>
@@ -736,15 +742,15 @@ function OverviewView({ lang, stats, zones, disputes, pendingGuides, users, onNa
                 </BarChart>
               </ResponsiveContainer>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Rating Distribution */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">{lang === 'sw' ? 'Usambazaji wa Ukadiriaji' : 'Rating Distribution'}</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div className="glass-card gradient-border">
+          <div className="p-4 pb-2">
+            <h3 className="text-sm font-medium gradient-text">{lang === 'sw' ? 'Usambazaji wa Ukadiriaji' : 'Rating Distribution'}</h3>
+          </div>
+          <div className="p-4 pt-0">
             <div className="h-48 flex items-center">
               <ResponsiveContainer width="60%" height="100%">
                 <PieChart>
@@ -765,18 +771,18 @@ function OverviewView({ lang, stats, zones, disputes, pendingGuides, users, onNa
                 ))}
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Activity Feed + Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Recent Activity */}
-        <Card className="md:col-span-2">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">{lang === 'sw' ? 'Shughuli za Hivi Karibu' : 'Recent Activity'}</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div className="glass-card gradient-border md:col-span-2">
+          <div className="p-4 pb-2">
+            <h3 className="text-sm font-medium gradient-text">{lang === 'sw' ? 'Shughuli za Hivi Karibu' : 'Recent Activity'}</h3>
+          </div>
+          <div className="p-4 pt-0">
             <ScrollArea className="h-48">
               <div className="space-y-3">
                 {recentActivity.map((act, i) => (
@@ -786,7 +792,7 @@ function OverviewView({ lang, stats, zones, disputes, pendingGuides, users, onNa
                       <p className="font-medium">{act.text}</p>
                       <p className="text-xs text-muted-foreground">{act.time}</p>
                     </div>
-                    <Badge variant="outline" className="text-[10px]">{act.type}</Badge>
+                    <span className="glass text-[10px] px-2 py-0.5 rounded-full">{act.type}</span>
                   </div>
                 ))}
                 {recentActivity.length === 0 && (
@@ -794,82 +800,82 @@ function OverviewView({ lang, stats, zones, disputes, pendingGuides, users, onNa
                 )}
               </div>
             </ScrollArea>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Quick Actions */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">{lang === 'sw' ? 'Vitendo vya Haraka' : 'Quick Actions'}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
+        <div className="glass-card gradient-border">
+          <div className="p-4 pb-2">
+            <h3 className="text-sm font-medium gradient-text">{lang === 'sw' ? 'Vitendo vya Haraka' : 'Quick Actions'}</h3>
+          </div>
+          <div className="p-4 pt-0 space-y-3">
             <button
               onClick={() => onNavigate('verification')}
-              className="w-full flex items-center justify-between p-3 rounded-lg border hover:bg-muted transition-colors"
+              className="w-full flex items-center justify-between p-3 rounded-lg glass hover:bg-[var(--glass-hover)] transition-all"
             >
               <div className="flex items-center gap-2">
                 <ClipboardCheck className="h-4 w-4 text-amber-500" />
                 <span className="text-sm">{t('verification_queue', lang)}</span>
               </div>
-              <Badge variant={pendingGuides.length > 0 ? 'destructive' : 'secondary'}>
+              <span className={`glass text-xs px-2 py-0.5 rounded-full ${pendingGuides.length > 0 ? 'amber-glow-sm text-amber-600' : ''}`}>
                 {pendingGuides.length}
-              </Badge>
+              </span>
             </button>
             <button
               onClick={() => onNavigate('disputes')}
-              className="w-full flex items-center justify-between p-3 rounded-lg border hover:bg-muted transition-colors"
+              className="w-full flex items-center justify-between p-3 rounded-lg glass hover:bg-[var(--glass-hover)] transition-all"
             >
               <div className="flex items-center gap-2">
                 <AlertTriangle className="h-4 w-4 text-rose-500" />
                 <span className="text-sm">{t('dispute_resolution', lang)}</span>
               </div>
-              <Badge variant={disputes.length > 0 ? 'destructive' : 'secondary'}>
+              <span className={`glass text-xs px-2 py-0.5 rounded-full ${disputes.length > 0 ? 'text-rose-600' : ''}`}>
                 {disputes.length}
-              </Badge>
+              </span>
             </button>
             <button
               onClick={() => onNavigate('zones')}
-              className="w-full flex items-center justify-between p-3 rounded-lg border hover:bg-muted transition-colors"
+              className="w-full flex items-center justify-between p-3 rounded-lg glass hover:bg-[var(--glass-hover)] transition-all"
             >
               <div className="flex items-center gap-2">
                 <MapPin className="h-4 w-4 text-emerald-500" />
                 <span className="text-sm">{t('zone_management', lang)}</span>
               </div>
-              <Badge variant="secondary">{zones.length}</Badge>
+              <span className="glass text-xs px-2 py-0.5 rounded-full">{zones.length}</span>
             </button>
             <button
               onClick={() => onNavigate('users')}
-              className="w-full flex items-center justify-between p-3 rounded-lg border hover:bg-muted transition-colors"
+              className="w-full flex items-center justify-between p-3 rounded-lg glass hover:bg-[var(--glass-hover)] transition-all"
             >
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4 text-sky-500" />
                 <span className="text-sm">{t('user_management', lang)}</span>
               </div>
-              <Badge variant="secondary">{stats.users.total}</Badge>
+              <span className="glass text-xs px-2 py-0.5 rounded-full">{stats.users.total}</span>
             </button>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Mini Map Preview */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium">{lang === 'sw' ? 'Hali ya Soko' : 'Market Status'}</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <div className="glass-card gradient-border">
+        <div className="p-4 pb-2">
+          <h3 className="text-sm font-medium gradient-text">{lang === 'sw' ? 'Hali ya Soko' : 'Market Status'}</h3>
+        </div>
+        <div className="p-4 pt-0">
           <div className="grid grid-cols-5 gap-2">
             {zones.map(zone => (
-              <div key={zone.id} className="text-center p-3 rounded-lg border" style={{ borderColor: zone.color }}>
+              <div key={zone.id} className="text-center p-3 rounded-lg glass" style={{ borderColor: zone.color }}>
                 <div className="w-8 h-8 rounded-full mx-auto mb-2 flex items-center justify-center" style={{ backgroundColor: zone.color + '20' }}>
                   <MapPin className="h-4 w-4" style={{ color: zone.color }} />
                 </div>
                 <p className="text-xs font-medium">{zone.name}</p>
-                <p className="text-[10px] text-muted-foreground">{zone._count.vendors} V • {zone._count.requests} R</p>
+                <p className="text-[10px] text-muted-foreground">{zone._count.vendors} V &bull; {zone._count.requests} R</p>
               </div>
             ))}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
@@ -946,110 +952,103 @@ function VerificationView({ lang, guides, onRefresh }: {
             type="date"
             value={dateFilter}
             onChange={e => setDateFilter(e.target.value)}
-            className="w-40 text-sm"
+            className="w-40 text-sm glass-input"
             placeholder={t('date', lang)}
           />
           {dateFilter && (
-            <Button variant="ghost" size="sm" onClick={() => setDateFilter('')}>
+            <button className="glass px-3 py-1.5 rounded-lg text-sm hover:bg-[var(--glass-hover)] transition-colors" onClick={() => setDateFilter('')}>
               {t('clear_filters', lang)}
-            </Button>
+            </button>
           )}
         </div>
         {filteredGuides.length > 0 && (
           <div className="flex gap-2">
-            <Button size="sm" variant="outline" onClick={approveAll} className="gap-1.5 text-emerald-600 hover:text-emerald-700">
+            <button onClick={approveAll} className="glass flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-emerald-600 hover:bg-[var(--glass-hover)] transition-colors">
               <CheckCircle2 className="h-3.5 w-3.5" />
               {lang === 'sw' ? 'Kubali Wote' : 'Approve All'}
-            </Button>
-            <Button size="sm" variant="outline" onClick={rejectAll} className="gap-1.5 text-rose-600 hover:text-rose-700">
+            </button>
+            <button onClick={rejectAll} className="glass flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-rose-600 hover:bg-[var(--glass-hover)] transition-colors">
               <XCircle className="h-3.5 w-3.5" />
               {lang === 'sw' ? 'Kataa Wote' : 'Reject All'}
-            </Button>
+            </button>
           </div>
         )}
       </div>
 
       {/* Guide Cards */}
       {filteredGuides.length === 0 ? (
-        <Card>
-          <CardContent className="p-12 text-center">
-            <CheckCircle2 className="h-12 w-12 text-emerald-500 mx-auto mb-3" />
-            <h3 className="font-semibold text-lg">
-              {lang === 'sw' ? 'Waongozaji wote wamethibitishwa!' : 'All guides verified!'}
-            </h3>
-            <p className="text-sm text-muted-foreground mt-1">
-              {lang === 'sw' ? 'Hakuna waongozaji wanaosubiri uthibitisho' : 'No pending guide verifications'}
-            </p>
-          </CardContent>
-        </Card>
+        <div className="glass-card gradient-border p-12 text-center">
+          <CheckCircle2 className="h-12 w-12 text-emerald-500 mx-auto mb-3" />
+          <h3 className="font-semibold text-lg gradient-text">
+            {lang === 'sw' ? 'Waongozaji wote wamethibitishwa!' : 'All guides verified!'}
+          </h3>
+          <p className="text-sm text-muted-foreground mt-1">
+            {lang === 'sw' ? 'Hakuna waongozaji wanaosubiri uthibitisho' : 'No pending guide verifications'}
+          </p>
+        </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filteredGuides.map(guide => (
-            <Card key={guide.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4">
-                <div className="flex items-start gap-3">
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold text-sm ${getAvatarColor(guide.user.id)}`}>
-                    {getInitials(guide.user.name)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-sm">{guide.user.name}</h3>
-                    <p className="text-xs text-muted-foreground flex items-center gap-1">
-                      <Phone className="h-3 w-3" /> {guide.user.phone}
-                    </p>
-                  </div>
-                  <Badge variant="outline" className="text-amber-600 border-amber-300">
-                    {t('pending', lang)}
-                  </Badge>
+            <div key={guide.id} className="glass-card gradient-border p-4">
+              <div className="flex items-start gap-3">
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold text-sm ${getAvatarColor(guide.user.id)}`}>
+                  {getInitials(guide.user.name)}
                 </div>
-
-                <div className="mt-3">
-                  <p className="text-xs text-muted-foreground line-clamp-2">{guide.bio || (lang === 'sw' ? 'Hakuna wasifu' : 'No bio provided')}</p>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-sm">{guide.user.name}</h3>
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Phone className="h-3 w-3" /> {guide.user.phone}
+                  </p>
                 </div>
+                <span className="glass text-amber-600 text-xs px-2 py-0.5 rounded-full amber-glow-sm">
+                  {t('pending', lang)}
+                </span>
+              </div>
 
-                {guide.idDocumentUrl && (
-                  <div className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
-                    <FileText className="h-3 w-3" />
-                    {lang === 'sw' ? 'Kitambulisho kimewasilishwa' : 'ID document submitted'}
-                  </div>
-                )}
+              <div className="mt-3">
+                <p className="text-xs text-muted-foreground line-clamp-2">{guide.bio || (lang === 'sw' ? 'Hakuna wasifu' : 'No bio provided')}</p>
+              </div>
 
+              {guide.idDocumentUrl && (
                 <div className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
-                  <Calendar className="h-3 w-3" />
-                  {lang === 'sw' ? 'Alituma' : 'Applied'}: {formatDate(guide.createdAt, lang)}
+                  <FileText className="h-3 w-3" />
+                  {lang === 'sw' ? 'Kitambulisho kimewasilishwa' : 'ID document submitted'}
                 </div>
+              )}
 
-                <div className="mt-3 flex gap-2">
-                  <Button
-                    size="sm"
-                    className="flex-1 gap-1.5 bg-emerald-600 hover:bg-emerald-700"
-                    onClick={() => approveGuide(guide.userId)}
-                    disabled={processing === guide.userId}
-                  >
-                    <CheckCircle2 className="h-3.5 w-3.5" />
-                    {t('approve_guide', lang)}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    className="flex-1 gap-1.5"
-                    onClick={() => { setRejectGuideId(guide.userId); setRejectDialogOpen(true); }}
-                    disabled={processing === guide.userId}
-                  >
-                    <XCircle className="h-3.5 w-3.5" />
-                    {t('reject_guide', lang)}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+              <div className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
+                <Calendar className="h-3 w-3" />
+                {lang === 'sw' ? 'Alituma' : 'Applied'}: {formatDate(guide.createdAt, lang)}
+              </div>
+
+              <div className="mt-3 flex gap-2">
+                <button
+                  className="flex-1 glass-button flex items-center justify-center gap-1.5 py-2 text-sm"
+                  onClick={() => approveGuide(guide.userId)}
+                  disabled={processing === guide.userId}
+                >
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  {t('approve_guide', lang)}
+                </button>
+                <button
+                  className="flex-1 glass flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm text-rose-600 hover:bg-rose-500/10 transition-colors"
+                  onClick={() => { setRejectGuideId(guide.userId); setRejectDialogOpen(true); }}
+                  disabled={processing === guide.userId}
+                >
+                  <XCircle className="h-3.5 w-3.5" />
+                  {t('reject_guide', lang)}
+                </button>
+              </div>
+            </div>
           ))}
         </div>
       )}
 
       {/* Reject Dialog */}
       <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
-        <DialogContent>
+        <DialogContent className="glass-card border-[var(--glass-border)]">
           <DialogHeader>
-            <DialogTitle>{t('reject_guide', lang)}</DialogTitle>
+            <DialogTitle className="gradient-text">{t('reject_guide', lang)}</DialogTitle>
             <DialogDescription>
               {lang === 'sw' ? 'Toa sababu ya kukataa mwongozo huu' : 'Provide a reason for rejecting this guide'}
             </DialogDescription>
@@ -1059,12 +1058,18 @@ function VerificationView({ lang, guides, onRefresh }: {
             onChange={e => setRejectReason(e.target.value)}
             placeholder={lang === 'sw' ? 'Sababu ya kukataa...' : 'Rejection reason...'}
             rows={3}
+            className="glass-input"
           />
           <DialogFooter>
-            <Button variant="outline" onClick={() => setRejectDialogOpen(false)}>{t('cancel', lang)}</Button>
-            <Button variant="destructive" onClick={() => rejectGuide(rejectGuideId, rejectReason)} disabled={!rejectReason.trim()}>
+            <button className="glass px-4 py-2 rounded-lg text-sm hover:bg-[var(--glass-hover)] transition-colors" onClick={() => setRejectDialogOpen(false)}>{t('cancel', lang)}</button>
+            <button
+              className="glass-button px-4 py-2 rounded-lg text-sm bg-rose-600 hover:bg-rose-700"
+              style={{ background: processing ? undefined : 'linear-gradient(135deg, #dc2626, #b91c1c)' }}
+              onClick={() => rejectGuide(rejectGuideId, rejectReason)}
+              disabled={!rejectReason.trim()}
+            >
               {t('reject_guide', lang)}
-            </Button>
+            </button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -1162,143 +1167,141 @@ function ZonesView({ lang, zones, onRefresh }: {
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <Button onClick={openCreate} className="gap-1.5">
+        <button onClick={openCreate} className="glass-button flex items-center gap-1.5 px-4 py-2 text-sm">
           <Plus className="h-4 w-4" />
           {lang === 'sw' ? 'Eneo Jipya' : 'New Zone'}
-        </Button>
+        </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {zones.map(zone => (
-          <Card key={zone.id} className="hover:shadow-md transition-shadow">
-            <CardContent className="p-4">
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 rounded-full" style={{ backgroundColor: zone.color }} />
-                  <h3 className="font-semibold">{zone.name}</h3>
-                </div>
-                <div className="flex gap-1">
-                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(zone)}>
-                    <Edit3 className="h-3.5 w-3.5" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="h-7 w-7 text-rose-500" onClick={() => { setDeleteZoneId(zone.id); setDeleteDialogOpen(true); }}>
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
+          <div key={zone.id} className="glass-card gradient-border p-4">
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: zone.color }} />
+                <h3 className="font-semibold gradient-text">{zone.name}</h3>
               </div>
-
-              {zone.nameSw && <p className="text-xs text-muted-foreground mb-2">SW: {zone.nameSw}</p>}
-              {zone.description && <p className="text-xs text-muted-foreground line-clamp-2 mb-3">{zone.description}</p>}
-
-              <div className="grid grid-cols-3 gap-2 text-center">
-                <div className="p-2 rounded bg-muted/50">
-                  <p className="text-sm font-semibold">{zone._count.vendors}</p>
-                  <p className="text-[10px] text-muted-foreground">{lang === 'sw' ? 'Wauzaji' : 'Vendors'}</p>
-                </div>
-                <div className="p-2 rounded bg-muted/50">
-                  <p className="text-sm font-semibold">{zone._count.priceRadar}</p>
-                  <p className="text-[10px] text-muted-foreground">{lang === 'sw' ? 'Bei' : 'Prices'}</p>
-                </div>
-                <div className="p-2 rounded bg-muted/50">
-                  <p className="text-sm font-semibold">{zone._count.requests}</p>
-                  <p className="text-[10px] text-muted-foreground">{t('requests', lang) || 'Req.'}</p>
-                </div>
+              <div className="flex gap-1">
+                <button className="glass w-7 h-7 rounded-lg flex items-center justify-center hover:bg-[var(--glass-hover)] transition-colors" onClick={() => openEdit(zone)}>
+                  <Edit3 className="h-3.5 w-3.5" />
+                </button>
+                <button className="glass w-7 h-7 rounded-lg flex items-center justify-center text-rose-500 hover:bg-rose-500/10 transition-colors" onClick={() => { setDeleteZoneId(zone.id); setDeleteDialogOpen(true); }}>
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
               </div>
+            </div>
 
-              {/* Mini zone boundary preview */}
-              <div className="mt-3 h-16 rounded border bg-muted/30 flex items-center justify-center relative overflow-hidden">
-                <div className="absolute inset-2 rounded" style={{ backgroundColor: zone.color + '15', border: `2px dashed ${zone.color}40` }} />
-                <MapPin className="h-4 w-4 relative z-10" style={{ color: zone.color }} />
+            {zone.nameSw && <p className="text-xs text-muted-foreground mb-2">SW: {zone.nameSw}</p>}
+            {zone.description && <p className="text-xs text-muted-foreground line-clamp-2 mb-3">{zone.description}</p>}
+
+            <div className="grid grid-cols-3 gap-2 text-center">
+              <div className="p-2 rounded-lg glass">
+                <p className="text-sm font-semibold">{zone._count.vendors}</p>
+                <p className="text-[10px] text-muted-foreground">{lang === 'sw' ? 'Wauzaji' : 'Vendors'}</p>
               </div>
-            </CardContent>
-          </Card>
+              <div className="p-2 rounded-lg glass">
+                <p className="text-sm font-semibold">{zone._count.priceRadar}</p>
+                <p className="text-[10px] text-muted-foreground">{lang === 'sw' ? 'Bei' : 'Prices'}</p>
+              </div>
+              <div className="p-2 rounded-lg glass">
+                <p className="text-sm font-semibold">{zone._count.requests}</p>
+                <p className="text-[10px] text-muted-foreground">{t('requests', lang) || 'Req.'}</p>
+              </div>
+            </div>
+
+            {/* Mini zone boundary preview */}
+            <div className="mt-3 h-16 rounded-lg glass flex items-center justify-center relative overflow-hidden">
+              <div className="absolute inset-2 rounded" style={{ backgroundColor: zone.color + '15', border: `2px dashed ${zone.color}40` }} />
+              <MapPin className="h-4 w-4 relative z-10" style={{ color: zone.color }} />
+            </div>
+          </div>
         ))}
       </div>
 
       {/* Edit Zone Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent>
+        <DialogContent className="glass-card border-[var(--glass-border)]">
           <DialogHeader>
-            <DialogTitle>{t('edit', lang)} {lang === 'sw' ? 'Eneo' : 'Zone'}</DialogTitle>
+            <DialogTitle className="gradient-text">{t('edit', lang)} {lang === 'sw' ? 'Eneo' : 'Zone'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <div>
               <Label>{lang === 'sw' ? 'Jina' : 'Name'}</Label>
-              <Input value={formName} onChange={e => setFormName(e.target.value)} />
+              <Input value={formName} onChange={e => setFormName(e.target.value)} className="glass-input" />
             </div>
             <div>
               <Label>{lang === 'sw' ? 'Jina (Kiswahili)' : 'Swahili Name'}</Label>
-              <Input value={formNameSw} onChange={e => setFormNameSw(e.target.value)} />
+              <Input value={formNameSw} onChange={e => setFormNameSw(e.target.value)} className="glass-input" />
             </div>
             <div>
               <Label>{t('description', lang)}</Label>
-              <Textarea value={formDesc} onChange={e => setFormDesc(e.target.value)} rows={2} />
+              <Textarea value={formDesc} onChange={e => setFormDesc(e.target.value)} rows={2} className="glass-input" />
             </div>
             <div>
               <Label>{lang === 'sw' ? 'Rangi' : 'Color'}</Label>
               <div className="flex items-center gap-2">
                 <input type="color" value={formColor} onChange={e => setFormColor(e.target.value)} className="h-8 w-8 rounded cursor-pointer" />
-                <Input value={formColor} onChange={e => setFormColor(e.target.value)} className="w-28" />
+                <Input value={formColor} onChange={e => setFormColor(e.target.value)} className="w-28 glass-input" />
               </div>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>{t('cancel', lang)}</Button>
-            <Button onClick={saveEdit} disabled={saving || !formName.trim()}>
+            <button className="glass px-4 py-2 rounded-lg text-sm hover:bg-[var(--glass-hover)] transition-colors" onClick={() => setEditDialogOpen(false)}>{t('cancel', lang)}</button>
+            <button className="glass-button px-4 py-2 rounded-lg text-sm" onClick={saveEdit} disabled={saving || !formName.trim()}>
               {saving ? t('loading', lang) : t('save', lang)}
-            </Button>
+            </button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Create Zone Dialog */}
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-        <DialogContent>
+        <DialogContent className="glass-card border-[var(--glass-border)]">
           <DialogHeader>
-            <DialogTitle>{lang === 'sw' ? 'Unda Eneo Jipya' : 'Create New Zone'}</DialogTitle>
+            <DialogTitle className="gradient-text">{lang === 'sw' ? 'Unda Eneo Jipya' : 'Create New Zone'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <div>
               <Label>{lang === 'sw' ? 'Jina' : 'Name'} *</Label>
-              <Input value={formName} onChange={e => setFormName(e.target.value)} placeholder="e.g. Hardware" />
+              <Input value={formName} onChange={e => setFormName(e.target.value)} placeholder="e.g. Hardware" className="glass-input" />
             </div>
             <div>
               <Label>{lang === 'sw' ? 'Jina (Kiswahili)' : 'Swahili Name'}</Label>
-              <Input value={formNameSw} onChange={e => setFormNameSw(e.target.value)} placeholder="mf. Vifaa" />
+              <Input value={formNameSw} onChange={e => setFormNameSw(e.target.value)} placeholder="mf. Vifaa" className="glass-input" />
             </div>
             <div>
               <Label>{t('description', lang)}</Label>
-              <Textarea value={formDesc} onChange={e => setFormDesc(e.target.value)} rows={2} />
+              <Textarea value={formDesc} onChange={e => setFormDesc(e.target.value)} rows={2} className="glass-input" />
             </div>
             <div>
               <Label>{lang === 'sw' ? 'Rangi' : 'Color'}</Label>
               <div className="flex items-center gap-2">
                 <input type="color" value={formColor} onChange={e => setFormColor(e.target.value)} className="h-8 w-8 rounded cursor-pointer" />
-                <Input value={formColor} onChange={e => setFormColor(e.target.value)} className="w-28" />
+                <Input value={formColor} onChange={e => setFormColor(e.target.value)} className="w-28 glass-input" />
               </div>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>{t('cancel', lang)}</Button>
-            <Button onClick={createZone} disabled={saving || !formName.trim()}>
+            <button className="glass px-4 py-2 rounded-lg text-sm hover:bg-[var(--glass-hover)] transition-colors" onClick={() => setCreateDialogOpen(false)}>{t('cancel', lang)}</button>
+            <button className="glass-button px-4 py-2 rounded-lg text-sm" onClick={createZone} disabled={saving || !formName.trim()}>
               {saving ? t('loading', lang) : lang === 'sw' ? 'Unda' : 'Create'}
-            </Button>
+            </button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Delete Confirmation */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="glass-card border-[var(--glass-border)]">
           <AlertDialogHeader>
-            <AlertDialogTitle>{lang === 'sw' ? 'Futa Eneo?' : 'Delete Zone?'}</AlertDialogTitle>
+            <AlertDialogTitle className="gradient-text">{lang === 'sw' ? 'Futa Eneo?' : 'Delete Zone?'}</AlertDialogTitle>
             <AlertDialogDescription>
               {lang === 'sw' ? 'Kitendo hiki hakiwezi kubadilishwa. Wauzaji na bei zote zitafutwa.' : 'This cannot be undone. All vendors and prices in this zone will be deleted.'}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{t('cancel', lang)}</AlertDialogCancel>
-            <AlertDialogAction onClick={deleteZone} className="bg-rose-600 hover:bg-rose-700">
+            <AlertDialogCancel className="glass">{t('cancel', lang)}</AlertDialogCancel>
+            <AlertDialogAction onClick={deleteZone} className="glass-button" style={{ background: 'linear-gradient(135deg, #dc2626, #b91c1c)' }}>
               {t('delete', lang)}
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -1413,107 +1416,105 @@ function PriceRadarView({ lang, entries, zones, onRefresh }: {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2 flex-wrap">
           <Select value={filterZone} onValueChange={setFilterZone}>
-            <SelectTrigger className="w-36 text-sm"><SelectValue placeholder={t('filters', lang)} /></SelectTrigger>
+            <SelectTrigger className="w-36 text-sm glass-input"><SelectValue placeholder={t('filters', lang)} /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{lang === 'sw' ? 'Maeneo yote' : 'All Zones'}</SelectItem>
               {zones.map(z => <SelectItem key={z.id} value={z.id}>{z.name}</SelectItem>)}
             </SelectContent>
           </Select>
           <Select value={filterCategory} onValueChange={setFilterCategory}>
-            <SelectTrigger className="w-36 text-sm"><SelectValue placeholder={t('category', lang)} /></SelectTrigger>
+            <SelectTrigger className="w-36 text-sm glass-input"><SelectValue placeholder={t('category', lang)} /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{lang === 'sw' ? 'Aina zote' : 'All Categories'}</SelectItem>
               {categories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
             </SelectContent>
           </Select>
           {(filterZone !== 'all' || filterCategory !== 'all') && (
-            <Button variant="ghost" size="sm" onClick={() => { setFilterZone('all'); setFilterCategory('all'); }}>
+            <button className="glass px-3 py-1.5 rounded-lg text-sm hover:bg-[var(--glass-hover)] transition-colors" onClick={() => { setFilterZone('all'); setFilterCategory('all'); }}>
               {t('clear_filters', lang)}
-            </Button>
+            </button>
           )}
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" className="gap-1.5" onClick={() => toast.info(lang === 'sw' ? 'Usafirishaji unakuja' : 'Bulk import coming soon')}>
+          <button className="glass flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm hover:bg-[var(--glass-hover)] transition-colors" onClick={() => toast.info(lang === 'sw' ? 'Usafirishaji unakuja' : 'Bulk import coming soon')}>
             <Upload className="h-3.5 w-3.5" />
             {lang === 'sw' ? 'Liza' : 'Import'}
-          </Button>
-          <Button size="sm" onClick={openCreate} className="gap-1.5">
+          </button>
+          <button onClick={openCreate} className="glass-button flex items-center gap-1.5 px-3 py-1.5 text-sm">
             <Plus className="h-3.5 w-3.5" />
             {lang === 'sw' ? 'Mpya' : 'New'}
-          </Button>
+          </button>
         </div>
       </div>
 
       {/* Table */}
-      <Card>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
+      <div className="glass-card gradient-border overflow-hidden">
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="border-b border-[var(--glass-border)]">
+                <TableHead>{t('category', lang)}</TableHead>
+                <TableHead>{lang === 'sw' ? 'Eneo' : 'Zone'}</TableHead>
+                <TableHead>{t('min_price', lang)}</TableHead>
+                <TableHead>{t('max_price', lang)}</TableHead>
+                <TableHead>{t('last_updated', lang)}</TableHead>
+                <TableHead>{lang === 'sw' ? 'Aliyehariri' : 'Updated By'}</TableHead>
+                <TableHead className="w-20">{t('actions', lang)}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filtered.length === 0 ? (
                 <TableRow>
-                  <TableHead>{t('category', lang)}</TableHead>
-                  <TableHead>{lang === 'sw' ? 'Eneo' : 'Zone'}</TableHead>
-                  <TableHead>{t('min_price', lang)}</TableHead>
-                  <TableHead>{t('max_price', lang)}</TableHead>
-                  <TableHead>{t('last_updated', lang)}</TableHead>
-                  <TableHead>{lang === 'sw' ? 'Aliyehariri' : 'Updated By'}</TableHead>
-                  <TableHead className="w-20">{t('actions', lang)}</TableHead>
+                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                    {t('no_results', lang)}
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filtered.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                      {t('no_results', lang)}
+              ) : (
+                filtered.map(entry => (
+                  <TableRow key={entry.id} className="border-b border-[var(--glass-border)]">
+                    <TableCell className="font-medium text-sm">{entry.category}</TableCell>
+                    <TableCell>
+                      <span className="glass text-xs px-2 py-0.5 rounded-full" style={{ borderColor: entry.zone.color, color: entry.zone.color }}>
+                        {entry.zone.name}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-sm">{formatTZS(entry.priceMin)}</TableCell>
+                    <TableCell className="text-sm">{formatTZS(entry.priceMax)}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground">{formatDate(entry.updatedAt, lang)}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground">{entry.updatedBy}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-1">
+                        <button className="glass w-7 h-7 rounded-lg flex items-center justify-center hover:bg-[var(--glass-hover)] transition-colors" onClick={() => openEdit(entry)}>
+                          <Edit3 className="h-3.5 w-3.5" />
+                        </button>
+                        <button className="glass w-7 h-7 rounded-lg flex items-center justify-center text-rose-500 hover:bg-rose-500/10 transition-colors" onClick={() => { setDeleteEntryId(entry.id); setDeleteDialogOpen(true); }}>
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
                     </TableCell>
                   </TableRow>
-                ) : (
-                  filtered.map(entry => (
-                    <TableRow key={entry.id}>
-                      <TableCell className="font-medium text-sm">{entry.category}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="text-xs" style={{ borderColor: entry.zone.color, color: entry.zone.color }}>
-                          {entry.zone.name}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-sm">{formatTZS(entry.priceMin)}</TableCell>
-                      <TableCell className="text-sm">{formatTZS(entry.priceMax)}</TableCell>
-                      <TableCell className="text-xs text-muted-foreground">{formatDate(entry.updatedAt, lang)}</TableCell>
-                      <TableCell className="text-xs text-muted-foreground">{entry.updatedBy}</TableCell>
-                      <TableCell>
-                        <div className="flex gap-1">
-                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(entry)}>
-                            <Edit3 className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button variant="ghost" size="icon" className="h-7 w-7 text-rose-500" onClick={() => { setDeleteEntryId(entry.id); setDeleteDialogOpen(true); }}>
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
 
       {/* Edit Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent>
+        <DialogContent className="glass-card border-[var(--glass-border)]">
           <DialogHeader>
-            <DialogTitle>{t('edit', lang)} {t('price_radar_title', lang)}</DialogTitle>
+            <DialogTitle className="gradient-text">{t('edit', lang)} {t('price_radar_title', lang)}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <div>
               <Label>{t('category', lang)}</Label>
-              <Input value={formCategory} onChange={e => setFormCategory(e.target.value)} />
+              <Input value={formCategory} onChange={e => setFormCategory(e.target.value)} className="glass-input" />
             </div>
             <div>
               <Label>{lang === 'sw' ? 'Eneo' : 'Zone'}</Label>
               <Select value={formZoneId} onValueChange={setFormZoneId}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger className="glass-input"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {zones.map(z => <SelectItem key={z.id} value={z.id}>{z.name}</SelectItem>)}
                 </SelectContent>
@@ -1522,36 +1523,36 @@ function PriceRadarView({ lang, entries, zones, onRefresh }: {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label>{t('min_price', lang)} (TZS)</Label>
-                <Input type="number" value={formPriceMin} onChange={e => setFormPriceMin(Number(e.target.value))} />
+                <Input type="number" value={formPriceMin} onChange={e => setFormPriceMin(Number(e.target.value))} className="glass-input" />
               </div>
               <div>
                 <Label>{t('max_price', lang)} (TZS)</Label>
-                <Input type="number" value={formPriceMax} onChange={e => setFormPriceMax(Number(e.target.value))} />
+                <Input type="number" value={formPriceMax} onChange={e => setFormPriceMax(Number(e.target.value))} className="glass-input" />
               </div>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>{t('cancel', lang)}</Button>
-            <Button onClick={saveEdit} disabled={saving}>{saving ? t('loading', lang) : t('save', lang)}</Button>
+            <button className="glass px-4 py-2 rounded-lg text-sm hover:bg-[var(--glass-hover)] transition-colors" onClick={() => setEditDialogOpen(false)}>{t('cancel', lang)}</button>
+            <button className="glass-button px-4 py-2 rounded-lg text-sm" onClick={saveEdit} disabled={saving}>{saving ? t('loading', lang) : t('save', lang)}</button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Create Dialog */}
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-        <DialogContent>
+        <DialogContent className="glass-card border-[var(--glass-border)]">
           <DialogHeader>
-            <DialogTitle>{lang === 'sw' ? 'Unda Bei Mpya' : 'New Price Entry'}</DialogTitle>
+            <DialogTitle className="gradient-text">{lang === 'sw' ? 'Unda Bei Mpya' : 'New Price Entry'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <div>
               <Label>{t('category', lang)} *</Label>
-              <Input value={formCategory} onChange={e => setFormCategory(e.target.value)} placeholder="e.g. Rice Cooker" />
+              <Input value={formCategory} onChange={e => setFormCategory(e.target.value)} placeholder="e.g. Rice Cooker" className="glass-input" />
             </div>
             <div>
               <Label>{lang === 'sw' ? 'Eneo' : 'Zone'} *</Label>
               <Select value={formZoneId} onValueChange={setFormZoneId}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger className="glass-input"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {zones.map(z => <SelectItem key={z.id} value={z.id}>{z.name}</SelectItem>)}
                 </SelectContent>
@@ -1560,35 +1561,35 @@ function PriceRadarView({ lang, entries, zones, onRefresh }: {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label>{t('min_price', lang)} (TZS)</Label>
-                <Input type="number" value={formPriceMin} onChange={e => setFormPriceMin(Number(e.target.value))} />
+                <Input type="number" value={formPriceMin} onChange={e => setFormPriceMin(Number(e.target.value))} className="glass-input" />
               </div>
               <div>
                 <Label>{t('max_price', lang)} (TZS)</Label>
-                <Input type="number" value={formPriceMax} onChange={e => setFormPriceMax(Number(e.target.value))} />
+                <Input type="number" value={formPriceMax} onChange={e => setFormPriceMax(Number(e.target.value))} className="glass-input" />
               </div>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>{t('cancel', lang)}</Button>
-            <Button onClick={createEntry} disabled={saving || !formCategory.trim()}>
+            <button className="glass px-4 py-2 rounded-lg text-sm hover:bg-[var(--glass-hover)] transition-colors" onClick={() => setCreateDialogOpen(false)}>{t('cancel', lang)}</button>
+            <button className="glass-button px-4 py-2 rounded-lg text-sm" onClick={createEntry} disabled={saving || !formCategory.trim()}>
               {saving ? t('loading', lang) : lang === 'sw' ? 'Unda' : 'Create'}
-            </Button>
+            </button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Delete Confirmation */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="glass-card border-[var(--glass-border)]">
           <AlertDialogHeader>
-            <AlertDialogTitle>{lang === 'sw' ? 'Futa Bei?' : 'Delete Price Entry?'}</AlertDialogTitle>
+            <AlertDialogTitle className="gradient-text">{lang === 'sw' ? 'Futa Bei?' : 'Delete Price Entry?'}</AlertDialogTitle>
             <AlertDialogDescription>
               {lang === 'sw' ? 'Kitendo hiki hakiwezi kubadilishwa.' : 'This action cannot be undone.'}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{t('cancel', lang)}</AlertDialogCancel>
-            <AlertDialogAction onClick={deleteEntry} className="bg-rose-600 hover:bg-rose-700">
+            <AlertDialogCancel className="glass">{t('cancel', lang)}</AlertDialogCancel>
+            <AlertDialogAction onClick={deleteEntry} className="glass-button" style={{ background: 'linear-gradient(135deg, #dc2626, #b91c1c)' }}>
               {t('delete', lang)}
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -1659,26 +1660,26 @@ function AnalyticsView({ lang, stats, zones, users }: {
       {/* Date Range Picker + Export */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <Tabs value={dateRange} onValueChange={v => setDateRange(v as typeof dateRange)}>
-          <TabsList>
+          <TabsList className="glass">
             <TabsTrigger value="week">{t('this_week', lang)}</TabsTrigger>
             <TabsTrigger value="month">{t('this_month', lang)}</TabsTrigger>
             <TabsTrigger value="year">{lang === 'sw' ? 'Mwaka' : 'Year'}</TabsTrigger>
           </TabsList>
         </Tabs>
-        <Button variant="outline" size="sm" onClick={handleExport} className="gap-1.5">
+        <button className="glass flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm hover:bg-[var(--glass-hover)] transition-colors" onClick={handleExport}>
           <Download className="h-3.5 w-3.5" />
           {t('download', lang)}
-        </Button>
+        </button>
       </div>
 
       {/* Charts Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Requests per Zone */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">{lang === 'sw' ? 'Maombi kwa Eneo' : 'Requests per Zone'}</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div className="glass-card gradient-border">
+          <div className="p-4 pb-2">
+            <h3 className="text-sm font-medium gradient-text">{lang === 'sw' ? 'Maombi kwa Eneo' : 'Requests per Zone'}</h3>
+          </div>
+          <div className="p-4 pt-0">
             <div className="h-56">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={requestsPerZone}>
@@ -1694,15 +1695,15 @@ function AnalyticsView({ lang, stats, zones, users }: {
                 </BarChart>
               </ResponsiveContainer>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Sessions Over Time */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">{lang === 'sw' ? 'Vikao kwa Muda' : 'Sessions Over Time'}</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div className="glass-card gradient-border">
+          <div className="p-4 pb-2">
+            <h3 className="text-sm font-medium gradient-text">{lang === 'sw' ? 'Vikao kwa Muda' : 'Sessions Over Time'}</h3>
+          </div>
+          <div className="p-4 pt-0">
             <div className="h-56">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={timeData}>
@@ -1714,15 +1715,15 @@ function AnalyticsView({ lang, stats, zones, users }: {
                 </LineChart>
               </ResponsiveContainer>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Revenue Over Time */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">{lang === 'sw' ? 'Mapato kwa Muda' : 'Revenue Over Time'}</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div className="glass-card gradient-border">
+          <div className="p-4 pb-2">
+            <h3 className="text-sm font-medium gradient-text">{lang === 'sw' ? 'Mapato kwa Muda' : 'Revenue Over Time'}</h3>
+          </div>
+          <div className="p-4 pt-0">
             <div className="h-56">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={timeData}>
@@ -1734,15 +1735,15 @@ function AnalyticsView({ lang, stats, zones, users }: {
                 </LineChart>
               </ResponsiveContainer>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Rating Distribution */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">{lang === 'sw' ? 'Usambazaji wa Ukadiriaji' : 'Rating Distribution'}</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div className="glass-card gradient-border">
+          <div className="p-4 pb-2">
+            <h3 className="text-sm font-medium gradient-text">{lang === 'sw' ? 'Usambazaji wa Ukadiriaji' : 'Rating Distribution'}</h3>
+          </div>
+          <div className="p-4 pt-0">
             <div className="h-56 flex items-center justify-center">
               <ResponsiveContainer width="70%" height="100%">
                 <PieChart>
@@ -1763,16 +1764,16 @@ function AnalyticsView({ lang, stats, zones, users }: {
                 ))}
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Guide Activity Heatmap */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium">{lang === 'sw' ? 'Shughuli za Waongozaji' : 'Guide Activity Heatmap'}</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <div className="glass-card gradient-border">
+        <div className="p-4 pb-2">
+          <h3 className="text-sm font-medium gradient-text">{lang === 'sw' ? 'Shughuli za Waongozaji' : 'Guide Activity Heatmap'}</h3>
+        </div>
+        <div className="p-4 pt-0">
           <div className="overflow-x-auto">
             <div className="inline-grid grid-cols-7 gap-1 min-w-full">
               {/* Header */}
@@ -1811,8 +1812,8 @@ function AnalyticsView({ lang, stats, zones, users }: {
             </div>
             <span>{lang === 'sw' ? 'Juu' : 'High'}</span>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
@@ -1884,25 +1885,25 @@ function UsersView({ lang, users, onRefresh }: {
 
   const roleBadge = (role: string) => {
     const colors: Record<string, string> = {
-      seeker: 'bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300',
-      guide: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300',
-      admin: 'bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-300',
+      seeker: 'text-sky-700 dark:text-sky-300',
+      guide: 'text-emerald-700 dark:text-emerald-300',
+      admin: 'text-violet-700 dark:text-violet-300',
     };
     return (
-      <Badge variant="secondary" className={`text-xs ${colors[role] || ''}`}>
+      <span className={`glass text-xs px-2 py-0.5 rounded-full ${colors[role] || ''}`}>
         {role}
-      </Badge>
+      </span>
     );
   };
 
   const statusBadge = (user: UserItem) => {
     if (user.role === 'guide' && user.guideProfile) {
       const s = user.guideProfile.status;
-      if (s === 'pending') return <Badge variant="outline" className="text-amber-600 text-[10px]">{t('pending', lang)}</Badge>;
-      if (s === 'suspended') return <Badge variant="outline" className="text-rose-600 text-[10px]">{t('trust_suspended', lang)}</Badge>;
-      if (s === 'active') return <Badge variant="outline" className="text-emerald-600 text-[10px]">{t('trust_verified', lang)}</Badge>;
+      if (s === 'pending') return <span className="glass text-amber-600 text-[10px] px-2 py-0.5 rounded-full amber-glow-sm">{t('pending', lang)}</span>;
+      if (s === 'suspended') return <span className="glass text-rose-600 text-[10px] px-2 py-0.5 rounded-full">{t('trust_suspended', lang)}</span>;
+      if (s === 'active') return <span className="glass text-emerald-600 text-[10px] px-2 py-0.5 rounded-full">{t('trust_verified', lang)}</span>;
     }
-    return <Badge variant="outline" className="text-[10px]">{t('active', lang)}</Badge>;
+    return <span className="glass text-[10px] px-2 py-0.5 rounded-full">{t('active', lang)}</span>;
   };
 
   return (
@@ -1916,11 +1917,11 @@ function UsersView({ lang, users, onRefresh }: {
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder={lang === 'sw' ? 'Tafuta kwa jina au simu...' : 'Search by name or phone...'}
-              className="pl-8 text-sm"
+              className="pl-8 text-sm glass-input"
             />
           </div>
           <Select value={filterRole} onValueChange={setFilterRole}>
-            <SelectTrigger className="w-32 text-sm"><SelectValue placeholder={t('role', lang)} /></SelectTrigger>
+            <SelectTrigger className="w-32 text-sm glass-input"><SelectValue placeholder={t('role', lang)} /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{lang === 'sw' ? 'Wote' : 'All Roles'}</SelectItem>
               <SelectItem value="seeker">Seeker</SelectItem>
@@ -1933,78 +1934,76 @@ function UsersView({ lang, users, onRefresh }: {
       </div>
 
       {/* Table */}
-      <Card>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
+      <div className="glass-card gradient-border overflow-hidden">
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="border-b border-[var(--glass-border)]">
+                <TableHead className="cursor-pointer" onClick={() => toggleSort('name')}>
+                  {t('name', lang)} <SortIcon field="name" />
+                </TableHead>
+                <TableHead>{t('phone', lang)}</TableHead>
+                <TableHead className="cursor-pointer" onClick={() => toggleSort('role')}>
+                  {t('role', lang)} <SortIcon field="role" />
+                </TableHead>
+                <TableHead>{t('status', lang)}</TableHead>
+                <TableHead>{t('rating', lang)}</TableHead>
+                <TableHead className="cursor-pointer" onClick={() => toggleSort('createdAt')}>
+                  {lang === 'sw' ? 'Alijiunga' : 'Joined'} <SortIcon field="createdAt" />
+                </TableHead>
+                <TableHead className="w-24">{t('actions', lang)}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredUsers.length === 0 ? (
                 <TableRow>
-                  <TableHead className="cursor-pointer" onClick={() => toggleSort('name')}>
-                    {t('name', lang)} <SortIcon field="name" />
-                  </TableHead>
-                  <TableHead>{t('phone', lang)}</TableHead>
-                  <TableHead className="cursor-pointer" onClick={() => toggleSort('role')}>
-                    {t('role', lang)} <SortIcon field="role" />
-                  </TableHead>
-                  <TableHead>{t('status', lang)}</TableHead>
-                  <TableHead>{t('rating', lang)}</TableHead>
-                  <TableHead className="cursor-pointer" onClick={() => toggleSort('createdAt')}>
-                    {lang === 'sw' ? 'Alijiunga' : 'Joined'} <SortIcon field="createdAt" />
-                  </TableHead>
-                  <TableHead className="w-24">{t('actions', lang)}</TableHead>
+                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                    {t('no_results', lang)}
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredUsers.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                      {t('no_results', lang)}
+              ) : (
+                filteredUsers.map(user => (
+                  <TableRow
+                    key={user.id}
+                    className="cursor-pointer hover:bg-[var(--glass-hover)] border-b border-[var(--glass-border)]"
+                    onClick={() => { setSelectedUser(user); setDetailOpen(true); }}
+                  >
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <div className={`w-7 h-7 rounded-full flex items-center justify-center text-white text-[10px] font-medium ${getAvatarColor(user.id)}`}>
+                          {getInitials(user.name)}
+                        </div>
+                        <span className="font-medium text-sm">{user.name}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground">{user.phone}</TableCell>
+                    <TableCell>{roleBadge(user.role)}</TableCell>
+                    <TableCell>{statusBadge(user)}</TableCell>
+                    <TableCell className="text-sm">
+                      {user.guideProfile ? user.guideProfile.avgRating.toFixed(1) : '\u2014'}
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground">{formatDate(user.createdAt, lang)}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-0.5" onClick={e => e.stopPropagation()}>
+                        <button className="glass w-7 h-7 rounded-lg flex items-center justify-center hover:bg-[var(--glass-hover)] transition-colors" onClick={() => handleAction(user.id, 'suspend')} disabled={actionLoading === user.id} title="Suspend">
+                          <Ban className="h-3.5 w-3.5 text-amber-500" />
+                        </button>
+                        <button className="glass w-7 h-7 rounded-lg flex items-center justify-center hover:bg-[var(--glass-hover)] transition-colors" onClick={() => handleAction(user.id, 'message')} disabled={actionLoading === user.id} title="Message">
+                          <Mail className="h-3.5 w-3.5 text-sky-500" />
+                        </button>
+                      </div>
                     </TableCell>
                   </TableRow>
-                ) : (
-                  filteredUsers.map(user => (
-                    <TableRow
-                      key={user.id}
-                      className="cursor-pointer hover:bg-muted/50"
-                      onClick={() => { setSelectedUser(user); setDetailOpen(true); }}
-                    >
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <div className={`w-7 h-7 rounded-full flex items-center justify-center text-white text-[10px] font-medium ${getAvatarColor(user.id)}`}>
-                            {getInitials(user.name)}
-                          </div>
-                          <span className="font-medium text-sm">{user.name}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-xs text-muted-foreground">{user.phone}</TableCell>
-                      <TableCell>{roleBadge(user.role)}</TableCell>
-                      <TableCell>{statusBadge(user)}</TableCell>
-                      <TableCell className="text-sm">
-                        {user.guideProfile ? user.guideProfile.avgRating.toFixed(1) : '—'}
-                      </TableCell>
-                      <TableCell className="text-xs text-muted-foreground">{formatDate(user.createdAt, lang)}</TableCell>
-                      <TableCell>
-                        <div className="flex gap-0.5" onClick={e => e.stopPropagation()}>
-                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleAction(user.id, 'suspend')} disabled={actionLoading === user.id} title="Suspend">
-                            <Ban className="h-3.5 w-3.5 text-amber-500" />
-                          </Button>
-                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleAction(user.id, 'message')} disabled={actionLoading === user.id} title="Message">
-                            <Mail className="h-3.5 w-3.5 text-sky-500" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
 
       {/* User Detail Dialog */}
       <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="glass-card border-[var(--glass-border)] max-w-md">
           {selectedUser && (
             <>
               <DialogHeader>
@@ -2012,7 +2011,7 @@ function UsersView({ lang, users, onRefresh }: {
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold ${getAvatarColor(selectedUser.id)}`}>
                     {getInitials(selectedUser.name)}
                   </div>
-                  {selectedUser.name}
+                  <span className="gradient-text">{selectedUser.name}</span>
                 </DialogTitle>
                 <DialogDescription>{roleBadge(selectedUser.role)} {statusBadge(selectedUser)}</DialogDescription>
               </DialogHeader>
@@ -2049,12 +2048,12 @@ function UsersView({ lang, users, onRefresh }: {
                 </div>
               </div>
               <DialogFooter className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={() => handleAction(selectedUser.id, 'message')}>
-                  <Send className="h-3.5 w-3.5 mr-1.5" /> {lang === 'sw' ? 'Ujumbe' : 'Message'}
-                </Button>
-                <Button variant="outline" size="sm" onClick={() => handleAction(selectedUser.id, 'suspend')}>
-                  <Ban className="h-3.5 w-3.5 mr-1.5" /> {lang === 'sw' ? 'Simamisha' : 'Suspend'}
-                </Button>
+                <button className="glass flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm hover:bg-[var(--glass-hover)] transition-colors" onClick={() => handleAction(selectedUser.id, 'message')}>
+                  <Send className="h-3.5 w-3.5" /> {lang === 'sw' ? 'Ujumbe' : 'Message'}
+                </button>
+                <button className="glass flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-amber-600 hover:bg-amber-500/10 transition-colors" onClick={() => handleAction(selectedUser.id, 'suspend')}>
+                  <Ban className="h-3.5 w-3.5" /> {lang === 'sw' ? 'Simamisha' : 'Suspend'}
+                </button>
               </DialogFooter>
             </>
           )}
@@ -2097,9 +2096,9 @@ function DisputesView({ lang, disputes, onRefresh }: {
   };
 
   const statusColor = (d: DisputeItem): string => {
-    if (d.escrowStatus === 'disputed') return 'text-rose-600 bg-rose-50 dark:bg-rose-950/30';
-    if (d.escrowStatus === 'released') return 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30';
-    return 'text-amber-600 bg-amber-50 dark:bg-amber-950/30';
+    if (d.escrowStatus === 'disputed') return 'text-rose-600';
+    if (d.escrowStatus === 'released') return 'text-emerald-600';
+    return 'text-amber-600';
   };
 
   const statusLabel = (d: DisputeItem): string => {
@@ -2111,173 +2110,164 @@ function DisputesView({ lang, disputes, onRefresh }: {
   return (
     <div className="space-y-4">
       {disputes.length === 0 ? (
-        <Card>
-          <CardContent className="p-12 text-center">
-            <CheckCircle2 className="h-12 w-12 text-emerald-500 mx-auto mb-3" />
-            <h3 className="font-semibold text-lg">
-              {lang === 'sw' ? 'Hakuna migogoro!' : 'No disputes!'}
-            </h3>
-            <p className="text-sm text-muted-foreground mt-1">
-              {lang === 'sw' ? 'Jukwaa limekuwa salama' : 'Platform is dispute-free'}
-            </p>
-          </CardContent>
-        </Card>
+        <div className="glass-card gradient-border p-12 text-center">
+          <CheckCircle2 className="h-12 w-12 text-emerald-500 mx-auto mb-3" />
+          <h3 className="font-semibold text-lg gradient-text">
+            {lang === 'sw' ? 'Hakuna migogoro!' : 'No disputes!'}
+          </h3>
+          <p className="text-sm text-muted-foreground mt-1">
+            {lang === 'sw' ? 'Jukwaa limekuwa salama' : 'Platform is dispute-free'}
+          </p>
+        </div>
       ) : (
         <div className="space-y-3">
           {disputes.map(dispute => (
-            <Card key={dispute.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4">
-                {/* Header */}
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-mono text-xs text-muted-foreground">#{dispute.sessionCode || dispute.id.slice(-6)}</span>
-                      <Badge className={`text-[10px] ${statusColor(dispute)}`}>
-                        {statusLabel(dispute)}
-                      </Badge>
-                      {dispute.emergencyFlag && (
-                        <Badge variant="destructive" className="text-[10px] gap-1">
-                          <AlertTriangle className="h-2.5 w-2.5" />
-                          {t('trust_emergency', lang)}
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-3 text-sm">
-                      <span className="flex items-center gap-1">
-                        <Users className="h-3.5 w-3.5 text-muted-foreground" />
-                        <span className="font-medium">{dispute.guide.name}</span>
-                        <span className="text-muted-foreground">{lang === 'sw' ? 'dhidi ya' : 'vs'}</span>
-                        <span className="font-medium">{dispute.seeker.name}</span>
+            <div key={dispute.id} className="glass-card gradient-border p-4">
+              {/* Header */}
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-mono text-xs text-muted-foreground">#{dispute.sessionCode || dispute.id.slice(-6)}</span>
+                    <span className={`glass text-[10px] px-2 py-0.5 rounded-full ${statusColor(dispute)}`}>
+                      {statusLabel(dispute)}
+                    </span>
+                    {dispute.emergencyFlag && (
+                      <span className="glass text-[10px] px-2 py-0.5 rounded-full text-rose-600 flex items-center gap-1 amber-glow-sm">
+                        <AlertTriangle className="h-2.5 w-2.5" />
+                        {t('trust_emergency', lang)}
                       </span>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-semibold text-sm">{formatTZS(dispute.amount)}</p>
-                    <p className="text-[10px] text-muted-foreground">{formatDateTime(dispute.updatedAt, lang)}</p>
-                  </div>
-                </div>
-
-                {/* Dispute Reason */}
-                <div className="mb-3 p-2 rounded bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900">
-                  <p className="text-xs font-medium text-rose-700 dark:text-rose-400">{lang === 'sw' ? 'Sababu ya mgogoro:' : 'Dispute reason:'}</p>
-                  <p className="text-xs text-rose-600 dark:text-rose-300 mt-0.5">
-                    {dispute.disputeReason || (lang === 'sw' ? 'Hakuna sababu iliyotolewa' : 'No reason provided')}
-                  </p>
-                </div>
-
-                {/* Request Description */}
-                <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
-                  {lang === 'sw' ? 'Ombi:' : 'Request:'} {dispute.request.description}
-                </p>
-
-                {/* Expand/Collapse */}
-                <button
-                  onClick={() => setExpandedId(expandedId === dispute.id ? null : dispute.id)}
-                  className="text-xs text-primary hover:underline flex items-center gap-1"
-                >
-                  {expandedId === dispute.id ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-                  {expandedId === dispute.id
-                    ? (lang === 'sw' ? 'Ficha maelezo' : 'Hide details')
-                    : (lang === 'sw' ? 'Tazama maelezo' : 'View details')
-                  }
-                </button>
-
-                {/* Expanded Details */}
-                {expandedId === dispute.id && (
-                  <div className="mt-3 space-y-3">
-                    {/* Messages */}
-                    {dispute.messages && dispute.messages.length > 0 && (
-                      <div>
-                        <p className="text-xs font-medium mb-1.5">{lang === 'sw' ? 'Ujumbe wa hivi karibu' : 'Recent Messages'}</p>
-                        <div className="max-h-32 overflow-y-auto space-y-1.5">
-                          {dispute.messages.slice(0, 5).map(msg => (
-                            <div key={msg.id} className="text-xs p-2 rounded bg-muted/50">
-                              <span className="font-medium">{msg.sender.name}:</span> {msg.content}
-                              <span className="text-[10px] text-muted-foreground ml-2">{formatDateTime(msg.createdAt, lang)}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
                     )}
+                  </div>
+                  <div className="flex items-center gap-3 text-sm">
+                    <span className="flex items-center gap-1">
+                      <Users className="h-3.5 w-3.5 text-muted-foreground" />
+                      <span className="font-medium">{dispute.guide.name}</span>
+                      <span className="text-muted-foreground">{lang === 'sw' ? 'dhidi ya' : 'vs'}</span>
+                      <span className="font-medium">{dispute.seeker.name}</span>
+                    </span>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="font-semibold text-sm">{formatTZS(dispute.amount)}</p>
+                  <p className="text-[10px] text-muted-foreground">{formatDateTime(dispute.updatedAt, lang)}</p>
+                </div>
+              </div>
 
-                    {/* Admin Notes */}
+              {/* Dispute Reason */}
+              <div className="mb-3 p-2 rounded-lg glass text-rose-700 dark:text-rose-400">
+                <p className="text-xs font-medium">{lang === 'sw' ? 'Sababu ya mgogoro:' : 'Dispute reason:'}</p>
+                <p className="text-xs text-rose-600 dark:text-rose-300 mt-0.5">
+                  {dispute.disputeReason || (lang === 'sw' ? 'Hakuna sababu iliyotolewa' : 'No reason provided')}
+                </p>
+              </div>
+
+              {/* Request Description */}
+              <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
+                {lang === 'sw' ? 'Ombi:' : 'Request:'} {dispute.request.description}
+              </p>
+
+              {/* Expand/Collapse */}
+              <button
+                onClick={() => setExpandedId(expandedId === dispute.id ? null : dispute.id)}
+                className="text-xs gradient-text font-medium hover:underline flex items-center gap-1"
+              >
+                {expandedId === dispute.id ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                {expandedId === dispute.id
+                  ? (lang === 'sw' ? 'Ficha maelezo' : 'Hide details')
+                  : (lang === 'sw' ? 'Tazama maelezo' : 'View details')
+                }
+              </button>
+
+              {/* Expanded Details */}
+              {expandedId === dispute.id && (
+                <div className="mt-3 space-y-3">
+                  {/* Messages */}
+                  {dispute.messages && dispute.messages.length > 0 && (
                     <div>
-                      <p className="text-xs font-medium mb-1">{lang === 'sw' ? 'Maoni ya Msimamizi' : 'Admin Notes'}</p>
-                      <Textarea
-                        value={adminNotes[dispute.id] || ''}
-                        onChange={e => setAdminNotes(prev => ({ ...prev, [dispute.id]: e.target.value }))}
-                        placeholder={lang === 'sw' ? 'Andika maoni yako...' : 'Write your notes...'}
-                        rows={2}
-                        className="text-xs"
-                      />
+                      <p className="text-xs font-medium mb-1.5">{lang === 'sw' ? 'Ujumbe wa hivi karibu' : 'Recent Messages'}</p>
+                      <div className="max-h-32 overflow-y-auto space-y-1.5">
+                        {dispute.messages.slice(0, 5).map(msg => (
+                          <div key={msg.id} className="text-xs p-2 rounded-lg glass">
+                            <span className="font-medium">{msg.sender.name}:</span> {msg.content}
+                            <span className="text-[10px] text-muted-foreground ml-2">{formatDateTime(msg.createdAt, lang)}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
+                  )}
 
-                    {/* Session Details */}
-                    <div className="grid grid-cols-3 gap-2 text-xs">
-                      <div className="p-2 rounded bg-muted/50">
-                        <p className="text-muted-foreground">{t('amount', lang)}</p>
-                        <p className="font-medium">{formatTZS(dispute.amount)}</p>
-                      </div>
-                      <div className="p-2 rounded bg-muted/50">
-                        <p className="text-muted-foreground">{lang === 'sw' ? 'Ada ya Jukwaa' : 'Platform Fee'}</p>
-                        <p className="font-medium">{formatTZS(dispute.amount * 0.12)}</p>
-                      </div>
-                      <div className="p-2 rounded bg-muted/50">
-                        <p className="text-muted-foreground">{t('escrow_held', lang)}</p>
-                        <p className="font-medium">{dispute.escrowStatus}</p>
-                      </div>
+                  {/* Admin Notes */}
+                  <div>
+                    <p className="text-xs font-medium mb-1">{lang === 'sw' ? 'Maoni ya Msimamizi' : 'Admin Notes'}</p>
+                    <Textarea
+                      value={adminNotes[dispute.id] || ''}
+                      onChange={e => setAdminNotes(prev => ({ ...prev, [dispute.id]: e.target.value }))}
+                      placeholder={lang === 'sw' ? 'Andika maoni yako...' : 'Write your notes...'}
+                      rows={2}
+                      className="text-xs glass-input"
+                    />
+                  </div>
+
+                  {/* Session Details */}
+                  <div className="grid grid-cols-3 gap-2 text-xs">
+                    <div className="p-2 rounded-lg glass">
+                      <p className="text-muted-foreground">{t('amount', lang)}</p>
+                      <p className="font-medium">{formatTZS(dispute.amount)}</p>
+                    </div>
+                    <div className="p-2 rounded-lg glass">
+                      <p className="text-muted-foreground">{lang === 'sw' ? 'Ada ya Jukwaa' : 'Platform Fee'}</p>
+                      <p className="font-medium">{formatTZS(dispute.amount * 0.12)}</p>
+                    </div>
+                    <div className="p-2 rounded-lg glass">
+                      <p className="text-muted-foreground">{t('escrow_held', lang)}</p>
+                      <p className="font-medium">{dispute.escrowStatus}</p>
                     </div>
                   </div>
-                )}
-
-                {/* Action Buttons */}
-                <div className="mt-3 flex gap-2 pt-3 border-t">
-                  <Button
-                    size="sm"
-                    className="gap-1.5 bg-emerald-600 hover:bg-emerald-700 flex-1"
-                    onClick={() => {
-                      setConfirmAction({ sessionId: dispute.id, action: 'release' });
-                      setConfirmDialogOpen(true);
-                    }}
-                    disabled={processing === dispute.id}
-                  >
-                    <DollarSign className="h-3.5 w-3.5" />
-                    {lang === 'sw' ? 'Tolea Mwongozo' : 'Release to Guide'}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="gap-1.5 flex-1 border-sky-300 text-sky-600 hover:bg-sky-50"
-                    onClick={() => {
-                      setConfirmAction({ sessionId: dispute.id, action: 'refund' });
-                      setConfirmDialogOpen(true);
-                    }}
-                    disabled={processing === dispute.id}
-                  >
-                    <RotateCcw className="h-3.5 w-3.5" />
-                    {lang === 'sw' ? 'Rudisha Mtafuta' : 'Refund Seeker'}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="gap-1.5"
-                    onClick={() => toast.info(lang === 'sw' ? 'Maombi ya maelezo zaidi yametumwa' : 'More info requested')}
-                  >
-                    <Info className="h-3.5 w-3.5" />
-                    <span className="hidden sm:inline">{lang === 'sw' ? 'Maelezo' : 'Info'}</span>
-                  </Button>
                 </div>
-              </CardContent>
-            </Card>
+              )}
+
+              {/* Action Buttons */}
+              <div className="mt-3 flex gap-2 pt-3 border-t border-[var(--glass-border)]">
+                <button
+                  className="glass-button flex items-center gap-1.5 py-2 px-3 text-sm flex-1"
+                  onClick={() => {
+                    setConfirmAction({ sessionId: dispute.id, action: 'release' });
+                    setConfirmDialogOpen(true);
+                  }}
+                  disabled={processing === dispute.id}
+                >
+                  <DollarSign className="h-3.5 w-3.5" />
+                  {lang === 'sw' ? 'Tolea Mwongozo' : 'Release to Guide'}
+                </button>
+                <button
+                  className="glass flex items-center gap-1.5 py-2 px-3 rounded-lg text-sm flex-1 text-sky-600 hover:bg-sky-500/10 transition-colors"
+                  onClick={() => {
+                    setConfirmAction({ sessionId: dispute.id, action: 'refund' });
+                    setConfirmDialogOpen(true);
+                  }}
+                  disabled={processing === dispute.id}
+                >
+                  <RotateCcw className="h-3.5 w-3.5" />
+                  {lang === 'sw' ? 'Rudisha Mtafuta' : 'Refund Seeker'}
+                </button>
+                <button
+                  className="glass flex items-center gap-1.5 py-2 px-3 rounded-lg text-sm hover:bg-[var(--glass-hover)] transition-colors"
+                  onClick={() => toast.info(lang === 'sw' ? 'Maombi ya maelezo zaidi yametumwa' : 'More info requested')}
+                >
+                  <Info className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">{lang === 'sw' ? 'Maelezo' : 'Info'}</span>
+                </button>
+              </div>
+            </div>
           ))}
         </div>
       )}
 
       {/* Confirm Action Dialog */}
       <AlertDialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="glass-card border-[var(--glass-border)]">
           <AlertDialogHeader>
-            <AlertDialogTitle>
+            <AlertDialogTitle className="gradient-text">
               {confirmAction?.action === 'release'
                 ? (lang === 'sw' ? 'Tolea Mwongozo Escrow?' : 'Release Escrow to Guide?')
                 : (lang === 'sw' ? 'Rudisha Pesa kwa Mtafuta?' : 'Refund to Seeker?')
@@ -2291,10 +2281,11 @@ function DisputesView({ lang, disputes, onRefresh }: {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{t('cancel', lang)}</AlertDialogCancel>
+            <AlertDialogCancel className="glass">{t('cancel', lang)}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => confirmAction && resolveDispute(confirmAction.sessionId, confirmAction.action)}
-              className={confirmAction?.action === 'release' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-sky-600 hover:bg-sky-700'}
+              className="glass-button"
+              style={{ background: confirmAction?.action === 'release' ? 'linear-gradient(135deg, #059669, #047857)' : 'linear-gradient(135deg, #0284c7, #0369a1)' }}
             >
               {confirmAction?.action === 'release'
                 ? (lang === 'sw' ? 'Tolea Mwongozo' : 'Release to Guide')
@@ -2304,6 +2295,383 @@ function DisputesView({ lang, disputes, onRefresh }: {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+    </div>
+  );
+}
+
+// ── 8. Fraud Alerts View ──
+function FraudView({ lang, alerts, onRefresh }: {
+  lang: Language; alerts: FraudAlertItem[]; onRefresh: () => void;
+}) {
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [processing, setProcessing] = useState<string | null>(null);
+
+  const filtered = filterStatus === 'all' ? alerts : alerts.filter(a => a.status === filterStatus);
+
+  const reviewAlert = async (alertId: string, action: 'dismiss' | 'escalate') => {
+    setProcessing(alertId);
+    try {
+      const res = await fetch(`/api/fraud-alerts/${alertId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: action === 'dismiss' ? 'dismissed' : 'escalated' }),
+      });
+      if (!res.ok) throw new Error();
+      toast.success(action === 'dismiss'
+        ? (lang === 'sw' ? 'Tahadhari imeondolewa' : 'Alert dismissed')
+        : (lang === 'sw' ? 'Tahadhari imepandishwa' : 'Alert escalated')
+      );
+      onRefresh();
+    } catch {
+      toast.error(lang === 'sw' ? 'Hitilafu' : 'Action failed');
+    } finally {
+      setProcessing(null);
+    }
+  };
+
+  const confidenceColor = (c: number) => {
+    if (c >= 0.8) return 'text-rose-600';
+    if (c >= 0.5) return 'text-amber-600';
+    return 'text-sky-600';
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2">
+        <Select value={filterStatus} onValueChange={setFilterStatus}>
+          <SelectTrigger className="w-36 text-sm glass-input"><SelectValue placeholder={t('status', lang)} /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{lang === 'sw' ? 'Zote' : 'All Status'}</SelectItem>
+            <SelectItem value="pending">{t('pending', lang)}</SelectItem>
+            <SelectItem value="dismissed">{lang === 'sw' ? 'Zilizoodolewa' : 'Dismissed'}</SelectItem>
+            <SelectItem value="escalated">{lang === 'sw' ? 'Zilizopandishwa' : 'Escalated'}</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {filtered.length === 0 ? (
+        <div className="glass-card gradient-border p-12 text-center">
+          <ShieldCheck className="h-12 w-12 text-emerald-500 mx-auto mb-3" />
+          <h3 className="font-semibold text-lg gradient-text">{lang === 'sw' ? 'Hakuna tahadhari!' : 'No fraud alerts!'}</h3>
+          <p className="text-sm text-muted-foreground mt-1">{lang === 'sw' ? 'Jukwaa ni salama' : 'Platform is secure'}</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {filtered.map(alert => (
+            <div key={alert.id} className="glass-card gradient-border p-4">
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <ShieldAlert className={`h-4 w-4 ${confidenceColor(alert.confidence)}`} />
+                    <span className="font-semibold text-sm">{alert.alertType}</span>
+                    <span className={`glass text-[10px] px-2 py-0.5 rounded-full ${confidenceColor(alert.confidence)}`}>
+                      {Math.round(alert.confidence * 100)}%
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">{alert.details}</p>
+                </div>
+                <span className={`glass text-[10px] px-2 py-0.5 rounded-full ${
+                  alert.status === 'pending' ? 'text-amber-600 amber-glow-sm' :
+                  alert.status === 'escalated' ? 'text-rose-600' : 'text-muted-foreground'
+                }`}>
+                  {alert.status}
+                </span>
+              </div>
+              <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3">
+                <span>{alert.entityType}: {alert.entityId.slice(-8)}</span>
+                <span>{formatDate(alert.createdAt, lang)}</span>
+              </div>
+              {alert.status === 'pending' && (
+                <div className="flex gap-2">
+                  <button
+                    className="glass-button flex items-center gap-1.5 py-1.5 px-3 text-xs"
+                    onClick={() => reviewAlert(alert.id, 'escalate')}
+                    disabled={processing === alert.id}
+                  >
+                    <AlertTriangle className="h-3 w-3" />
+                    {lang === 'sw' ? 'Pandisha' : 'Escalate'}
+                  </button>
+                  <button
+                    className="glass flex items-center gap-1.5 py-1.5 px-3 rounded-lg text-xs hover:bg-[var(--glass-hover)] transition-colors"
+                    onClick={() => reviewAlert(alert.id, 'dismiss')}
+                    disabled={processing === alert.id}
+                  >
+                    <CheckCircle2 className="h-3 w-3" />
+                    {lang === 'sw' ? 'Ondoa' : 'Dismiss'}
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── 9. Vendors View ──
+function VendorsView({ lang, vendors, zones, onRefresh }: {
+  lang: Language; vendors: VendorWithVerification[]; zones: ZoneItem[];
+  onRefresh: () => void;
+}) {
+  const [search, setSearch] = useState('');
+  const [filterZone, setFilterZone] = useState('all');
+  const [filterVerified, setFilterVerified] = useState<'all' | 'verified' | 'unverified'>('all');
+
+  const filtered = vendors.filter(v => {
+    if (search && !v.name.toLowerCase().includes(search.toLowerCase()) && !v.contact.includes(search)) return false;
+    if (filterZone !== 'all' && v.zoneId !== filterZone) return false;
+    if (filterVerified === 'verified' && !v.verification?.isVerified) return false;
+    if (filterVerified === 'unverified' && v.verification?.isVerified) return false;
+    return true;
+  });
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-2 flex-1">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input value={search} onChange={e => setSearch(e.target.value)} placeholder={lang === 'sw' ? 'Tafuta muuzaji...' : 'Search vendors...'} className="pl-8 text-sm glass-input" />
+          </div>
+          <Select value={filterZone} onValueChange={setFilterZone}>
+            <SelectTrigger className="w-36 text-sm glass-input"><SelectValue placeholder={lang === 'sw' ? 'Eneo' : 'Zone'} /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{lang === 'sw' ? 'Maeneo yote' : 'All Zones'}</SelectItem>
+              {zones.map(z => <SelectItem key={z.id} value={z.id}>{z.name}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {filtered.length === 0 ? (
+        <div className="glass-card gradient-border p-12 text-center">
+          <Store className="h-12 w-12 text-amber-500 mx-auto mb-3" />
+          <h3 className="font-semibold text-lg gradient-text">{lang === 'sw' ? 'Hakuna wauzaji' : 'No vendors found'}</h3>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filtered.map(vendor => (
+            <div key={vendor.id} className="glass-card gradient-border p-4">
+              <div className="flex items-start justify-between mb-2">
+                <div>
+                  <h3 className="font-semibold text-sm gradient-text">{vendor.name}</h3>
+                  <p className="text-xs text-muted-foreground">{vendor.stallNumber} &bull; {vendor.contact}</p>
+                </div>
+                <span className={`glass text-[10px] px-2 py-0.5 rounded-full ${
+                  vendor.verification?.isVerified ? 'text-emerald-600' : 'text-amber-600 amber-glow-sm'
+                }`}>
+                  {vendor.verification?.isVerified ? (lang === 'sw' ? 'Thibitishwa' : 'Verified') : (lang === 'sw' ? 'Haijathibitishwa' : 'Unverified')}
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground mb-2">{vendor.categories}</p>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <MapPin className="h-3 w-3" style={{ color: vendor.zone.color }} />
+                <span>{vendor.zone.name}</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2 mt-3">
+                <div className="p-2 rounded-lg glass text-center">
+                  <p className="text-sm font-semibold">{vendor.recommendations}</p>
+                  <p className="text-[10px] text-muted-foreground">{lang === 'sw' ? 'Mapendekezo' : 'Recs'}</p>
+                </div>
+                <div className="p-2 rounded-lg glass text-center">
+                  <p className="text-sm font-semibold">{vendor.approved ? '\u2713' : '\u2717'}</p>
+                  <p className="text-[10px] text-muted-foreground">{lang === 'sw' ? 'Idhini' : 'Approved'}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── 10. Calendar / Seasonal Events View ──
+function CalendarView({ lang, events, zones, onRefresh }: {
+  lang: Language; events: SeasonalEventItem[]; zones: ZoneItem[];
+  onRefresh: () => void;
+}) {
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [formTitle, setFormTitle] = useState('');
+  const [formTitleSw, setFormTitleSw] = useState('');
+  const [formDesc, setFormDesc] = useState('');
+  const [formType, setFormType] = useState('festival');
+  const [formStartDate, setFormStartDate] = useState('');
+  const [formAffectedZones, setFormAffectedZones] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const createEvent = async () => {
+    if (!formTitle.trim() || !formStartDate) return;
+    setSaving(true);
+    try {
+      const res = await fetch('/api/seasonal-events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: formTitle, titleSw: formTitleSw, description: formDesc, type: formType,
+          startDate: formStartDate, affectedZones: formAffectedZones,
+          insiderTip: '', insiderTipSw: '',
+        }),
+      });
+      if (!res.ok) throw new Error();
+      toast.success(lang === 'sw' ? 'Tukio limeundwa' : 'Event created');
+      onRefresh();
+      setCreateDialogOpen(false);
+    } catch {
+      toast.error(lang === 'sw' ? 'Hitilafu' : 'Failed to create event');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const typeIcon = (type: string) => {
+    switch (type) {
+      case 'festival': return Church;
+      case 'holiday': return Sun;
+      case 'market': return ShoppingBag;
+      case 'cultural': return Lightbulb;
+      default: return Calendar;
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-end">
+        <button onClick={() => setCreateDialogOpen(true)} className="glass-button flex items-center gap-1.5 px-4 py-2 text-sm">
+          <Plus className="h-4 w-4" />
+          {lang === 'sw' ? 'Tukio Jipya' : 'New Event'}
+        </button>
+      </div>
+
+      {events.length === 0 ? (
+        <div className="glass-card gradient-border p-12 text-center">
+          <Calendar className="h-12 w-12 text-amber-500 mx-auto mb-3" />
+          <h3 className="font-semibold text-lg gradient-text">{lang === 'sw' ? 'Hakuna matukio' : 'No seasonal events'}</h3>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {events.map(event => {
+            const Icon = typeIcon(event.type);
+            return (
+              <div key={event.id} className="glass-card gradient-border p-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-lg glass flex items-center justify-center flex-shrink-0">
+                    <Icon className="h-5 w-5 text-amber-500" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-sm gradient-text">{event.title}</h3>
+                    {event.titleSw && <p className="text-xs text-muted-foreground">{event.titleSw}</p>}
+                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{event.description}</p>
+                    <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
+                      <Calendar className="h-3 w-3" />
+                      <span>{formatDate(event.startDate, lang)}{event.endDate ? ` - ${formatDate(event.endDate, lang)}` : ''}</span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="glass text-[10px] px-2 py-0.5 rounded-full">{event.type}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+        <DialogContent className="glass-card border-[var(--glass-border)]">
+          <DialogHeader>
+            <DialogTitle className="gradient-text">{lang === 'sw' ? 'Unda Tukio Jipya' : 'Create New Event'}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label>{lang === 'sw' ? 'Kichwa' : 'Title'} *</Label>
+              <Input value={formTitle} onChange={e => setFormTitle(e.target.value)} className="glass-input" />
+            </div>
+            <div>
+              <Label>{lang === 'sw' ? 'Kichwa (Kiswahili)' : 'Swahili Title'}</Label>
+              <Input value={formTitleSw} onChange={e => setFormTitleSw(e.target.value)} className="glass-input" />
+            </div>
+            <div>
+              <Label>{t('description', lang)}</Label>
+              <Textarea value={formDesc} onChange={e => setFormDesc(e.target.value)} rows={2} className="glass-input" />
+            </div>
+            <div>
+              <Label>{lang === 'sw' ? 'Aina' : 'Type'}</Label>
+              <Select value={formType} onValueChange={setFormType}>
+                <SelectTrigger className="glass-input"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="festival">Festival</SelectItem>
+                  <SelectItem value="holiday">Holiday</SelectItem>
+                  <SelectItem value="market">Market Day</SelectItem>
+                  <SelectItem value="cultural">Cultural</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>{lang === 'sw' ? 'Tarehe ya Kuanza' : 'Start Date'} *</Label>
+              <Input type="date" value={formStartDate} onChange={e => setFormStartDate(e.target.value)} className="glass-input" />
+            </div>
+          </div>
+          <DialogFooter>
+            <button className="glass px-4 py-2 rounded-lg text-sm hover:bg-[var(--glass-hover)] transition-colors" onClick={() => setCreateDialogOpen(false)}>{t('cancel', lang)}</button>
+            <button className="glass-button px-4 py-2 rounded-lg text-sm" onClick={createEvent} disabled={saving || !formTitle.trim()}>
+              {saving ? t('loading', lang) : lang === 'sw' ? 'Unda' : 'Create'}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+// ── 11. Package Deals View ──
+function PackagesView({ lang, deals, onRefresh }: {
+  lang: Language; deals: PackageDealItem[]; onRefresh: () => void;
+}) {
+  return (
+    <div className="space-y-4">
+      {deals.length === 0 ? (
+        <div className="glass-card gradient-border p-12 text-center">
+          <Package className="h-12 w-12 text-amber-500 mx-auto mb-3" />
+          <h3 className="font-semibold text-lg gradient-text">{lang === 'sw' ? 'Hakuna vifurushi' : 'No package deals'}</h3>
+          <p className="text-sm text-muted-foreground mt-1">{lang === 'sw' ? 'Waongozaji bado hawajaunda vifurushi' : 'Guides haven\'t created packages yet'}</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {deals.map(deal => (
+            <div key={deal.id} className="glass-card gradient-border p-4">
+              <div className="flex items-start justify-between mb-2">
+                <h3 className="font-semibold text-sm gradient-text">{deal.title}</h3>
+                <span className={`glass text-[10px] px-2 py-0.5 rounded-full ${deal.isActive ? 'text-emerald-600' : 'text-muted-foreground'}`}>
+                  {deal.isActive ? (lang === 'sw' ? 'Hai' : 'Active') : (lang === 'sw' ? 'Haitumiki' : 'Inactive')}
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground line-clamp-2 mb-3">{deal.description}</p>
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div className="p-2 rounded-lg glass">
+                  <p className="text-sm font-semibold">{deal.duration}h</p>
+                  <p className="text-[10px] text-muted-foreground">{lang === 'sw' ? 'Muda' : 'Hours'}</p>
+                </div>
+                <div className="p-2 rounded-lg glass">
+                  <p className="text-sm font-semibold">{deal.sessionsCompleted}</p>
+                  <p className="text-[10px] text-muted-foreground">{lang === 'sw' ? 'Vikao' : 'Sessions'}</p>
+                </div>
+                <div className="p-2 rounded-lg glass">
+                  <p className="text-sm font-semibold">{formatTZS(deal.price)}</p>
+                  <p className="text-[10px] text-muted-foreground">{t('price', lang)}</p>
+                </div>
+              </div>
+              {deal.includesDelivery && (
+                <div className="flex items-center gap-1 mt-2 text-xs text-emerald-600">
+                  <Truck className="h-3 w-3" />
+                  {lang === 'sw' ? 'Inajumuisha usafirishaji' : 'Includes delivery'}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

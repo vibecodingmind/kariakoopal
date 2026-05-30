@@ -948,15 +948,13 @@ export function GuideDashboard() {
   // ── Render helpers ──
 
   const renderBackButton = (targetView: GuideView = 'home') => (
-    <Button
-      variant="ghost"
-      size="sm"
-      className="gap-1.5 mb-4 text-muted-foreground hover:text-foreground"
+    <button
+      className="glass gap-1.5 mb-4 text-muted-foreground hover:text-foreground text-sm px-3 py-1.5 rounded-xl hover:bg-[var(--glass-hover)] transition-colors flex items-center"
       onClick={() => navigateTo(targetView)}
     >
       <ArrowLeft className="size-4" />
       {t('back', lang)}
-    </Button>
+    </button>
   );
 
   // ── Urgency color for requests ──
@@ -978,7 +976,7 @@ export function GuideDashboard() {
     <div className="space-y-6">
       {/* Welcome */}
       <div>
-        <h1 className="text-2xl font-bold text-foreground">
+        <h1 className="text-2xl font-bold gradient-text">
           {t('welcome', lang)}, {user?.name?.split(' ')[0] || ''}! 👋
         </h1>
         <p className="text-muted-foreground text-sm mt-1">{t('tagline', lang)}</p>
@@ -986,7 +984,7 @@ export function GuideDashboard() {
 
       {/* Status Toggle - Prominent */}
       <Card className={cn(
-        'overflow-hidden transition-all duration-300',
+        'overflow-hidden transition-all duration-300 glass-card gradient-border amber-glow-sm',
         guideStore.status === 'online' && 'border-emerald-400 dark:border-emerald-600 bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-950/30 dark:to-green-950/20',
         guideStore.status === 'busy' && 'border-amber-400 dark:border-amber-600 bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-950/30 dark:to-yellow-950/20',
         guideStore.status === 'offline' && 'border-gray-300 dark:border-gray-600',
@@ -1036,23 +1034,22 @@ export function GuideDashboard() {
 
             {/* Toggle buttons */}
             <div className="flex gap-2 justify-center">
-              <Button
+              <button
                 className={cn(
-                  'h-11 px-5 gap-2',
+                  'h-11 px-5 gap-2 rounded-xl font-semibold transition-all flex items-center justify-center',
                   guideStore.status === 'online'
-                    ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                    : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900/40 dark:text-emerald-300 dark:hover:bg-emerald-900/60'
+                    ? 'glass-button'
+                    : 'glass hover:bg-[var(--glass-hover)] text-emerald-700 dark:text-emerald-300'
                 )}
                 onClick={() => handleToggleStatus('online')}
                 disabled={statusToggleLoading || guideStore.status === 'online'}
               >
                 {statusToggleLoading ? <Loader2 className="size-4 animate-spin" /> : <Eye className="size-4" />}
                 {t('go_online', lang)}
-              </Button>
-              <Button
-                variant="outline"
+              </button>
+              <button
                 className={cn(
-                  'h-11 px-5 gap-2',
+                  'h-11 px-5 gap-2 rounded-xl font-semibold transition-all glass flex items-center justify-center',
                   guideStore.status === 'offline' && 'ring-2 ring-gray-400'
                 )}
                 onClick={() => handleToggleStatus('offline')}
@@ -1060,7 +1057,7 @@ export function GuideDashboard() {
               >
                 <EyeOff className="size-4" />
                 {t('go_offline', lang)}
-              </Button>
+              </button>
             </div>
           </div>
         </CardContent>
@@ -1069,7 +1066,7 @@ export function GuideDashboard() {
       {/* Active session banner */}
       {activeSessionData && (
         <Card
-          className="border-amber-300 dark:border-amber-600 bg-amber-50 dark:bg-amber-950/30 cursor-pointer hover:shadow-md transition-shadow"
+          className="glass-card amber-glow-sm cursor-pointer hover:shadow-md transition-shadow"
           onClick={() => navigateTo('session')}
         >
           <CardContent className="p-4 flex items-center gap-3">
@@ -1082,7 +1079,7 @@ export function GuideDashboard() {
                 {activeSessionData.seeker?.name || 'Seeker'} &middot; {activeSessionData.sessionCode}
               </p>
             </div>
-            <Badge className="bg-amber-200 text-amber-800 dark:bg-amber-800 dark:text-amber-200 text-xs">
+            <Badge className="glass text-amber-800 dark:text-amber-200 text-xs px-2 py-0.5 rounded-full">
               {t('active', lang)}
             </Badge>
           </CardContent>
@@ -1093,28 +1090,28 @@ export function GuideDashboard() {
       <div className="grid grid-cols-3 gap-3">
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="size-10 rounded-full bg-sky-100 dark:bg-sky-900/40 flex items-center justify-center mx-auto mb-2">
+            <div className="size-10 rounded-full glass flex items-center justify-center mx-auto mb-2">
               <MessageSquare className="size-5 text-sky-600 dark:text-sky-400" />
             </div>
-            <p className="text-2xl font-bold text-foreground">{profile?.totalSessions || 0}</p>
+            <p className="text-2xl font-bold gradient-text">{profile?.totalSessions || 0}</p>
             <p className="text-xs text-muted-foreground">{lang === 'sw' ? 'Vikao vyote' : 'Total Sessions'}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="size-10 rounded-full bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center mx-auto mb-2">
+            <div className="size-10 rounded-full glass flex items-center justify-center mx-auto mb-2">
               <Star className="size-5 text-amber-600 dark:text-amber-400" />
             </div>
-            <p className="text-2xl font-bold text-foreground">{profile?.avgRating?.toFixed(1) || '0.0'}</p>
+            <p className="text-2xl font-bold gradient-text">{profile?.avgRating?.toFixed(1) || '0.0'}</p>
             <p className="text-xs text-muted-foreground">{lang === 'sw' ? 'Wastani wa ukadiriaji' : 'Avg Rating'}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="size-10 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center mx-auto mb-2">
+            <div className="size-10 rounded-full glass flex items-center justify-center mx-auto mb-2">
               <DollarSign className="size-5 text-emerald-600 dark:text-emerald-400" />
             </div>
-            <p className="text-lg font-bold text-foreground">{formatTZS(earningsData.weekly, lang)}</p>
+            <p className="text-lg font-bold gradient-text">{formatTZS(earningsData.weekly, lang)}</p>
             <p className="text-xs text-muted-foreground">{t('weekly_total', lang)}</p>
           </CardContent>
         </Card>
@@ -1124,7 +1121,7 @@ export function GuideDashboard() {
       {myBadges.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-bold text-foreground">{t('my_badges', lang)}</h2>
+            <h2 className="text-lg font-bold gradient-text">{t('my_badges', lang)}</h2>
             <Button variant="ghost" size="sm" className="text-xs" onClick={() => navigateTo('badges')}>
               {t('see_all', lang)}
             </Button>
@@ -1162,7 +1159,7 @@ export function GuideDashboard() {
             <p className="font-semibold text-foreground text-sm">{lang === 'sw' ? 'Usajili wako' : 'Your Subscription'}</p>
             <p className="text-xs text-muted-foreground">{lang === 'sw' ? 'Starter - Boresha hadi Pro' : 'Starter - Upgrade to Pro'}</p>
           </div>
-          <Badge className="bg-amber-200 text-amber-800 dark:bg-amber-800 dark:text-amber-200 text-xs">Starter</Badge>
+          <Badge className="glass text-amber-800 dark:text-amber-200 text-xs px-2 py-0.5 rounded-full">Starter</Badge>
         </CardContent>
       </Card>
 
@@ -1192,7 +1189,7 @@ export function GuideDashboard() {
         <div className="grid grid-cols-3 gap-3">
           <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigateTo('packages')}>
             <CardContent className="p-3 text-center">
-              <div className="size-10 rounded-full bg-orange-100 dark:bg-orange-900/40 flex items-center justify-center mx-auto mb-1.5">
+              <div className="size-10 rounded-full glass flex items-center justify-center mx-auto mb-1.5">
                 <Package className="size-5 text-orange-600 dark:text-orange-400" />
               </div>
               <p className="text-[11px] font-medium text-foreground">{lang === 'sw' ? 'Vifurushi' : 'Packages'}</p>
@@ -1200,7 +1197,7 @@ export function GuideDashboard() {
           </Card>
           <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigateTo('mentorship')}>
             <CardContent className="p-3 text-center">
-              <div className="size-10 rounded-full bg-violet-100 dark:bg-violet-900/40 flex items-center justify-center mx-auto mb-1.5">
+              <div className="size-10 rounded-full glass flex items-center justify-center mx-auto mb-1.5">
                 <GraduationCap className="size-5 text-violet-600 dark:text-violet-400" />
               </div>
               <p className="text-[11px] font-medium text-foreground">{lang === 'sw' ? 'Ushauri' : 'Mentorship'}</p>
@@ -1208,7 +1205,7 @@ export function GuideDashboard() {
           </Card>
           <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigateTo('calendar')}>
             <CardContent className="p-3 text-center">
-              <div className="size-10 rounded-full bg-teal-100 dark:bg-teal-900/40 flex items-center justify-center mx-auto mb-1.5">
+              <div className="size-10 rounded-full glass flex items-center justify-center mx-auto mb-1.5">
                 <Calendar className="size-5 text-teal-600 dark:text-teal-400" />
               </div>
               <p className="text-[11px] font-medium text-foreground">{lang === 'sw' ? 'Kalenda' : 'Calendar'}</p>
@@ -1216,7 +1213,7 @@ export function GuideDashboard() {
           </Card>
           <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigateTo('stories')}>
             <CardContent className="p-3 text-center">
-              <div className="size-10 rounded-full bg-rose-100 dark:bg-rose-900/40 flex items-center justify-center mx-auto mb-1.5">
+              <div className="size-10 rounded-full glass flex items-center justify-center mx-auto mb-1.5">
                 <BookOpen className="size-5 text-rose-600 dark:text-rose-400" />
               </div>
               <p className="text-[11px] font-medium text-foreground">{lang === 'sw' ? 'Hadithi' : 'Stories'}</p>
@@ -1224,7 +1221,7 @@ export function GuideDashboard() {
           </Card>
           <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigateTo('insights')}>
             <CardContent className="p-3 text-center">
-              <div className="size-10 rounded-full bg-sky-100 dark:bg-sky-900/40 flex items-center justify-center mx-auto mb-1.5">
+              <div className="size-10 rounded-full glass flex items-center justify-center mx-auto mb-1.5">
                 <BarChart3 className="size-5 text-sky-600 dark:text-sky-400" />
               </div>
               <p className="text-[11px] font-medium text-foreground">{lang === 'sw' ? 'Uchambuzi' : 'Insights'}</p>
@@ -1232,7 +1229,7 @@ export function GuideDashboard() {
           </Card>
           <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigateTo('subscription')}>
             <CardContent className="p-3 text-center">
-              <div className="size-10 rounded-full bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center mx-auto mb-1.5">
+              <div className="size-10 rounded-full glass flex items-center justify-center mx-auto mb-1.5">
                 <Crown className="size-5 text-amber-600 dark:text-amber-400" />
               </div>
               <p className="text-[11px] font-medium text-foreground">{lang === 'sw' ? 'Usajili' : 'Plans'}</p>
@@ -1737,7 +1734,7 @@ export function GuideDashboard() {
               <TrendingUp className="size-4 text-sky-600 dark:text-sky-400" />
               <span className="text-xs text-muted-foreground">{t('weekly_total', lang)}</span>
             </div>
-            <p className="text-lg font-bold text-foreground">{formatTZS(earningsData.weekly, lang)}</p>
+            <p className="text-lg font-bold gradient-text">{formatTZS(earningsData.weekly, lang)}</p>
           </CardContent>
         </Card>
         <Card>
@@ -1746,7 +1743,7 @@ export function GuideDashboard() {
               <Wallet className="size-4 text-purple-600 dark:text-purple-400" />
               <span className="text-xs text-muted-foreground">{t('all_time', lang)}</span>
             </div>
-            <p className="text-lg font-bold text-foreground">{formatTZS(earningsData.total, lang)}</p>
+            <p className="text-lg font-bold gradient-text">{formatTZS(earningsData.total, lang)}</p>
           </CardContent>
         </Card>
       </div>
@@ -1815,7 +1812,7 @@ export function GuideDashboard() {
       {/* Quick link to Insights */}
       <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigateTo('insights')}>
         <CardContent className="p-4 flex items-center gap-3">
-          <div className="size-10 rounded-full bg-sky-100 dark:bg-sky-900/40 flex items-center justify-center shrink-0">
+          <div className="size-10 rounded-full glass flex items-center justify-center shrink-0">
             <BarChart3 className="size-5 text-sky-600 dark:text-sky-400" />
           </div>
           <div className="flex-1 min-w-0">
@@ -2333,7 +2330,7 @@ export function GuideDashboard() {
           <label className="text-sm font-medium text-foreground">{lang === 'sw' ? 'Maeneo unayojua' : 'Zone Specializations'}</label>
           <div className="flex flex-wrap gap-2">
             {isLoadingZones ? (
-              <Skeleton className="h-8 w-40" />
+              <Skeleton className="shimmer h-8 w-40" />
             ) : (
               zones.map((zone) => {
                 const isSelected = isProfileEditing
@@ -2432,7 +2429,7 @@ export function GuideDashboard() {
       {/* Subscription Link */}
       <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigateTo('subscription')}>
         <CardContent className="p-4 flex items-center gap-3">
-          <div className="size-10 rounded-full bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center shrink-0">
+          <div className="size-10 rounded-full glass flex items-center justify-center shrink-0">
             <Crown className="size-5 text-amber-600 dark:text-amber-400" />
           </div>
           <div className="flex-1 min-w-0">
@@ -2465,10 +2462,10 @@ export function GuideDashboard() {
       )}
 
       {/* Sticky Header */}
-      <header className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+      <header className="sticky top-0 z-40 glass-nav">
         <div className="flex items-center justify-between px-4 h-14">
           <div className="flex items-center gap-2">
-            <h1 className="text-lg font-bold text-foreground">{t('app_name', lang)}</h1>
+            <h1 className="text-lg font-bold gradient-text">{t('app_name', lang)}</h1>
             {guideStore.status === 'online' && (
               <span className="flex items-center gap-1">
                 <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -2501,12 +2498,12 @@ export function GuideDashboard() {
       <main className="flex-1 px-4 py-4 pb-24 max-w-lg mx-auto w-full">
         {isLoadingProfile ? (
           <div className="space-y-6">
-            <Skeleton className="h-10 w-48" />
-            <Skeleton className="h-48 rounded-xl" />
+            <Skeleton className="shimmer h-10 w-48" />
+            <Skeleton className="shimmer h-48 rounded-xl" />
             <div className="grid grid-cols-3 gap-3">
-              <Skeleton className="h-24 rounded-xl" />
-              <Skeleton className="h-24 rounded-xl" />
-              <Skeleton className="h-24 rounded-xl" />
+              <Skeleton className="shimmer h-24 rounded-xl" />
+              <Skeleton className="shimmer h-24 rounded-xl" />
+              <Skeleton className="shimmer h-24 rounded-xl" />
             </div>
           </div>
         ) : (
@@ -2528,7 +2525,7 @@ export function GuideDashboard() {
       </main>
 
       {/* Bottom Tab Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 glass-nav">
         <div className="flex items-center justify-around h-16 max-w-lg mx-auto">
           {[
             { key: 'home' as GuideView, icon: Home, label: t('nav_home', lang) },
@@ -2548,7 +2545,7 @@ export function GuideDashboard() {
                 className={cn(
                   'flex flex-col items-center justify-center gap-0.5 min-w-[56px] py-2 px-2 rounded-lg transition-colors relative',
                   isActive
-                    ? 'text-primary'
+                    ? 'text-amber-600 dark:text-amber-400'
                     : 'text-muted-foreground hover:text-foreground'
                 )}
                 aria-label={tab.label}

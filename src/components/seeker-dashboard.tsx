@@ -7,13 +7,10 @@ import { t, Language } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 
 // shadcn/ui
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Dialog,
   DialogContent,
@@ -811,15 +808,13 @@ export function SeekerDashboard() {
   // ── Render helpers ──
 
   const renderBackButton = (targetView: SeekerView = 'home') => (
-    <Button
-      variant="ghost"
-      size="sm"
-      className="gap-1.5 mb-4 text-muted-foreground hover:text-foreground"
+    <button
+      className="glass flex items-center gap-1.5 mb-4 px-3 py-1.5 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-[var(--glass-hover)] transition-colors"
       onClick={() => navigateTo(targetView)}
     >
       <ArrowLeft className="size-4" />
       {t('back', lang)}
-    </Button>
+    </button>
   );
 
   // ── Sub-views ──
@@ -829,7 +824,7 @@ export function SeekerDashboard() {
     <div className="space-y-6">
       {/* Welcome */}
       <div>
-        <h1 className="text-2xl font-bold text-foreground">
+        <h1 className="text-2xl font-bold gradient-text">
           {t('welcome', lang)}, {user?.name?.split(' ')[0] || ''}! 👋
         </h1>
         <p className="text-muted-foreground text-sm mt-1">{t('tagline', lang)}</p>
@@ -837,8 +832,8 @@ export function SeekerDashboard() {
 
       {/* Active session banner */}
       {activeSession && (
-        <Card
-          className="border-amber-300 dark:border-amber-600 bg-amber-50 dark:bg-amber-950/30 cursor-pointer hover:shadow-md transition-shadow"
+        <div
+          className="glass-card gradient-border amber-glow-sm cursor-pointer"
           onClick={() => {
             setActiveSessionId(activeSession.id);
             fetchActiveSession(activeSession.id);
@@ -846,9 +841,9 @@ export function SeekerDashboard() {
             setView('session');
           }}
         >
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="size-10 rounded-full bg-amber-200 dark:bg-amber-800 flex items-center justify-center shrink-0">
-              <Clock className="size-5 text-amber-700 dark:text-amber-300" />
+          <div className="p-4 flex items-center gap-3">
+            <div className="size-10 rounded-full glass flex items-center justify-center shrink-0">
+              <Clock className="size-5 text-amber-600 dark:text-amber-400 animate-gentle-pulse" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-foreground text-sm">{t('active_session', lang)}</p>
@@ -856,193 +851,193 @@ export function SeekerDashboard() {
                 {activeSession.guide?.name || 'Guide'} &middot; {activeSession.sessionCode}
               </p>
             </div>
-            <Badge className="bg-amber-200 text-amber-800 dark:bg-amber-800 dark:text-amber-200 text-xs">
+            <span className="glass text-amber-700 dark:text-amber-300 text-xs font-medium px-2.5 py-1 rounded-full">
               {t('active', lang)}
-            </Badge>
-          </CardContent>
-        </Card>
+            </span>
+          </div>
+        </div>
       )}
 
       {/* Open request banner */}
       {openRequest && !activeSession && (
-        <Card
-          className="border-emerald-300 dark:border-emerald-600 bg-emerald-50 dark:bg-emerald-950/30 cursor-pointer hover:shadow-md transition-shadow"
+        <div
+          className="glass-card gradient-border cursor-pointer"
           onClick={() => navigateTo('matching')}
         >
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="size-10 rounded-full bg-emerald-200 dark:bg-emerald-800 flex items-center justify-center shrink-0">
-              <Radio className="size-5 text-emerald-700 dark:text-emerald-300 animate-pulse" />
+          <div className="p-4 flex items-center gap-3">
+            <div className="size-10 rounded-full glass flex items-center justify-center shrink-0">
+              <Radio className="size-5 text-emerald-600 dark:text-emerald-400 animate-gentle-pulse" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-foreground text-sm">{lang === 'sw' ? 'Ombi lako lipo wazi' : 'Your request is open'}</p>
               <p className="text-xs text-muted-foreground truncate">{openRequest.description}</p>
             </div>
-            <Badge className="bg-emerald-200 text-emerald-800 dark:bg-emerald-800 dark:text-emerald-200 text-xs">
+            <span className="glass text-emerald-700 dark:text-emerald-300 text-xs font-medium px-2.5 py-1 rounded-full">
               {t('open', lang)}
-            </Badge>
-          </CardContent>
-        </Card>
+            </span>
+          </div>
+        </div>
       )}
 
       {/* Quick actions */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <Card
-          className="cursor-pointer hover:shadow-md transition-shadow group"
+        <div
+          className="glass-card gradient-border cursor-pointer group"
           onClick={() => navigateTo('post-request')}
         >
-          <CardContent className="p-4 flex flex-col items-center gap-2 text-center">
-            <div className="size-11 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center group-hover:scale-110 transition-transform">
+          <div className="p-4 flex flex-col items-center gap-2 text-center">
+            <div className="size-11 rounded-xl glass flex items-center justify-center group-hover:scale-110 transition-transform">
               <Plus className="size-5 text-emerald-600 dark:text-emerald-400" />
             </div>
             <span className="text-xs font-medium text-foreground">{t('post_request', lang)}</span>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <Card
-          className="cursor-pointer hover:shadow-md transition-shadow group"
+        <div
+          className="glass-card gradient-border cursor-pointer group"
           onClick={() => navigateTo('price-radar')}
         >
-          <CardContent className="p-4 flex flex-col items-center gap-2 text-center">
-            <div className="size-11 rounded-xl bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center group-hover:scale-110 transition-transform">
+          <div className="p-4 flex flex-col items-center gap-2 text-center">
+            <div className="size-11 rounded-xl glass flex items-center justify-center group-hover:scale-110 transition-transform">
               <Radar className="size-5 text-amber-600 dark:text-amber-400" />
             </div>
             <span className="text-xs font-medium text-foreground">{t('nav_price_radar', lang)}</span>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <Card
-          className="cursor-pointer hover:shadow-md transition-shadow group"
+        <div
+          className="glass-card gradient-border cursor-pointer group"
           onClick={() => navigateTo('vendors')}
         >
-          <CardContent className="p-4 flex flex-col items-center gap-2 text-center">
-            <div className="size-11 rounded-xl bg-sky-100 dark:bg-sky-900/40 flex items-center justify-center group-hover:scale-110 transition-transform">
+          <div className="p-4 flex flex-col items-center gap-2 text-center">
+            <div className="size-11 rounded-xl glass flex items-center justify-center group-hover:scale-110 transition-transform">
               <Store className="size-5 text-sky-600 dark:text-sky-400" />
             </div>
             <span className="text-xs font-medium text-foreground">{t('nav_vendors', lang)}</span>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <Card
-          className="cursor-pointer hover:shadow-md transition-shadow group"
+        <div
+          className="glass-card gradient-border cursor-pointer group"
           onClick={() => navigateTo('my-requests')}
         >
-          <CardContent className="p-4 flex flex-col items-center gap-2 text-center">
-            <div className="size-11 rounded-xl bg-rose-100 dark:bg-rose-900/40 flex items-center justify-center group-hover:scale-110 transition-transform">
+          <div className="p-4 flex flex-col items-center gap-2 text-center">
+            <div className="size-11 rounded-xl glass flex items-center justify-center group-hover:scale-110 transition-transform">
               <FileText className="size-5 text-rose-600 dark:text-rose-400" />
             </div>
             <span className="text-xs font-medium text-foreground">{t('my_requests', lang)}</span>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Feature quick actions */}
       <div>
-        <h2 className="text-lg font-bold text-foreground mb-3">{lang === 'sw' ? 'Vipengee Zaidi' : 'More Features'}</h2>
+        <h2 className="text-lg font-bold gradient-text mb-3">{lang === 'sw' ? 'Vipengee Zaidi' : 'More Features'}</h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <Card
-            className="cursor-pointer hover:shadow-md transition-shadow group"
+          <div
+            className="glass-card gradient-border cursor-pointer group"
             onClick={() => navigateTo('group-tour')}
           >
-            <CardContent className="p-4 flex flex-col items-center gap-2 text-center">
-              <div className="size-11 rounded-xl bg-violet-100 dark:bg-violet-900/40 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <div className="p-4 flex flex-col items-center gap-2 text-center">
+              <div className="size-11 rounded-xl glass flex items-center justify-center group-hover:scale-110 transition-transform">
                 <Users className="size-5 text-violet-600 dark:text-violet-400" />
               </div>
               <span className="text-xs font-medium text-foreground">{lang === 'sw' ? 'Safari ya Kikundi' : 'Group Tour'}</span>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
-          <Card
-            className="cursor-pointer hover:shadow-md transition-shadow group"
+          <div
+            className="glass-card gradient-border cursor-pointer group"
             onClick={() => navigateTo('heatmap')}
           >
-            <CardContent className="p-4 flex flex-col items-center gap-2 text-center">
-              <div className="size-11 rounded-xl bg-red-100 dark:bg-red-900/40 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <div className="p-4 flex flex-col items-center gap-2 text-center">
+              <div className="size-11 rounded-xl glass flex items-center justify-center group-hover:scale-110 transition-transform">
                 <ThermometerSun className="size-5 text-red-600 dark:text-red-400" />
               </div>
               <span className="text-xs font-medium text-foreground">{lang === 'sw' ? 'Joto la Soko' : 'Market Heatmap'}</span>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
-          <Card
-            className="cursor-pointer hover:shadow-md transition-shadow group"
+          <div
+            className="glass-card gradient-border cursor-pointer group"
             onClick={() => navigateTo('shopping-list')}
           >
-            <CardContent className="p-4 flex flex-col items-center gap-2 text-center">
-              <div className="size-11 rounded-xl bg-orange-100 dark:bg-orange-900/40 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <div className="p-4 flex flex-col items-center gap-2 text-center">
+              <div className="size-11 rounded-xl glass flex items-center justify-center group-hover:scale-110 transition-transform">
                 <ShoppingCart className="size-5 text-orange-600 dark:text-orange-400" />
               </div>
               <span className="text-xs font-medium text-foreground">{lang === 'sw' ? 'Orodha ya Ununuzi' : 'Shopping List'}</span>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
-          <Card
-            className="cursor-pointer hover:shadow-md transition-shadow group"
+          <div
+            className="glass-card gradient-border cursor-pointer group"
             onClick={() => navigateTo('packages')}
           >
-            <CardContent className="p-4 flex flex-col items-center gap-2 text-center">
-              <div className="size-11 rounded-xl bg-teal-100 dark:bg-teal-900/40 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <div className="p-4 flex flex-col items-center gap-2 text-center">
+              <div className="size-11 rounded-xl glass flex items-center justify-center group-hover:scale-110 transition-transform">
                 <Package className="size-5 text-teal-600 dark:text-teal-400" />
               </div>
               <span className="text-xs font-medium text-foreground">{lang === 'sw' ? 'Vifurushi' : 'Package Deals'}</span>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* More feature links */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <Card
-          className="cursor-pointer hover:shadow-md transition-shadow group"
+        <div
+          className="glass-card gradient-border cursor-pointer group"
           onClick={() => navigateTo('stories')}
         >
-          <CardContent className="p-4 flex flex-col items-center gap-2 text-center">
-            <div className="size-11 rounded-xl bg-pink-100 dark:bg-pink-900/40 flex items-center justify-center group-hover:scale-110 transition-transform">
+          <div className="p-4 flex flex-col items-center gap-2 text-center">
+            <div className="size-11 rounded-xl glass flex items-center justify-center group-hover:scale-110 transition-transform">
               <BookOpen className="size-5 text-pink-600 dark:text-pink-400" />
             </div>
             <span className="text-xs font-medium text-foreground">{lang === 'sw' ? 'Hadithi za Soko' : 'Market Stories'}</span>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <Card
-          className="cursor-pointer hover:shadow-md transition-shadow group"
+        <div
+          className="glass-card gradient-border cursor-pointer group"
           onClick={() => navigateTo('calendar')}
         >
-          <CardContent className="p-4 flex flex-col items-center gap-2 text-center">
-            <div className="size-11 rounded-xl bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Calendar className="size-5 text-indigo-600 dark:text-indigo-400" />
+          <div className="p-4 flex flex-col items-center gap-2 text-center">
+            <div className="size-11 rounded-xl glass flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Calendar className="size-5 text-amber-600 dark:text-amber-400" />
             </div>
             <span className="text-xs font-medium text-foreground">{lang === 'sw' ? 'Kalenda ya Msimu' : 'Seasonal Calendar'}</span>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <Card
-          className="cursor-pointer hover:shadow-md transition-shadow group"
+        <div
+          className="glass-card gradient-border cursor-pointer group"
           onClick={() => navigateTo('buddy')}
         >
-          <CardContent className="p-4 flex flex-col items-center gap-2 text-center">
-            <div className="size-11 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center group-hover:scale-110 transition-transform">
+          <div className="p-4 flex flex-col items-center gap-2 text-center">
+            <div className="size-11 rounded-xl glass flex items-center justify-center group-hover:scale-110 transition-transform">
               <Heart className="size-5 text-emerald-600 dark:text-emerald-400" />
             </div>
             <span className="text-xs font-medium text-foreground">{lang === 'sw' ? 'Rafiki Pamoja' : 'Buddy System'}</span>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <Card
-          className="cursor-pointer hover:shadow-md transition-shadow group"
+        <div
+          className="glass-card gradient-border cursor-pointer group"
           onClick={() => navigateTo('haggling')}
         >
-          <CardContent className="p-4 flex flex-col items-center gap-2 text-center">
-            <div className="size-11 rounded-xl bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center group-hover:scale-110 transition-transform">
+          <div className="p-4 flex flex-col items-center gap-2 text-center">
+            <div className="size-11 rounded-xl glass flex items-center justify-center group-hover:scale-110 transition-transform">
               <Scale className="size-5 text-amber-600 dark:text-amber-400" />
             </div>
             <span className="text-xs font-medium text-foreground">{lang === 'sw' ? 'Msaidizi wa Bishi' : 'Haggling Helper'}</span>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Map overview */}
       <div>
-        <h2 className="text-lg font-bold text-foreground mb-3">{lang === 'sw' ? 'Ramani ya Kariakoo' : 'Kariakoo Map'}</h2>
+        <h2 className="text-lg font-bold gradient-text mb-3">{lang === 'sw' ? 'Ramani ya Kariakoo' : 'Kariakoo Map'}</h2>
         <GoogleMap
           zones={zones.map((z) => ({
             id: z.id,
@@ -1058,10 +1053,10 @@ export function SeekerDashboard() {
 
       {/* Recent activity */}
       <div>
-        <h2 className="text-lg font-bold text-foreground mb-3">{lang === 'sw' ? 'Shughuli za hivi karibu' : 'Recent Activity'}</h2>
+        <h2 className="text-lg font-bold gradient-text mb-3">{lang === 'sw' ? 'Shughuli za hivi karibu' : 'Recent Activity'}</h2>
         <div className="space-y-2">
           {isLoadingRequests ? (
-            Array.from({ length: 3 }, (_, i) => <Skeleton key={i} className="h-16 rounded-lg" />)
+            Array.from({ length: 3 }, (_, i) => <Skeleton key={i} className="h-16 rounded-xl shimmer" />)
           ) : requests.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <Clock className="size-8 mx-auto mb-2 opacity-50" />
@@ -1069,24 +1064,24 @@ export function SeekerDashboard() {
             </div>
           ) : (
             requests.slice(0, 3).map((req) => (
-              <Card
+              <div
                 key={req.id}
-                className="cursor-pointer hover:shadow-sm transition-shadow"
+                className="glass-card cursor-pointer"
                 onClick={() => {
                   setExpandedRequest(req.id);
                   navigateTo('my-requests');
                 }}
               >
-                <CardContent className="p-3 flex items-center gap-3">
+                <div className="p-3 flex items-center gap-3">
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-foreground truncate">{req.description}</p>
                     <p className="text-xs text-muted-foreground">{formatDate(req.createdAt, lang)}</p>
                   </div>
-                  <Badge className={cn('text-[10px] h-6', statusColorMap[req.status] || '')}>
+                  <Badge className={cn('text-[10px] h-6 glass', statusColorMap[req.status] || '')}>
                     {t(req.status as keyof typeof statusColorMap, lang)}
                   </Badge>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             ))
           )}
         </div>
@@ -1095,9 +1090,9 @@ export function SeekerDashboard() {
       {/* Guide of the Week */}
       {guideOfWeek && (
         <div>
-          <h2 className="text-lg font-bold text-foreground mb-3">{t('guide_of_week', lang)}</h2>
-          <Card className="overflow-hidden border-amber-300 dark:border-amber-600 bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-950/30 dark:to-yellow-950/20">
-            <CardContent className="p-4">
+          <h2 className="text-lg font-bold gradient-text mb-3">{t('guide_of_week', lang)}</h2>
+          <div className="glass-card gradient-border amber-glow-sm overflow-hidden">
+            <div className="p-4">
               <div className="flex items-center gap-3">
                 <div className={cn(
                   'size-14 rounded-full flex items-center justify-center text-white font-bold text-lg border-2 border-amber-400',
@@ -1115,7 +1110,7 @@ export function SeekerDashboard() {
                     {guideOfWeek.zones.slice(0, 2).map((z) => {
                       const zc = zoneColorMap[z];
                       return (
-                        <Badge key={z} variant="secondary" className={cn('text-[9px] h-4 px-1.5', zc?.bg, zc?.text)}>
+                        <Badge key={z} variant="secondary" className={cn('text-[9px] h-4 px-1.5 glass', zc?.bg, zc?.text)}>
                           {t(z, lang)}
                         </Badge>
                       );
@@ -1123,30 +1118,28 @@ export function SeekerDashboard() {
                   </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       )}
 
       {/* Quick links */}
       <div className="grid grid-cols-2 gap-3">
-        <Button
-          variant="outline"
-          className="h-12 justify-start gap-2"
+        <button
+          className="glass h-12 flex items-center justify-start gap-2 px-4 rounded-xl text-sm font-medium hover:bg-[var(--glass-hover)] transition-colors"
           onClick={() => navigateTo('history')}
         >
           <Clock className="size-4" />
           {t('session_history', lang)}
-        </Button>
-        <Button
-          variant="outline"
-          className="h-12 justify-start gap-2"
+        </button>
+        <button
+          className="glass h-12 flex items-center justify-start gap-2 px-4 rounded-xl text-sm font-medium hover:bg-[var(--glass-hover)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={() => navigateTo('matching')}
           disabled={!openRequest}
         >
           <Users className="size-4" />
           {lang === 'sw' ? 'Waongozaji' : 'Guides'}
-        </Button>
+        </button>
       </div>
     </div>
   );
@@ -1156,12 +1149,12 @@ export function SeekerDashboard() {
     <div className="space-y-6">
       {renderBackButton()}
       <div>
-        <h1 className="text-xl font-bold text-foreground">{t('post_request', lang)}</h1>
+        <h1 className="text-xl font-bold gradient-text">{t('post_request', lang)}</h1>
         <p className="text-sm text-muted-foreground mt-1">{t('request_description', lang)}</p>
       </div>
 
-      <Card>
-        <CardContent className="p-4 space-y-4">
+      <div className="glass-card gradient-border">
+        <div className="p-4 space-y-4">
           {/* Description */}
           <div>
             <label className="text-sm font-medium text-foreground">{t('description', lang)}</label>
@@ -1169,7 +1162,7 @@ export function SeekerDashboard() {
               value={requestDescription}
               onChange={(e) => setRequestDescription(e.target.value)}
               placeholder={t('request_description', lang)}
-              className="mt-1.5 min-h-[100px]"
+              className="mt-1.5 min-h-[100px] glass-input border-0 bg-transparent focus:ring-0 focus:outline-none"
               maxLength={500}
             />
             <p className="text-xs text-muted-foreground mt-1">{requestDescription.length}/500</p>
@@ -1180,7 +1173,7 @@ export function SeekerDashboard() {
             <label className="text-sm font-medium text-foreground">{t('request_zone', lang)}</label>
             <div className="mt-1.5 flex flex-wrap gap-2">
               {isLoadingZones ? (
-                <Skeleton className="h-8 w-40" />
+                <Skeleton className="h-8 w-40 rounded-lg shimmer" />
               ) : (
                 zones.map((zone) => {
                   const isSelected = selectedZoneIds.includes(zone.id);
@@ -1195,10 +1188,10 @@ export function SeekerDashboard() {
                         );
                       }}
                       className={cn(
-                        'inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors',
+                        'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors',
                         isSelected
-                          ? `${zc?.bg || 'bg-primary/10'} ${zc?.text || 'text-primary'} border-current`
-                          : 'border-border text-muted-foreground hover:border-foreground/30'
+                          ? `glass ${zc?.bg || 'bg-primary/10'} ${zc?.text || 'text-primary'} border-[var(--glass-border)]`
+                          : 'glass text-muted-foreground hover:bg-[var(--glass-hover)]'
                       )}
                     >
                       <MapPin className="size-3" />
@@ -1215,13 +1208,13 @@ export function SeekerDashboard() {
           <div>
             <label className="text-sm font-medium text-foreground">{t('request_budget', lang)}</label>
             <div className="relative mt-1.5">
-              <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+              <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground z-10" />
               <Input
                 type="number"
                 value={requestBudget}
                 onChange={(e) => setRequestBudget(e.target.value)}
                 placeholder="0"
-                className="pl-9"
+                className="pl-9 glass-input border-0 bg-transparent focus:ring-0 focus:outline-none"
                 min={0}
               />
             </div>
@@ -1236,62 +1229,60 @@ export function SeekerDashboard() {
           <div>
             <label className="text-sm font-medium text-foreground">{t('request_photo', lang)}</label>
             <div className="mt-1.5">
-              <Button
+              <button
                 type="button"
-                variant={requestPhoto ? 'default' : 'outline'}
-                className="gap-2"
+                className={cn(
+                  'gap-2 flex items-center px-4 py-2 rounded-xl text-sm font-medium transition-colors',
+                  requestPhoto ? 'glass-button' : 'glass hover:bg-[var(--glass-hover)]'
+                )}
                 onClick={() => setRequestPhoto(!requestPhoto)}
               >
                 <Camera className="size-4" />
                 {requestPhoto
                   ? lang === 'sw' ? 'Picha imeongezwa ✓' : 'Photo added ✓'
                   : t('request_photo', lang)}
-              </Button>
+              </button>
             </div>
           </div>
 
           {/* Submit */}
-          <Button
-            className="w-full h-12 text-base"
+          <button
+            className="glass-button w-full h-12 text-base flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={handleCreateRequest}
             disabled={!requestDescription.trim() || isSubmitting}
           >
             {isSubmitting ? (
               <>
-                <Loader2 className="size-4 mr-2 animate-spin" />
+                <Loader2 className="size-4 animate-spin" />
                 {t('loading', lang)}
               </>
             ) : (
               <>
-                <Send className="size-4 mr-2" />
+                <Send className="size-4" />
                 {t('submit', lang)}
               </>
             )}
-          </Button>
+          </button>
 
           {/* Quick links */}
           <div className="flex gap-2 pt-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1 h-9 text-xs gap-1.5"
+            <button
+              className="glass flex-1 h-9 text-xs gap-1.5 flex items-center justify-center rounded-xl font-medium hover:bg-[var(--glass-hover)] transition-colors"
               onClick={() => navigateTo('shopping-list')}
             >
               <ShoppingCart className="size-3.5" />
               {lang === 'sw' ? 'Orodha ya Ununuzi' : 'Shopping List'}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1 h-9 text-xs gap-1.5"
+            </button>
+            <button
+              className="glass flex-1 h-9 text-xs gap-1.5 flex items-center justify-center rounded-xl font-medium hover:bg-[var(--glass-hover)] transition-colors"
               onClick={() => navigateTo('buddy')}
             >
               <Heart className="size-3.5" />
               {lang === 'sw' ? 'Rafiki Pamoja' : 'Buddy System'}
-            </Button>
+            </button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 
@@ -1300,25 +1291,28 @@ export function SeekerDashboard() {
     <div className="space-y-4">
       {renderBackButton()}
       <div className="flex items-center justify-between gap-2">
-        <h1 className="text-xl font-bold text-foreground">{t('my_requests', lang)}</h1>
-        <Button size="sm" className="gap-1.5" onClick={() => navigateTo('post-request')}>
+        <h1 className="text-xl font-bold gradient-text">{t('my_requests', lang)}</h1>
+        <button className="glass-button flex items-center gap-1.5 px-3 py-1.5 text-sm" onClick={() => navigateTo('post-request')}>
           <Plus className="size-3.5" />
           {t('post_request', lang)}
-        </Button>
+        </button>
       </div>
 
       {/* Filter */}
       <div className="flex gap-2 overflow-x-auto pb-1">
         {['all', 'open', 'matched', 'active', 'completed', 'cancelled'].map((status) => (
-          <Button
+          <button
             key={status}
-            variant={requestFilter === status ? 'default' : 'outline'}
-            size="sm"
-            className="h-8 text-xs shrink-0"
+            className={cn(
+              'h-8 text-xs shrink-0 px-3 rounded-xl font-medium transition-colors',
+              requestFilter === status
+                ? 'glass-button'
+                : 'glass hover:bg-[var(--glass-hover)]'
+            )}
             onClick={() => setRequestFilter(status)}
           >
             {status === 'all' ? (lang === 'sw' ? 'Zote' : 'All') : t(status as 'open', lang)}
-          </Button>
+          </button>
         ))}
       </div>
 
@@ -1326,7 +1320,7 @@ export function SeekerDashboard() {
       {isLoadingRequests ? (
         <div className="space-y-3">
           {Array.from({ length: 4 }, (_, i) => (
-            <Skeleton key={i} className="h-24 rounded-lg" />
+            <Skeleton key={i} className="h-24 rounded-xl shimmer" />
           ))}
         </div>
       ) : filteredRequests.length === 0 ? (
@@ -1340,8 +1334,8 @@ export function SeekerDashboard() {
             const isExpanded = expandedRequest === req.id;
             const parsedZoneIds = typeof req.zoneIds === 'string' ? JSON.parse(req.zoneIds || '[]') : req.zoneIds;
             return (
-              <Card key={req.id} className="overflow-hidden">
-                <CardContent
+              <div key={req.id} className="glass-card gradient-border overflow-hidden">
+                <div
                   className="p-4 cursor-pointer"
                   onClick={() => setExpandedRequest(isExpanded ? null : req.id)}
                 >
@@ -1353,7 +1347,7 @@ export function SeekerDashboard() {
                           const zKey = `zone_${(z.name || '').toLowerCase()}`;
                           const zc = zoneColorMap[zKey];
                           return (
-                            <Badge key={z.id} variant="secondary" className={cn('text-[9px] h-4 px-1.5', zc?.bg, zc?.text)}>
+                            <Badge key={z.id} variant="secondary" className={cn('text-[9px] h-4 px-1.5 glass', zc?.bg, zc?.text)}>
                               <MapPin className="size-2.5 mr-0.5" />
                               {lang === 'sw' ? z.nameSw || z.name : z.name}
                             </Badge>
@@ -1362,7 +1356,7 @@ export function SeekerDashboard() {
                       </div>
                     </div>
                     <div className="flex flex-col items-end gap-1.5 shrink-0">
-                      <Badge className={cn('text-[10px] h-5', statusColorMap[req.status] || '')}>
+                      <Badge className={cn('text-[10px] h-5 glass', statusColorMap[req.status] || '')}>
                         {t((req.status || 'open') as 'open', lang)}
                       </Badge>
                       {isExpanded ? <ChevronUp className="size-4 text-muted-foreground" /> : <ChevronDown className="size-4 text-muted-foreground" />}
@@ -1381,14 +1375,14 @@ export function SeekerDashboard() {
                       {formatDate(req.createdAt, lang)}
                     </span>
                   </div>
-                </CardContent>
+                </div>
 
                 {/* Expanded details */}
                 {isExpanded && (
-                  <div className="border-t px-4 py-3 bg-muted/30 space-y-2">
+                  <div className="border-t border-[var(--glass-border)] px-4 py-3 bg-[var(--glass)]/30 space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-muted-foreground">{t('status', lang)}</span>
-                      <Badge className={cn('text-[10px] h-5', statusColorMap[req.status] || '')}>
+                      <Badge className={cn('text-[10px] h-5 glass', statusColorMap[req.status] || '')}>
                         {t((req.status || 'open') as 'open', lang)}
                       </Badge>
                     </div>
@@ -1403,12 +1397,12 @@ export function SeekerDashboard() {
 
                     {/* Sessions for this request */}
                     {req.sessions && req.sessions.length > 0 && (
-                      <div className="pt-2 border-t mt-2">
+                      <div className="pt-2 border-t border-[var(--glass-border)] mt-2">
                         <p className="text-xs font-medium text-foreground mb-1.5">{lang === 'sw' ? 'Vikao' : 'Sessions'}</p>
                         {req.sessions.map((s) => (
                           <div key={s.id} className="flex items-center justify-between py-1 text-xs">
                             <span className="text-foreground">{s.guide?.name || 'Guide'}</span>
-                            <Badge className={cn('text-[9px] h-4', escrowStatusMap[s.escrowStatus] || '')}>
+                            <Badge className={cn('text-[9px] h-4 glass', escrowStatusMap[s.escrowStatus] || '')}>
                               {s.escrowStatus}
                             </Badge>
                           </div>
@@ -1420,9 +1414,8 @@ export function SeekerDashboard() {
                     <div className="flex gap-2 pt-2">
                       {req.status === 'open' && (
                         <>
-                          <Button
-                            size="sm"
-                            className="flex-1 h-8 text-xs"
+                          <button
+                            className="glass-button flex-1 h-8 text-xs flex items-center justify-center gap-1"
                             onClick={(e) => {
                               e.stopPropagation();
                               setMatchingRequestId(req.id);
@@ -1433,26 +1426,23 @@ export function SeekerDashboard() {
                               setView('matching');
                             }}
                           >
-                            <Users className="size-3 mr-1" />
+                            <Users className="size-3" />
                             {lang === 'sw' ? 'Tazama waongozaji' : 'View guides'}
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            className="h-8 text-xs"
+                          </button>
+                          <button
+                            className="glass h-8 text-xs px-3 rounded-xl text-red-600 dark:text-red-400 font-medium hover:bg-red-500/10 transition-colors"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleCancelRequest(req.id);
                             }}
                           >
                             {t('cancel', lang)}
-                          </Button>
+                          </button>
                         </>
                       )}
                       {req.status === 'matched' && (
-                        <Button
-                          size="sm"
-                          className="flex-1 h-8 text-xs"
+                        <button
+                          className="glass-button flex-1 h-8 text-xs flex items-center justify-center"
                           onClick={(e) => {
                             e.stopPropagation();
                             const session = sessions.find((s) => s.requestId === req.id);
@@ -1465,12 +1455,12 @@ export function SeekerDashboard() {
                           }}
                         >
                           {t('active_session', lang)}
-                        </Button>
+                        </button>
                       )}
                     </div>
                   </div>
                 )}
-              </Card>
+              </div>
             );
           })}
         </div>
@@ -1485,7 +1475,7 @@ export function SeekerDashboard() {
       <div className="space-y-4">
         {renderBackButton()}
         <div>
-          <h1 className="text-xl font-bold text-foreground">{lang === 'sw' ? 'Kupeleleza waongozaji' : 'Finding Guides'}</h1>
+          <h1 className="text-xl font-bold gradient-text">{lang === 'sw' ? 'Kupeleleza waongozaji' : 'Finding Guides'}</h1>
           <p className="text-sm text-muted-foreground mt-1">
             {lang === 'sw' ? 'Wafanyakazi wanaangalia ombi lako...' : 'Guides are reviewing your request...'}
           </p>
@@ -1493,17 +1483,17 @@ export function SeekerDashboard() {
 
         {/* The open request */}
         {matchingRequest && (
-          <Card className="border-emerald-300 dark:border-emerald-600">
-            <CardContent className="p-4">
+          <div className="glass-card gradient-border">
+            <div className="p-4">
               <div className="flex items-start gap-3">
-                <div className="size-10 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center shrink-0">
+                <div className="size-10 rounded-full glass flex items-center justify-center shrink-0">
                   <FileText className="size-5 text-emerald-600 dark:text-emerald-400" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-foreground">{matchingRequest.description}</p>
                   <div className="flex flex-wrap gap-1 mt-1">
                     {(matchingRequest.zones || []).map((z) => (
-                      <Badge key={z.id} variant="secondary" className="text-[9px] h-4">
+                      <Badge key={z.id} variant="secondary" className="text-[9px] h-4 glass">
                         {lang === 'sw' ? z.nameSw || z.name : z.name}
                       </Badge>
                     ))}
@@ -1513,19 +1503,19 @@ export function SeekerDashboard() {
                   )}
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         )}
 
         {/* Waiting animation */}
         {isWaitingForGuides && matchedGuides.length === 0 && (
           <div className="text-center py-8">
             <div className="relative inline-block">
-              <div className="size-16 rounded-full bg-primary/10 flex items-center justify-center">
-                <Loader2 className="size-8 text-primary animate-spin" />
+              <div className="size-16 rounded-full glass flex items-center justify-center amber-glow-sm">
+                <Loader2 className="size-8 text-amber-600 dark:text-amber-400 animate-spin" />
               </div>
-              <div className="absolute -bottom-1 -right-1 size-5 rounded-full bg-emerald-500 flex items-center justify-center animate-pulse">
-                <Users className="size-3 text-white" />
+              <div className="absolute -bottom-1 -right-1 size-5 rounded-full glass flex items-center justify-center animate-gentle-pulse">
+                <Users className="size-3 text-emerald-600 dark:text-emerald-400" />
               </div>
             </div>
             <p className="text-sm font-medium text-foreground mt-3">
@@ -1539,7 +1529,7 @@ export function SeekerDashboard() {
 
         {/* Zone expansion notification */}
         {zoneExpanded && (
-          <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-3 flex items-center gap-2">
+          <div className="glass p-3 rounded-xl flex items-center gap-2 amber-glow-sm">
             <Bell className="size-4 text-amber-600 dark:text-amber-400 shrink-0" />
             <p className="text-xs text-amber-700 dark:text-amber-300">
               {lang === 'sw' ? 'Maeneo yamepanuliwa baada ya dakika 5 kutafuta waongozaji zaidi' : 'Zones expanded after 5 min to find more guides'}
@@ -1550,7 +1540,7 @@ export function SeekerDashboard() {
         {/* Matched guides */}
         {matchedGuides.length > 0 && (
           <div>
-            <h2 className="text-base font-bold text-foreground mb-3 flex items-center gap-2">
+            <h2 className="text-base font-bold gradient-text mb-3 flex items-center gap-2">
               <Users className="size-4" />
               {lang === 'sw' ? `Waongozaji ${matchedGuides.length} wamepatikana` : `${matchedGuides.length} guide${matchedGuides.length > 1 ? 's' : ''} found`}
             </h2>
@@ -1583,9 +1573,9 @@ export function SeekerDashboard() {
           <div className="text-center py-12 text-muted-foreground">
             <FileText className="size-10 mx-auto mb-2 opacity-50" />
             <p className="text-sm">{lang === 'sw' ? 'Hakuna ombi wazi' : 'No open request'}</p>
-            <Button size="sm" className="mt-3" onClick={() => navigateTo('post-request')}>
+            <button className="glass-button mt-3 px-4 py-2 text-sm" onClick={() => navigateTo('post-request')}>
               {t('post_request', lang)}
-            </Button>
+            </button>
           </div>
         )}
       </div>
@@ -1597,7 +1587,7 @@ export function SeekerDashboard() {
     <div className="space-y-4">
       {renderBackButton()}
       <div>
-        <h1 className="text-xl font-bold text-foreground">{t('active_session', lang)}</h1>
+        <h1 className="text-xl font-bold gradient-text">{t('active_session', lang)}</h1>
       </div>
 
       {!activeSessionData ? (
@@ -1644,8 +1634,8 @@ export function SeekerDashboard() {
 
           {/* Guide info */}
           {activeSessionData.guide && (
-            <Card>
-              <CardContent className="p-4 flex items-center gap-3">
+            <div className="glass-card gradient-border">
+              <div className="p-4 flex items-center gap-3">
                 <div className={cn(
                   'size-11 rounded-full flex items-center justify-center text-white font-bold text-sm',
                   ['bg-emerald-600', 'bg-sky-600', 'bg-amber-600', 'bg-rose-600', 'bg-teal-600'][
@@ -1658,17 +1648,18 @@ export function SeekerDashboard() {
                   <p className="font-semibold text-foreground text-sm">{activeSessionData.guide.name}</p>
                   <p className="text-xs text-muted-foreground">{lang === 'sw' ? 'Mwongozo wako' : 'Your guide'}</p>
                 </div>
-                <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300 text-[10px]">
+                <span className="glass text-emerald-700 dark:text-emerald-300 text-[10px] font-medium px-2.5 py-1 rounded-full flex items-center gap-1">
+                  <span className="size-1.5 rounded-full bg-emerald-500 animate-gentle-pulse" />
                   {t('online', lang)}
-                </Badge>
-              </CardContent>
-            </Card>
+                </span>
+              </div>
+            </div>
           )}
 
           {/* Request info */}
           {activeSessionData.request && (
-            <Card>
-              <CardContent className="p-4">
+            <div className="glass-card">
+              <div className="p-4">
                 <p className="text-xs text-muted-foreground mb-1">{t('description', lang)}</p>
                 <p className="text-sm text-foreground">{activeSessionData.request.description}</p>
                 {activeSessionData.request.budget > 0 && (
@@ -1676,8 +1667,8 @@ export function SeekerDashboard() {
                     {t('budget', lang)}: {formatTZS(activeSessionData.request.budget, lang)}
                   </p>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           )}
 
           {/* MultiCurrency for session amount */}
@@ -1692,38 +1683,41 @@ export function SeekerDashboard() {
 
           {/* Toggle: Chat / Map / Tools */}
           <div className="flex gap-2">
-            <Button
-              variant={showChat ? 'default' : 'outline'}
-              size="sm"
-              className="flex-1 h-10 gap-1.5"
+            <button
+              className={cn(
+                'flex-1 h-10 gap-1.5 flex items-center justify-center rounded-xl text-sm font-medium transition-colors',
+                showChat ? 'glass-button' : 'glass hover:bg-[var(--glass-hover)]'
+              )}
               onClick={() => { setShowChat(true); setShowMap(false); setSessionSidebarTab('tools'); }}
             >
               <MessageSquare className="size-4" />
               {lang === 'sw' ? 'Mazungumzo' : 'Chat'}
-            </Button>
-            <Button
-              variant={showMap ? 'default' : 'outline'}
-              size="sm"
-              className="flex-1 h-10 gap-1.5"
+            </button>
+            <button
+              className={cn(
+                'flex-1 h-10 gap-1.5 flex items-center justify-center rounded-xl text-sm font-medium transition-colors',
+                showMap ? 'glass-button' : 'glass hover:bg-[var(--glass-hover)]'
+              )}
               onClick={() => { setShowMap(true); setShowChat(false); setSessionSidebarTab('tools'); }}
             >
               <MapPin className="size-4" />
               {lang === 'sw' ? 'Ramani' : 'Map'}
-            </Button>
-            <Button
-              variant={!showChat && !showMap ? 'default' : 'outline'}
-              size="sm"
-              className="flex-1 h-10 gap-1.5"
+            </button>
+            <button
+              className={cn(
+                'flex-1 h-10 gap-1.5 flex items-center justify-center rounded-xl text-sm font-medium transition-colors',
+                !showChat && !showMap ? 'glass-button' : 'glass hover:bg-[var(--glass-hover)]'
+              )}
               onClick={() => { setShowChat(false); setShowMap(false); }}
             >
               <Zap className="size-4" />
               {lang === 'sw' ? 'Zana' : 'Tools'}
-            </Button>
+            </button>
           </div>
 
           {/* Chat with VoiceMessages */}
           {showChat && (
-            <Card className="overflow-hidden">
+            <div className="glass-card overflow-hidden">
               <SessionChat
                 sessionId={activeSessionData.id}
                 currentUserId={user?.id || ''}
@@ -1740,7 +1734,7 @@ export function SeekerDashboard() {
                 onSendMessage={handleSendMessage}
               />
               {/* Voice Messages */}
-              <div className="border-t p-3">
+              <div className="border-t border-[var(--glass-border)] p-3">
                 <VoiceMessages
                   onSendVoice={(recording) => {
                     setVoiceRecordings((prev) => [...prev, recording]);
@@ -1753,7 +1747,7 @@ export function SeekerDashboard() {
                   language={lang}
                 />
               </div>
-            </Card>
+            </div>
           )}
 
           {/* Map */}
@@ -1785,16 +1779,19 @@ export function SeekerDashboard() {
                   { id: 'recording' as const, icon: Mic, label: lang === 'sw' ? 'Rekodi' : 'Record' },
                   { id: 'haggling' as const, icon: Scale, label: lang === 'sw' ? 'Bishi' : 'Haggle' },
                 ].map((tab) => (
-                  <Button
+                  <button
                     key={tab.id}
-                    variant={sessionSidebarTab === tab.id ? 'default' : 'outline'}
-                    size="sm"
-                    className="h-8 text-xs shrink-0 gap-1"
+                    className={cn(
+                      'h-8 text-xs shrink-0 gap-1 flex items-center px-3 rounded-xl font-medium transition-colors',
+                      sessionSidebarTab === tab.id
+                        ? 'glass-button'
+                        : 'glass hover:bg-[var(--glass-hover)]'
+                    )}
                     onClick={() => setSessionSidebarTab(tab.id)}
                   >
                     <tab.icon className="size-3.5" />
                     {tab.label}
-                  </Button>
+                  </button>
                 ))}
               </div>
 
@@ -1918,19 +1915,19 @@ export function SeekerDashboard() {
     <div className="space-y-4">
       {renderBackButton()}
       <div>
-        <h1 className="text-xl font-bold text-foreground">{t('session_history', lang)}</h1>
+        <h1 className="text-xl font-bold gradient-text">{t('session_history', lang)}</h1>
       </div>
 
       {/* Date range filter */}
-      <Card>
-        <CardContent className="p-3 flex flex-wrap gap-3 items-end">
+      <div className="glass-card">
+        <div className="p-3 flex flex-wrap gap-3 items-end">
           <div className="flex-1 min-w-[120px]">
             <label className="text-xs text-muted-foreground">{lang === 'sw' ? 'Kutoka' : 'From'}</label>
             <Input
               type="date"
               value={historyDateFrom}
               onChange={(e) => setHistoryDateFrom(e.target.value)}
-              className="h-9 text-xs mt-1"
+              className="h-9 text-xs mt-1 glass-input border-0 bg-transparent focus:ring-0 focus:outline-none"
             />
           </div>
           <div className="flex-1 min-w-[120px]">
@@ -1939,28 +1936,26 @@ export function SeekerDashboard() {
               type="date"
               value={historyDateTo}
               onChange={(e) => setHistoryDateTo(e.target.value)}
-              className="h-9 text-xs mt-1"
+              className="h-9 text-xs mt-1 glass-input border-0 bg-transparent focus:ring-0 focus:outline-none"
             />
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-9 text-xs"
+          <button
+            className="glass h-9 text-xs px-3 rounded-xl font-medium hover:bg-[var(--glass-hover)] transition-colors"
             onClick={() => {
               setHistoryDateFrom('');
               setHistoryDateTo('');
             }}
           >
             {t('clear_filters', lang)}
-          </Button>
-        </CardContent>
-      </Card>
+          </button>
+        </div>
+      </div>
 
       {/* Session list */}
       {isLoadingSessions ? (
         <div className="space-y-3">
           {Array.from({ length: 3 }, (_, i) => (
-            <Skeleton key={i} className="h-24 rounded-lg" />
+            <Skeleton key={i} className="h-24 rounded-xl shimmer" />
           ))}
         </div>
       ) : filteredHistory.length === 0 ? (
@@ -1973,8 +1968,8 @@ export function SeekerDashboard() {
           {filteredHistory.map((session) => {
             const isExpanded = expandedHistory === session.id;
             return (
-              <Card key={session.id} className="overflow-hidden">
-                <CardContent
+              <div key={session.id} className="glass-card overflow-hidden">
+                <div
                   className="p-4 cursor-pointer"
                   onClick={() => setExpandedHistory(isExpanded ? null : session.id)}
                 >
@@ -2006,11 +2001,11 @@ export function SeekerDashboard() {
                       )}
                     </div>
                   </div>
-                </CardContent>
+                </div>
 
                 {/* Expanded receipt */}
                 {isExpanded && (
-                  <div className="border-t px-4 py-3 bg-muted/30 space-y-2">
+                  <div className="border-t border-[var(--glass-border)] px-4 py-3 bg-[var(--glass)]/30 space-y-2">
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-muted-foreground">{t('session_code', lang)}</span>
                       <span className="font-mono font-medium text-foreground">{session.sessionCode}</span>
@@ -2037,7 +2032,7 @@ export function SeekerDashboard() {
                     </div>
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-muted-foreground">{t('payment', lang)}</span>
-                      <Badge className={cn('text-[9px] h-4', escrowStatusMap[session.escrowStatus] || '')}>
+                      <Badge className={cn('text-[9px] h-4 glass', escrowStatusMap[session.escrowStatus] || '')}>
                         {session.escrowStatus}
                       </Badge>
                     </div>
@@ -2048,20 +2043,20 @@ export function SeekerDashboard() {
                       </div>
                     )}
                     {session.reviewSeeker && (
-                      <div className="pt-2 border-t">
+                      <div className="pt-2 border-t border-[var(--glass-border)]">
                         <p className="text-xs text-muted-foreground mb-1">{t('review', lang)}</p>
                         <p className="text-xs text-foreground italic">&quot;{session.reviewSeeker}&quot;</p>
                       </div>
                     )}
                     {session.request && (
-                      <div className="pt-2 border-t">
+                      <div className="pt-2 border-t border-[var(--glass-border)]">
                         <p className="text-xs text-muted-foreground mb-1">{t('description', lang)}</p>
                         <p className="text-xs text-foreground">{session.request.description}</p>
                       </div>
                     )}
                   </div>
                 )}
-              </Card>
+              </div>
             );
           })}
         </div>
@@ -2096,10 +2091,10 @@ export function SeekerDashboard() {
 
       {/* Negotiate button */}
       {prices.length > 0 && (
-        <Card className="border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/20">
-          <CardContent className="p-4 flex items-center justify-between">
+        <div className="glass-card gradient-border amber-glow-sm">
+          <div className="p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="size-10 rounded-full bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center">
+              <div className="size-10 rounded-full glass flex items-center justify-center">
                 <Scale className="size-5 text-amber-600 dark:text-amber-400" />
               </div>
               <div>
@@ -2107,7 +2102,7 @@ export function SeekerDashboard() {
                 <p className="text-xs text-muted-foreground">{lang === 'sw' ? 'Pata bei ya haki kwa kutumia msaidizi wetu' : 'Get fair prices with our assistant'}</p>
               </div>
             </div>
-            <Button size="sm" className="gap-1.5" onClick={() => {
+            <button className="glass-button flex items-center gap-1.5 px-3 py-1.5 text-sm" onClick={() => {
               const firstPrice = prices[0];
               setHagglingCategory(firstPrice.category);
               setHagglingVendorPrice(firstPrice.maxPrice);
@@ -2115,9 +2110,9 @@ export function SeekerDashboard() {
             }}>
               <Scale className="size-3.5" />
               {lang === 'sw' ? 'Bishi' : 'Negotiate'}
-            </Button>
-          </CardContent>
-        </Card>
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
@@ -2145,25 +2140,28 @@ export function SeekerDashboard() {
       <div className="space-y-6">
         {renderBackButton('price-radar')}
         <div>
-          <h1 className="text-xl font-bold text-foreground">{lang === 'sw' ? 'Msaidizi wa Bishi' : 'Haggling Assistant'}</h1>
+          <h1 className="text-xl font-bold gradient-text">{lang === 'sw' ? 'Msaidizi wa Bishi' : 'Haggling Assistant'}</h1>
           <p className="text-sm text-muted-foreground mt-1">{lang === 'sw' ? 'Pata bei ya haki kwa bidhaa zako' : 'Get fair prices for your items'}</p>
         </div>
 
         {/* Category selector */}
         <div className="flex flex-wrap gap-2">
           {prices.map((p) => (
-            <Button
+            <button
               key={p.id}
-              variant={hagglingCategory === p.category ? 'default' : 'outline'}
-              size="sm"
-              className="h-8 text-xs"
+              className={cn(
+                'h-8 text-xs px-3 rounded-xl font-medium transition-colors',
+                hagglingCategory === p.category
+                  ? 'glass-button'
+                  : 'glass hover:bg-[var(--glass-hover)]'
+              )}
               onClick={() => {
                 setHagglingCategory(p.category);
                 setHagglingVendorPrice(p.maxPrice);
               }}
             >
               {p.category}
-            </Button>
+            </button>
           ))}
         </div>
 
@@ -2180,12 +2178,12 @@ export function SeekerDashboard() {
             }}
           />
         ) : (
-          <Card>
-            <CardContent className="p-6 text-center text-muted-foreground">
+          <div className="glass-card">
+            <div className="p-6 text-center text-muted-foreground">
               <Scale className="size-8 mx-auto mb-2 opacity-50" />
               <p className="text-sm">{lang === 'sw' ? 'Hakuna data ya bei' : 'No price data available'}</p>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         )}
       </div>
     );
@@ -2196,7 +2194,7 @@ export function SeekerDashboard() {
     <div className="space-y-6">
       {renderBackButton()}
       <div>
-        <h1 className="text-xl font-bold text-foreground">{lang === 'sw' ? 'Safari ya Kikundi' : 'Group Tour'}</h1>
+        <h1 className="text-xl font-bold gradient-text">{lang === 'sw' ? 'Safari ya Kikundi' : 'Group Tour'}</h1>
         <p className="text-sm text-muted-foreground mt-1">{lang === 'sw' ? 'Onga na wengine na okoa pesa' : 'Join others and save money'}</p>
       </div>
       <GroupTour
@@ -2220,7 +2218,7 @@ export function SeekerDashboard() {
     <div className="space-y-6">
       {renderBackButton()}
       <div>
-        <h1 className="text-xl font-bold text-foreground">{lang === 'sw' ? 'Joto la Soko' : 'Market Heatmap'}</h1>
+        <h1 className="text-xl font-bold gradient-text">{lang === 'sw' ? 'Joto la Soko' : 'Market Heatmap'}</h1>
         <p className="text-sm text-muted-foreground mt-1">{lang === 'sw' ? 'Tazama msongamano wa maeneo' : 'See crowd density by zone'}</p>
       </div>
       <MarketHeatmap
@@ -2262,7 +2260,7 @@ export function SeekerDashboard() {
       <div className="space-y-6">
         {renderBackButton()}
         <div>
-          <h1 className="text-xl font-bold text-foreground">{lang === 'sw' ? 'Orodha ya Ununuzi' : 'Shopping List'}</h1>
+          <h1 className="text-xl font-bold gradient-text">{lang === 'sw' ? 'Orodha ya Ununuzi' : 'Shopping List'}</h1>
           <p className="text-sm text-muted-foreground mt-1">{lang === 'sw' ? 'Panga bidhaa zako na pata bei' : 'Organize your items and get prices'}</p>
         </div>
 
@@ -2275,16 +2273,15 @@ export function SeekerDashboard() {
 
         {/* Route Optimizer toggle */}
         <div className="flex gap-2">
-          <Button
-            variant="outline"
-            className="flex-1 h-10 gap-2 border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400"
+          <button
+            className="glass flex-1 h-10 gap-2 flex items-center justify-center rounded-xl text-sm font-medium text-amber-700 dark:text-amber-400 hover:bg-[var(--glass-hover)] transition-colors"
             onClick={() => setShowRouteOptimizer(!showRouteOptimizer)}
           >
             <Route className="size-4" />
             {showRouteOptimizer
               ? (lang === 'sw' ? 'Ficha Njia' : 'Hide Route')
               : (lang === 'sw' ? 'Boresha Njia' : 'Optimize Route')}
-          </Button>
+          </button>
         </div>
 
         {showRouteOptimizer && (
@@ -2310,7 +2307,7 @@ export function SeekerDashboard() {
     <div className="space-y-6">
       {renderBackButton()}
       <div>
-        <h1 className="text-xl font-bold text-foreground">{lang === 'sw' ? 'Hadithi za Soko' : 'Market Stories'}</h1>
+        <h1 className="text-xl font-bold gradient-text">{lang === 'sw' ? 'Hadithi za Soko' : 'Market Stories'}</h1>
         <p className="text-sm text-muted-foreground mt-1">{lang === 'sw' ? 'Sikiliza kutoka kwa waongozaji na wauzaji' : 'Hear from guides and vendors'}</p>
       </div>
       <MarketStories
@@ -2363,7 +2360,7 @@ export function SeekerDashboard() {
     <div className="space-y-6">
       {renderBackButton()}
       <div>
-        <h1 className="text-xl font-bold text-foreground">{lang === 'sw' ? 'Kalenda ya Msimu' : 'Seasonal Calendar'}</h1>
+        <h1 className="text-xl font-bold gradient-text">{lang === 'sw' ? 'Kalenda ya Msimu' : 'Seasonal Calendar'}</h1>
         <p className="text-sm text-muted-foreground mt-1">{lang === 'sw' ? 'Matukio ya soko na nyakati bora' : 'Market events and best times'}</p>
       </div>
       <SeasonalCalendar
@@ -2415,7 +2412,7 @@ export function SeekerDashboard() {
     <div className="space-y-6">
       {renderBackButton()}
       <div>
-        <h1 className="text-xl font-bold text-foreground">{lang === 'sw' ? 'Rafiki Pamoja' : 'Buddy System'}</h1>
+        <h1 className="text-xl font-bold gradient-text">{lang === 'sw' ? 'Rafiki Pamoja' : 'Buddy System'}</h1>
         <p className="text-sm text-muted-foreground mt-1">{lang === 'sw' ? 'Onga na watafuta wengine kwa usalama' : 'Join other seekers for safety'}</p>
       </div>
       <BuddySystem
@@ -2441,7 +2438,7 @@ export function SeekerDashboard() {
     <div className="space-y-6">
       {renderBackButton()}
       <div>
-        <h1 className="text-xl font-bold text-foreground">{lang === 'sw' ? 'Vifurushi' : 'Package Deals'}</h1>
+        <h1 className="text-xl font-bold gradient-text">{lang === 'sw' ? 'Vifurushi' : 'Package Deals'}</h1>
         <p className="text-sm text-muted-foreground mt-1">{lang === 'sw' ? 'Vifurushi vya bei nafuu kutoka kwa waongozaji' : 'Discounted bundles from guides'}</p>
       </div>
       <PackageDeals
@@ -2489,20 +2486,18 @@ export function SeekerDashboard() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b">
+      <header className="glass-nav sticky top-0 z-50">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
             {view !== 'home' && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="size-8"
+              <button
+                className="glass size-8 flex items-center justify-center rounded-xl hover:bg-[var(--glass-hover)] transition-colors"
                 onClick={() => navigateTo('home')}
               >
                 <ArrowLeft className="size-4" />
-              </Button>
+              </button>
             )}
-            <h1 className="text-base font-bold text-foreground">
+            <h1 className="text-base font-bold gradient-text">
               {view === 'home' && (lang === 'sw' ? 'Kariako Guide' : 'Kariako Guide')}
               {view === 'post-request' && t('post_request', lang)}
               {view === 'my-requests' && t('my_requests', lang)}
@@ -2523,10 +2518,8 @@ export function SeekerDashboard() {
           </div>
           <div className="flex items-center gap-1.5">
             {activeSession && (
-              <Button
-                variant="default"
-                size="sm"
-                className="h-8 gap-1 text-xs"
+              <button
+                className="glass-button h-8 gap-1 text-xs flex items-center px-3"
                 onClick={() => {
                   setActiveSessionId(activeSession.id);
                   fetchActiveSession(activeSession.id);
@@ -2536,7 +2529,7 @@ export function SeekerDashboard() {
               >
                 <Clock className="size-3" />
                 {t('active_session', lang)}
-              </Button>
+              </button>
             )}
           </div>
         </div>
@@ -2546,13 +2539,11 @@ export function SeekerDashboard() {
       <main className="flex-1 max-w-2xl mx-auto w-full px-4 py-4 pb-24">
         {/* Error banner */}
         {error && (
-          <div className="mb-4 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg p-3 flex items-center gap-2">
+          <div className="mb-4 glass p-3 rounded-xl flex items-center gap-2 border-red-200 dark:border-red-800">
             <AlertTriangle className="size-4 text-red-600 dark:text-red-400 shrink-0" />
             <p className="text-sm text-red-700 dark:text-red-300 flex-1">{error}</p>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 text-xs"
+            <button
+              className="glass h-7 text-xs px-2 rounded-lg font-medium hover:bg-[var(--glass-hover)] transition-colors"
               onClick={() => {
                 setError(null);
                 fetchZones();
@@ -2560,9 +2551,9 @@ export function SeekerDashboard() {
                 fetchSessions();
               }}
             >
-              <RefreshCw className="size-3 mr-1" />
+              <RefreshCw className="size-3 mr-1 inline" />
               {t('retry', lang)}
-            </Button>
+            </button>
           </div>
         )}
 
@@ -2585,7 +2576,7 @@ export function SeekerDashboard() {
       </main>
 
       {/* Bottom navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t z-50">
+      <nav className="fixed bottom-0 left-0 right-0 glass-nav z-50">
         <div className="max-w-2xl mx-auto flex items-center justify-around py-2 px-2">
           {[
             { id: 'home' as SeekerView, icon: Home, label: t('nav_home', lang) },
@@ -2598,10 +2589,10 @@ export function SeekerDashboard() {
               key={item.id}
               onClick={() => navigateTo(item.id)}
               className={cn(
-                'flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg transition-colors min-w-[56px]',
+                'flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-colors min-w-[56px]',
                 view === item.id
-                  ? 'text-primary'
-                  : 'text-muted-foreground hover:text-foreground'
+                  ? 'text-amber-600 dark:text-amber-400'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-[var(--glass-hover)]'
               )}
             >
               <item.icon className="size-5" />
@@ -2613,9 +2604,9 @@ export function SeekerDashboard() {
 
       {/* Rating Dialog */}
       <Dialog open={ratingOpen} onOpenChange={setRatingOpen}>
-        <DialogContent>
+        <DialogContent className="glass-card border-[var(--glass-border)]">
           <DialogHeader>
-            <DialogTitle>{t('rate_experience', lang)}</DialogTitle>
+            <DialogTitle className="gradient-text">{t('rate_experience', lang)}</DialogTitle>
             <DialogDescription>
               {lang === 'sw'
                 ? 'Tafadhali kadiria uzoefu wako na mwongozo'
@@ -2645,19 +2636,25 @@ export function SeekerDashboard() {
                 value={reviewText}
                 onChange={(e) => setReviewText(e.target.value)}
                 placeholder={lang === 'sw' ? 'Andika maoni yako hapa...' : 'Write your review here...'}
-                className="mt-1.5"
+                className="mt-1.5 glass-input border-0 bg-transparent focus:ring-0 focus:outline-none"
                 maxLength={300}
               />
             </div>
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setRatingOpen(false)}>
+            <button
+              className="glass px-4 py-2 rounded-xl text-sm font-medium hover:bg-[var(--glass-hover)] transition-colors"
+              onClick={() => setRatingOpen(false)}
+            >
               {t('cancel', lang)}
-            </Button>
-            <Button onClick={handleSubmitRating}>
+            </button>
+            <button
+              className="glass-button px-4 py-2 text-sm"
+              onClick={handleSubmitRating}
+            >
               {t('submit_review', lang)}
-            </Button>
+            </button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
