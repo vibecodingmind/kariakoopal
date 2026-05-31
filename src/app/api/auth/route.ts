@@ -3,7 +3,6 @@ import { cookies } from 'next/headers';
 import bcrypt from 'bcryptjs';
 import { DEMO_USERS, DEMO_GUIDE_PROFILES, isDemoPhone, db } from '@/lib/demo-data';
 import { sanitizePhone, sanitizeEmail, sanitizeString, sanitizeRole } from '@/lib/sanitize';
-import { rateLimit, getClientIp } from '@/lib/rate-limit';
 
 // ── Demo accounts with known passwords (for quick demo access) ──
 const DEMO_EMAIL_ACCOUNTS: Record<string, { password: string; id: string; name: string; role: string; phone: string; email: string }> = {
@@ -17,7 +16,7 @@ const DEMO_EMAIL_ACCOUNTS: Record<string, { password: string; id: string; name: 
 };
 
 // ── Helper: Set auth cookies ──
-async function setAuthCookies(token: string, role: string) {
+async function setAuthCookies(token: string, role: string): Promise<boolean> {
   try {
     const cookieStore = await cookies();
     cookieStore.set('auth_token', token, {
@@ -34,7 +33,12 @@ async function setAuthCookies(token: string, role: string) {
       maxAge: 60 * 60 * 24 * 7,
       path: '/',
     });
-  } catch {}
+    return true;
+  } catch (err) {
+    // Log instead of silently swallowing — missing cookies cause redirect loops
+    console.error('[setAuthCookies] Failed to set auth cookies:', err);
+    return false;
+  }
 }
 
 // ── Helper: Get guide profile for a user ──
@@ -49,15 +53,10 @@ async function getGuideProfile(userId: string, role: string) {
 
 export async function POST(request: NextRequest) {
   try {
-    // ── Rate Limiting ──
-    const clientIp = getClientIp(request);
-    const rateResult = rateLimit(`auth:${clientIp}`, 5, 60 * 1000);
-    if (!rateResult.allowed) {
-      return NextResponse.json(
-        { error: 'Too many login attempts. Please try again later.', success: false, retryAfter: Math.ceil((rateResult.resetTime - Date.now()) / 1000) },
-        { status: 429, headers: { 'X-RateLimit-Limit': String(rateResult.total), 'X-RateLimit-Remaining': '0', 'X-RateLimit-Reset': String(rateResult.resetTime), 'Retry-After': String(Math.ceil((rateResult.resetTime - Date.now()) / 1000)) } }
-      );
-    }
+    // NOTE: Rate limiting is handled by the middleware (src/middleware.ts).
+    // No duplicate rate-limit check here — the middleware already applies
+    // path-specific limits (20 login/min, 30 other auth/min) which prevents
+    // the previous double-rate-limiting bug that blocked demo logins.
 
     const body = await request.json();
     const { phone, name, email, password, role } = body;

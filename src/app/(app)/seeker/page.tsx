@@ -8,7 +8,7 @@ import {
   MapPin, Search, ShoppingBag, Clock, Star, ChevronRight, Compass,
   TrendingUp, Users, Package, Bell, Sparkles, Brain, CalendarDays,
   Handshake, Languages, UserCheck, QrCode, Gift, Navigation,
-  Zap, Bot
+  Zap, Bot, Trophy
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Onboarding } from '@/components/onboarding';
@@ -21,6 +21,7 @@ const AI_QUICK_ACTIONS = [
 ];
 
 const PLATFORM_ACTIONS = [
+  { title: 'Loyalty', subtitle: '2,450 pts', href: '/seeker/loyalty', icon: Trophy, color: 'text-[#F59E0B]' },
   { title: 'Shopping List', subtitle: 'Plan your buys', href: '/seeker/shopping-list', icon: ShoppingBag, color: 'text-[#F59E0B]' },
   { title: 'Price Radar', subtitle: 'Fair prices', href: '/prices', icon: TrendingUp, color: 'text-[#065F46]' },
   { title: 'Find Buddy', subtitle: 'Share costs', href: '/seeker/buddy', icon: Users, color: 'text-[#3B82F6]' },
