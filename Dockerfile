@@ -12,8 +12,8 @@ RUN npm ci
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
-RUN npm install tsx
 COPY . .
+RUN npm install tsx
 RUN npx prisma generate
 RUN npm run build
 
