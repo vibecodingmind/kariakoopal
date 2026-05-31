@@ -67,7 +67,7 @@ function AuthContent() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (isAuthenticated) router.replace('/dashboard');
+    if (isAuthenticated) router.replace('/');
   }, [isAuthenticated, router, showOnboarding]);
 
   const handleSendOtp = () => {
@@ -104,7 +104,7 @@ function AuthContent() {
   const handleSocialLogin = useCallback((provider: string) => {
     const providerMap: Record<string, string> = { 'Google': 'google', 'google': 'google', 'Facebook': 'facebook', 'facebook': 'facebook', 'Apple': 'apple', 'apple': 'apple' };
     const providerId = providerMap[provider];
-    if (providerId === 'google' || providerId === 'facebook') { signIn(providerId, { callbackUrl: '/dashboard' }); }
+    if (providerId === 'google' || providerId === 'facebook') { signIn(providerId, { callbackUrl: '/' }); }
     else { toast.info(`${provider} ${t('demo_mode', language).toLowerCase()} — Coming soon!`); }
   }, [language]);
 

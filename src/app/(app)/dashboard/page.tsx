@@ -13,7 +13,7 @@ export default function DashboardRedirectPage() {
       router.replace('/auth');
       return;
     }
-    if (user?.role === 'seeker') router.replace('/seeker');
+    if (user?.role === 'seeker') router.replace('/');
     else if (user?.role === 'guide') router.replace('/guide');
     else if (user?.role === 'admin') router.replace('/admin');
   }, [isAuthenticated, user, router]);

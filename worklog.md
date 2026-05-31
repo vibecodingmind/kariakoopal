@@ -1,30 +1,23 @@
 ---
 Task ID: 1
 Agent: Main Agent
-Task: Continue building Kariako Guide multi-page architecture
+Task: Remove landing page, make home the direct market exploration experience
 
 Work Log:
-- Cleared stale .next cache to fix HMR runtime error
-- Audited all existing files - confirmed 29+ pages were created by previous subagent tasks
-- Verified all pages compile successfully with `next build` (zero errors)
-- Added allowedDevOrigins config in next.config.ts to fix cross-origin blocking
-- Created Prisma seed script with zones, vendors, prices, exchange rates, and seasonal events
-- Ran `npx prisma db push` and `npx tsx prisma/seed.ts` successfully
-- Added app-like page transitions with template.tsx (framer-motion AnimatePresence)
-- Added loading.tsx with shimmer skeleton states for both root and (app) routes
-- Tested all 15+ page routes sequentially via production build - all return 200
-- Committed and pushed to GitHub for Railway auto-deploy
+- Read and analyzed all existing files: page.tsx, app-shell.tsx, (app)/layout.tsx, market/page.tsx, vendors/page.tsx, guides/page.tsx, prices/page.tsx, events/page.tsx, stories/page.tsx, market/[zoneId]/page.tsx, vendors/[id]/page.tsx, guides/[id]/page.tsx
+- Cleared .next cache (181MB) to fix HMR error from previous session
+- Deleted src/app/page.tsx (old 537-line landing page with hero, security, how-it-works sections)
+- Created src/app/(app)/page.tsx - new direct market exploration home page with: hero search section, live market stats, 6 market zones grid, hot prices with live indicators, featured vendors carousel, top guides list, CTA sections
+- Updated src/components/app-shell.tsx: removed isLanding check (shell now shows on /), updated public bottom nav to have Home as first tab, kept shell hidden only on /auth
+- Updated src/app/auth/page.tsx: changed redirect from /dashboard to / after login
+- Updated src/app/(app)/dashboard/page.tsx: seekers now redirect to / instead of /seeker
+- Fixed syntax error in (app)/page.tsx: missing closing brace `)}` on line 401
+- Verified production build succeeds with all 60 pages
+- Tested all 11 key pages: /, /market, /vendors, /guides, /prices, /events, /stories, /auth, /market/electronics, /vendors/v1, /guides/g1 - all return 200
 
 Stage Summary:
-- Complete multi-page architecture with 29+ pages working
-- Public pages: /market, /market/[zoneId], /guides, /guides/[id], /vendors, /vendors/[id], /prices, /events, /stories
-- Seeker pages: /seeker, /seeker/find, /seeker/shopping-list, /seeker/buddy, /seeker/history, /seeker/profile, /seeker/session/[id]
-- Guide pages: /guide, /guide/sessions, /guide/packages, /guide/earnings, /guide/profile, /guide/mentorship
-- Admin pages: /admin, /admin/guides, /admin/vendors, /admin/disputes, /admin/fraud
-- Auth: /auth, /dashboard (redirects)
-- Rich seed data for vendors (12), prices (14), events (4), exchange rates (4)
-- Bilingual support (Swahili/English) throughout all pages
-- App-like bottom navigation with role-based tabs
-- Smooth framer-motion page transitions
-- Shimmer loading states
-- Database seeded with Prisma
+- Landing page removed; home (/) now directly shows market exploration
+- AppShell (top header + bottom nav) now visible on home page
+- Bottom nav for public users: Home, Guides, Prices, Events, Vendors
+- All 11 tested pages working with 200 status codes
+- Production build clean with no errors

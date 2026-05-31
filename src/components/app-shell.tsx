@@ -14,6 +14,7 @@ import {
   DollarSign,
   BookOpen,
   Shield,
+  Users,
 } from 'lucide-react';
 import { LanguageToggle } from '@/components/language-toggle';
 import { Moon, Sun, LogOut, ChevronDown } from 'lucide-react';
@@ -62,15 +63,15 @@ function BottomNav() {
   const { user } = useAuthStore();
 
   const publicTabs = [
-    { href: '/market', icon: Store, label: 'Market', labelSw: 'Soko' },
+    { href: '/', icon: Home, label: 'Home', labelSw: 'Nyumbani' },
     { href: '/guides', icon: Compass, label: 'Guides', labelSw: 'Miongozo' },
     { href: '/prices', icon: DollarSign, label: 'Prices', labelSw: 'Bei' },
     { href: '/events', icon: Calendar, label: 'Events', labelSw: 'Matukio' },
-    { href: '/stories', icon: BookOpen, label: 'Stories', labelSw: 'Hadithi' },
+    { href: '/vendors', icon: Store, label: 'Vendors', labelSw: 'Wauzaji' },
   ];
 
   const seekerTabs = [
-    { href: '/seeker', icon: Home, label: 'Home', labelSw: 'Nyumbani' },
+    { href: '/', icon: Home, label: 'Home', labelSw: 'Nyumbani' },
     { href: '/market', icon: Store, label: 'Market', labelSw: 'Soko' },
     { href: '/seeker/find', icon: Search, label: 'Find Guide', labelSw: 'Tafuta' },
     { href: '/prices', icon: DollarSign, label: 'Prices', labelSw: 'Bei' },
@@ -87,7 +88,7 @@ function BottomNav() {
 
   const adminTabs = [
     { href: '/admin', icon: Home, label: 'Dashboard', labelSw: 'Dashibodi' },
-    { href: '/admin/guides', icon: Compass, label: 'Guides', labelSw: 'Miongozo' },
+    { href: '/admin/guides', icon: Users, label: 'Guides', labelSw: 'Miongozo' },
     { href: '/admin/vendors', icon: Store, label: 'Vendors', labelSw: 'Wauzaji' },
     { href: '/admin/disputes', icon: Shield, label: 'Disputes', labelSw: 'Migogoro' },
     { href: '/admin/fraud', icon: Search, label: 'Fraud', labelSw: 'Dhuluma' },
@@ -103,6 +104,7 @@ function BottomNav() {
   else if (isAuth && user?.role === 'admin') tabs = adminTabs;
 
   const isActive = (href: string) => {
+    if (href === '/') return pathname === '/';
     if (href === '/seeker' || href === '/guide' || href === '/admin') return pathname === href;
     return pathname.startsWith(href);
   };
@@ -114,7 +116,7 @@ function BottomNav() {
           const active = isActive(tab.href);
           return (
             <button
-              key={tab.href}
+              key={tab.href + tab.label}
               onClick={() => router.push(tab.href)}
               className={`flex flex-col items-center justify-center gap-0.5 flex-1 py-1 transition-all duration-200 ${
                 active
@@ -177,7 +179,7 @@ function TopHeader() {
             <Compass className="w-4 h-4 text-white" strokeWidth={2.5} />
           </div>
           <span className="text-sm font-bold gradient-text-green hidden sm:block">
-            {sw ? 'Kariako Guide' : 'Kariako Guide'}
+            Kariako Guide
           </span>
         </button>
 
@@ -230,13 +232,11 @@ function TopHeader() {
 // ── Main App Shell ──
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { isAuthenticated } = useAuthStore();
 
-  // Don't show shell on landing page or auth page
-  const isLanding = pathname === '/';
+  // Only hide shell on auth page
   const isAuth = pathname === '/auth';
 
-  if (isLanding || isAuth) {
+  if (isAuth) {
     return <>{children}</>;
   }
 
