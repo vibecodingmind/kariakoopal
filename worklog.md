@@ -21,3 +21,32 @@ Stage Summary:
 - Bottom nav for public users: Home, Guides, Prices, Events, Vendors
 - All 11 tested pages working with 200 status codes
 - Production build clean with no errors
+---
+Task ID: mega-build
+Agent: main
+Task: Build all standout features for Kariako Guide platform
+
+Work Log:
+- Added notification store with demo data and persist (10+ notifications for seeker/guide)
+- Updated auth store with walletBalance, subscriptionTier, updateProfile actions
+- Built Wallet/Payment page with M-Pesa top-up, withdrawal, transaction history, filters
+- Built Subscription Management page with Starter/Pro/Elite tiers, billing history, payment flow
+- Built Security Center with security score, 2FA setup, PIN lock, sessions, login history, privacy controls
+- Built Settings page with account editing, language toggle, notifications, privacy, links
+- Built Notification Center with filters, mark read, unread badge, dismiss
+- Enhanced Seeker Profile with avatar, wallet card, stats grid, edit capabilities
+- Enhanced Guide Profile with avatar, subscription card, online toggle, badges, edit
+- Updated App Shell with notification bell (unread count), wallet badge, expanded user menu
+- Added API routes for /api/wallet and /api/security
+- All pages support Swahili/English i18n, dark mode, Framer Motion animations
+- Build successful with 68 routes
+- Pushed to GitHub, Railway auto-deploy verified all new routes return 200
+
+Stage Summary:
+- 7 new pages created: /wallet, /guide/subscriptions, /settings, /settings/security, /notifications
+- 2 existing pages enhanced: /seeker/profile, /guide/profile
+- 1 component updated: app-shell.tsx (notification bell, wallet badge, expanded menu)
+- 1 new store: notification-store.ts
+- 2 new API routes: /api/wallet, /api/security
+- 1 store updated: auth-store.ts (walletBalance, subscriptionTier, updateProfile)
+- All routes verified live on Railway: https://web-production-91b90.up.railway.app/
