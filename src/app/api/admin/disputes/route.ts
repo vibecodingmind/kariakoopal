@@ -1,48 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDbOrNull } from '@/lib/demo-data';
+import { db } from '@/lib/demo-data';
 
 const DEMO_DISPUTES = [
   {
-    id: 'disp1',
-    requestId: 'req1',
-    guideId: 'demo-guide-1',
-    seekerId: 'demo-seeker-1',
-    sessionCode: 'KG-2026-001',
-    startedAt: '2026-05-28T10:00:00.000Z',
-    completedAt: null,
-    escrowStatus: 'held',
-    amount: 25000,
-    platformFee: 2500,
-    disputeFlag: true,
-    disputeReason: 'Guide did not show up on time',
-    emergencyFlag: false,
-    seekerConfirmed: false,
-    guideConfirmed: false,
-    createdAt: '2026-05-28T10:00:00.000Z',
-    updatedAt: '2026-05-30T14:00:00.000Z',
+    id: 'disp1', requestId: 'req1', guideId: 'demo-guide-1', seekerId: 'demo-seeker-1',
+    sessionCode: 'KG-2026-001', startedAt: '2026-05-28T10:00:00.000Z', completedAt: null,
+    escrowStatus: 'held', amount: 25000, platformFee: 2500, disputeFlag: true,
+    disputeReason: 'Guide did not show up on time', emergencyFlag: false,
+    seekerConfirmed: false, guideConfirmed: false,
+    createdAt: '2026-05-28T10:00:00.000Z', updatedAt: '2026-05-30T14:00:00.000Z',
     guide: { id: 'demo-guide-1', name: 'Hamisi Juma', phone: '+255712000001', avatarUrl: null },
     seeker: { id: 'demo-seeker-1', name: 'Sarah Johnson', phone: '+14155550001', avatarUrl: null },
     request: { id: 'req1', description: 'Need guide for electronics shopping - looking for phone deals' },
     messages: [],
   },
   {
-    id: 'disp2',
-    requestId: 'req2',
-    guideId: 'demo-guide-2',
-    seekerId: 'demo-seeker-1',
-    sessionCode: 'KG-2026-002',
-    startedAt: '2026-05-29T08:00:00.000Z',
-    completedAt: null,
-    escrowStatus: 'held',
-    amount: 35000,
-    platformFee: 3500,
-    disputeFlag: true,
-    disputeReason: 'Price charged was higher than quoted',
-    emergencyFlag: false,
-    seekerConfirmed: false,
-    guideConfirmed: false,
-    createdAt: '2026-05-29T08:00:00.000Z',
-    updatedAt: '2026-05-30T16:00:00.000Z',
+    id: 'disp2', requestId: 'req2', guideId: 'demo-guide-2', seekerId: 'demo-seeker-1',
+    sessionCode: 'KG-2026-002', startedAt: '2026-05-29T08:00:00.000Z', completedAt: null,
+    escrowStatus: 'held', amount: 35000, platformFee: 3500, disputeFlag: true,
+    disputeReason: 'Price charged was higher than quoted', emergencyFlag: false,
+    seekerConfirmed: false, guideConfirmed: false,
+    createdAt: '2026-05-29T08:00:00.000Z', updatedAt: '2026-05-30T16:00:00.000Z',
     guide: { id: 'demo-guide-2', name: 'Fatma Hassan', phone: '+255714000001', avatarUrl: null },
     seeker: { id: 'demo-seeker-1', name: 'Sarah Johnson', phone: '+14155550001', avatarUrl: null },
     request: { id: 'req2', description: 'Fabric shopping for kanga and kitenge' },
@@ -52,29 +30,14 @@ const DEMO_DISPUTES = [
 
 export async function GET() {
   try {
-    const db = getDbOrNull();
-    if (!db) {
-      return NextResponse.json({ disputes: DEMO_DISPUTES }, { status: 200 });
-    }
-
     const disputedSessions = await db.session.findMany({
       where: { disputeFlag: true },
       include: {
-        guide: {
-          select: { id: true, name: true, phone: true, avatarUrl: true },
-        },
-        seeker: {
-          select: { id: true, name: true, phone: true, avatarUrl: true },
-        },
-        request: {
-          select: { id: true, description: true },
-        },
+        guide: { select: { id: true, name: true, phone: true, avatarUrl: true } },
+        seeker: { select: { id: true, name: true, phone: true, avatarUrl: true } },
+        request: { select: { id: true, description: true } },
         messages: {
-          include: {
-            sender: {
-              select: { id: true, name: true, avatarUrl: true },
-            },
-          },
+          include: { sender: { select: { id: true, name: true, avatarUrl: true } } },
           orderBy: { createdAt: 'desc' },
           take: 10,
         },
@@ -111,20 +74,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const db = getDbOrNull();
-    if (!db) {
-      return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
-    }
-
     const session = await db.session.findUnique({
       where: { id: sessionId },
       include: {
-        guide: {
-          select: { id: true, name: true, phone: true, avatarUrl: true },
-        },
-        seeker: {
-          select: { id: true, name: true, phone: true, avatarUrl: true },
-        },
+        guide: { select: { id: true, name: true, phone: true, avatarUrl: true } },
+        seeker: { select: { id: true, name: true, phone: true, avatarUrl: true } },
       },
     });
 
@@ -149,15 +103,9 @@ export async function POST(request: NextRequest) {
         completedAt: new Date(),
       },
       include: {
-        guide: {
-          select: { id: true, name: true, phone: true, avatarUrl: true },
-        },
-        seeker: {
-          select: { id: true, name: true, phone: true, avatarUrl: true },
-        },
-        request: {
-          select: { id: true, description: true },
-        },
+        guide: { select: { id: true, name: true, phone: true, avatarUrl: true } },
+        seeker: { select: { id: true, name: true, phone: true, avatarUrl: true } },
+        request: { select: { id: true, description: true } },
       },
     });
 
@@ -165,12 +113,7 @@ export async function POST(request: NextRequest) {
       const guideAmount = session.amount - session.platformFee;
       if (guideAmount > 0) {
         await db.payout.create({
-          data: {
-            guideId: session.guideId,
-            amount: guideAmount,
-            status: 'pending',
-            mobileMoneyNumber: '',
-          },
+          data: { guideId: session.guideId, amount: guideAmount, status: 'pending', mobileMoneyNumber: '' },
         });
       }
     }
@@ -186,12 +129,7 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(
-      {
-        session: updated,
-        resolution,
-        reason: reason || null,
-        escrowStatus,
-      },
+      { session: updated, resolution, reason: reason || null, escrowStatus },
       { status: 200 }
     );
   } catch (error) {

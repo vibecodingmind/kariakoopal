@@ -3,6 +3,7 @@
 // Ensures demo mode always works regardless of database state
 
 import { NextResponse } from 'next/server';
+import { db } from '@/lib/db';
 
 // ── Zones ──
 export const DEMO_ZONES = [
@@ -79,55 +80,22 @@ export const DEMO_EXCHANGE_RATES = [
   { id: 'er4', currency: 'UGX', rate: 0.69, updatedAt: new Date().toISOString() },
 ];
 
-// ── Helper: Try DB, fallback to demo data ──
-export async function withDemoFallback<T>(
-  dbQuery: () => Promise<T>,
-  demoData: T,
-): Promise<T> {
-  try {
-    const result = await dbQuery();
-    // If query returns empty array and we have demo data, use demo
-    if (Array.isArray(result) && result.length === 0 && Array.isArray(demoData) && demoData.length > 0) {
-      return demoData;
-    }
-    return result;
-  } catch {
-    return demoData;
-  }
+// ── Demo Users for Auth ──
+export const DEMO_USERS: Record<string, { id: string; phone: string; name: string; role: string; languagePref: string; email: string | null; avatarUrl: string | null }> = {
+  '+14155550001': { id: 'demo-seeker-1', phone: '+14155550001', name: 'Sarah Johnson', role: 'seeker', languagePref: 'en', email: 'sarah@demo.com', avatarUrl: null },
+  '+255712000001': { id: 'demo-guide-1', phone: '+255712000001', name: 'Hamisi Juma', role: 'guide', languagePref: 'en', email: 'hamisi@demo.com', avatarUrl: null },
+  '+255700000001': { id: 'demo-admin-1', phone: '+255700000001', name: 'Admin User', role: 'admin', languagePref: 'en', email: 'admin@demo.com', avatarUrl: null },
+};
+
+export const DEMO_GUIDE_PROFILES: Record<string, { id: string; userId: string; bio: string; status: string; zones: string[]; languages: string[]; avgRating: number; totalSessions: number; isOnline: boolean; currentStatus: string }> = {
+  'demo-guide-1': { id: 'gp-demo-1', userId: 'demo-guide-1', bio: 'Experienced Kariakoo guide specializing in Electronics and Fabrics zones. 5+ years of market navigation.', status: 'active', zones: ['zone-electronics', 'zone-fabrics'], languages: ['sw', 'en'], avgRating: 4.8, totalSessions: 156, isOnline: true, currentStatus: 'online' },
+};
+
+export function isDemoPhone(phone: string): boolean {
+  return phone in DEMO_USERS;
 }
 
-// ── Helper: Get DB or null ──
-// We import db directly but wrap access in try-catch at call sites
-// If the database connection fails, the calling code falls back to demo data
-let _db: unknown = null;
-let _dbTried = false;
-
-export function getDbOrNull() {
-  if (_dbTried) return _db;
-  _dbTried = true;
-  try {
-    // Dynamic import won't work synchronously, so we use a trick:
-    // The db module is already bundled; if Prisma can't connect,
-    // queries will throw, and calling code catches and uses demo data
-    const dbModule = require('@/lib/db');
-    _db = dbModule.db;
-    return _db;
-  } catch {
-    return null;
-  }
-}
-
-// Reset for testing
-export function _resetDbCache() {
-  _db = null;
-  _dbTried = false;
-}
-
-// ── Helper: API response with demo fallback ──
-export function apiResponse(data: unknown, status = 200) {
-  return NextResponse.json(data, { status });
-}
-
-export function apiError(message: string, status = 500) {
-  return NextResponse.json({ error: message }, { status });
-}
+// ── Export db directly ──
+// We import it at the top level. If Prisma can't connect,
+// queries will throw at runtime, and calling code catches and uses demo data.
+export { db };

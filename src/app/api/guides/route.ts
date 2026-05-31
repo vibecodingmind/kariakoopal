@@ -1,23 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { DEMO_GUIDES, getDbOrNull } from '@/lib/demo-data';
+import { DEMO_GUIDES, db } from '@/lib/demo-data';
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
-
-    const db = getDbOrNull();
-    if (!db) {
-      let filtered = DEMO_GUIDES;
-      if (status) filtered = filtered.filter(g => g.guideProfile.status === status);
-      return NextResponse.json({
-        guides: filtered.map(g => ({
-          ...g.guideProfile,
-          user: g.user,
-          badges: [],
-        })),
-      }, { status: 200 });
-    }
 
     const where = status ? { status } : {};
 
@@ -39,8 +26,10 @@ export async function GET(request: NextRequest) {
     });
 
     if (guides.length === 0) {
+      let filtered = DEMO_GUIDES;
+      if (status) filtered = filtered.filter(g => g.guideProfile.status === status);
       return NextResponse.json({
-        guides: DEMO_GUIDES.map(g => ({
+        guides: filtered.map(g => ({
           ...g.guideProfile,
           user: g.user,
           badges: [],
@@ -51,8 +40,12 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ guides }, { status: 200 });
   } catch (error) {
     console.error('Get guides error:', error);
+    const { searchParams } = new URL(request.url);
+    const status = searchParams.get('status');
+    let filtered = DEMO_GUIDES;
+    if (status) filtered = filtered.filter(g => g.guideProfile.status === status);
     return NextResponse.json({
-      guides: DEMO_GUIDES.map(g => ({
+      guides: filtered.map(g => ({
         ...g.guideProfile,
         user: g.user,
         badges: [],

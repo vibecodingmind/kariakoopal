@@ -1,13 +1,8 @@
 import { NextResponse } from 'next/server';
-import { DEMO_EXCHANGE_RATES, getDbOrNull } from '@/lib/demo-data';
+import { DEMO_EXCHANGE_RATES, db } from '@/lib/demo-data';
 
 export async function GET() {
   try {
-    const db = getDbOrNull();
-    if (!db) {
-      return NextResponse.json({ items: DEMO_EXCHANGE_RATES });
-    }
-
     const rates = await db.exchangeRate.findMany({
       orderBy: { currency: 'asc' },
     });
@@ -30,11 +25,6 @@ export async function POST(request: Request) {
 
     if (!currency || rate === undefined) {
       return NextResponse.json({ error: 'currency and rate are required' }, { status: 400 });
-    }
-
-    const db = getDbOrNull();
-    if (!db) {
-      return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
     }
 
     const exchangeRate = await db.exchangeRate.upsert({

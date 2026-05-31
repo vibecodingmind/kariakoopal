@@ -1,31 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { getDbOrNull } from '@/lib/demo-data';
-
-// ── Demo User Fallback (works without database) ──
-const DEMO_USERS: Record<string, { id: string; phone: string; name: string; role: string; languagePref: string; email: string | null; avatarUrl: string | null }> = {
-  '+14155550001': { id: 'demo-seeker-1', phone: '+14155550001', name: 'Sarah Johnson', role: 'seeker', languagePref: 'en', email: 'sarah@demo.com', avatarUrl: null },
-  '+255712000001': { id: 'demo-guide-1', phone: '+255712000001', name: 'Hamisi Juma', role: 'guide', languagePref: 'en', email: 'hamisi@demo.com', avatarUrl: null },
-  '+255700000001': { id: 'demo-admin-1', phone: '+255700000001', name: 'Admin User', role: 'admin', languagePref: 'en', email: 'admin@demo.com', avatarUrl: null },
-};
-
-const DEMO_GUIDE_PROFILES: Record<string, { id: string; userId: string; bio: string; status: string; zones: string[]; languages: string[]; avgRating: number; totalSessions: number; isOnline: boolean; currentStatus: string }> = {
-  'demo-guide-1': { id: 'gp-demo-1', userId: 'demo-guide-1', bio: 'Experienced Kariakoo guide specializing in Electronics and Fabrics zones. 5+ years of market navigation.', status: 'active', zones: ['zone-electronics', 'zone-fabrics'], languages: ['sw', 'en'], avgRating: 4.8, totalSessions: 156, isOnline: true, currentStatus: 'online' },
-};
-
-function isDemoPhone(phone: string): boolean {
-  return phone in DEMO_USERS;
-}
+import { DEMO_USERS, DEMO_GUIDE_PROFILES, isDemoPhone, db } from '@/lib/demo-data';
 
 export async function POST(request: NextRequest) {
   try {
     const { phone, name, email, role } = await request.json();
 
     // ── Demo Mode Fallback (no database required) ──
+    // Demo users are served directly without hitting the database
     if (phone && isDemoPhone(phone)) {
       const demoUser = DEMO_USERS[phone];
-
-      // Allow role override for demo users
       const userRole = (role === 'guide' || role === 'admin') ? role : demoUser.role;
       const user = { ...demoUser, role: userRole, name: name || demoUser.name };
 
@@ -40,9 +24,7 @@ export async function POST(request: NextRequest) {
           maxAge: 60 * 60 * 24 * 7,
           path: '/',
         });
-      } catch {
-        // Cookie setting may fail in some environments, continue anyway
-      }
+      } catch {}
 
       const guideProfile = userRole === 'guide' ? (DEMO_GUIDE_PROFILES[user.id] || DEMO_GUIDE_PROFILES['demo-guide-1']) : null;
 
@@ -50,8 +32,15 @@ export async function POST(request: NextRequest) {
     }
 
     // ── Database-backed Auth ──
-    const db = getDbOrNull();
-    if (!db) {
+    // Try database, fall back to temporary user if DB unavailable
+    let dbAvailable = true;
+    try {
+      await db.$queryRaw`SELECT 1`;
+    } catch {
+      dbAvailable = false;
+    }
+
+    if (!dbAvailable) {
       // If no database available and not a demo user, create a temporary in-memory user
       if (phone) {
         const userRole = (role === 'guide' || role === 'admin') ? role : 'seeker';
@@ -62,7 +51,7 @@ export async function POST(request: NextRequest) {
           name: name || phone.replace(/^\+/, ''),
           email: email || null,
           role: userRole,
-          languagePref: 'sw',
+          languagePref: 'sw' as const,
           avatarUrl: null,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
@@ -79,9 +68,7 @@ export async function POST(request: NextRequest) {
             maxAge: 60 * 60 * 24 * 7,
             path: '/',
           });
-        } catch {
-          // Cookie setting may fail in some environments
-        }
+        } catch {}
 
         const guideProfile = userRole === 'guide' ? {
           id: `gp-${tempId}`,

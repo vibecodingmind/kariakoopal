@@ -1,5 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { DEMO_VENDORS, DEMO_ZONES, getDbOrNull } from '@/lib/demo-data';
+import { DEMO_VENDORS, DEMO_ZONES, db } from '@/lib/demo-data';
+
+function getDemoVendors(zoneId?: string | null, category?: string | null, approved?: string | null) {
+  let vendors = DEMO_VENDORS.map(v => ({
+    ...v,
+    zone: DEMO_ZONES.find(z => z.id === v.zoneId) || null,
+  }));
+  if (zoneId) vendors = vendors.filter(v => v.zoneId === zoneId);
+  if (category) vendors = vendors.filter(v => v.categories.includes(category));
+  if (approved !== null && approved !== undefined) vendors = vendors.filter(v => v.approved === (approved === 'true'));
+  return vendors;
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -7,18 +18,6 @@ export async function GET(request: NextRequest) {
     const zoneId = searchParams.get('zoneId');
     const category = searchParams.get('category');
     const approved = searchParams.get('approved');
-
-    const db = getDbOrNull();
-    if (!db) {
-      let vendors = DEMO_VENDORS.map(v => ({
-        ...v,
-        zone: DEMO_ZONES.find(z => z.id === v.zoneId) || null,
-      }));
-      if (zoneId) vendors = vendors.filter(v => v.zoneId === zoneId);
-      if (category) vendors = vendors.filter(v => v.categories.includes(category));
-      if (approved !== null && approved !== undefined) vendors = vendors.filter(v => v.approved === (approved === 'true'));
-      return NextResponse.json({ vendors }, { status: 200 });
-    }
 
     const where: Record<string, unknown> = {};
     if (zoneId) where.zoneId = zoneId;
@@ -36,22 +35,14 @@ export async function GET(request: NextRequest) {
     });
 
     if (vendors.length === 0) {
-      const demoVendors = DEMO_VENDORS.map(v => ({
-        ...v,
-        zone: DEMO_ZONES.find(z => z.id === v.zoneId) || null,
-      }));
-      return NextResponse.json({ vendors: demoVendors }, { status: 200 });
+      return NextResponse.json({ vendors: getDemoVendors(zoneId, category, approved) }, { status: 200 });
     }
 
     return NextResponse.json({ vendors }, { status: 200 });
   } catch (error) {
     console.error('Get vendors error:', error);
-    return NextResponse.json({
-      vendors: DEMO_VENDORS.map(v => ({
-        ...v,
-        zone: DEMO_ZONES.find(z => z.id === v.zoneId) || null,
-      })),
-    }, { status: 200 });
+    const { searchParams } = new URL(request.url);
+    return NextResponse.json({ vendors: getDemoVendors(searchParams.get('zoneId'), searchParams.get('category'), searchParams.get('approved')) }, { status: 200 });
   }
 }
 
@@ -75,11 +66,6 @@ export async function POST(request: NextRequest) {
         { error: 'name and zoneId are required' },
         { status: 400 }
       );
-    }
-
-    const db = getDbOrNull();
-    if (!db) {
-      return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
     }
 
     const zone = await db.zone.findUnique({ where: { id: zoneId } });

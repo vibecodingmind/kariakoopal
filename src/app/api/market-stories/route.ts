@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getDbOrNull } from '@/lib/demo-data';
+import { db } from '@/lib/demo-data';
 
 const DEMO_STORIES = [
   { id: 'ms1', guideId: 'demo-guide-1', vendorId: 'v1', zoneId: 'zone-electronics', title: 'The Phone Repair Guru of Stall A-12', content: 'Zaki has been fixing phones in Kariakoo for 15 years. His secret? He learned from his father who repaired radios in the 1970s. Today, he can fix any smartphone screen in under 30 minutes — and his prices are always fair because he sources parts directly from Dubai.', audioUrl: null, tags: '["electronics","repair","insider"]', isPublic: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
@@ -14,15 +14,6 @@ export async function GET(request: Request) {
     const guideId = searchParams.get('guideId');
     const isPublic = searchParams.get('isPublic');
 
-    const db = getDbOrNull();
-    if (!db) {
-      let stories = DEMO_STORIES;
-      if (zoneId) stories = stories.filter(s => s.zoneId === zoneId);
-      if (guideId) stories = stories.filter(s => s.guideId === guideId);
-      if (isPublic !== null && isPublic !== undefined) stories = stories.filter(s => s.isPublic === (isPublic === 'true'));
-      return NextResponse.json({ items: stories });
-    }
-
     const where: Record<string, unknown> = {};
     if (zoneId) where.zoneId = zoneId;
     if (guideId) where.guideId = guideId;
@@ -34,7 +25,10 @@ export async function GET(request: Request) {
     });
 
     if (stories.length === 0) {
-      return NextResponse.json({ items: DEMO_STORIES });
+      let filtered = DEMO_STORIES;
+      if (zoneId) filtered = filtered.filter(s => s.zoneId === zoneId);
+      if (guideId) filtered = filtered.filter(s => s.guideId === guideId);
+      return NextResponse.json({ items: filtered });
     }
 
     return NextResponse.json({ items: stories });
@@ -51,11 +45,6 @@ export async function POST(request: Request) {
 
     if (!guideId || !zoneId || !title || !content) {
       return NextResponse.json({ error: 'guideId, zoneId, title, and content are required' }, { status: 400 });
-    }
-
-    const db = getDbOrNull();
-    if (!db) {
-      return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
     }
 
     const story = await db.marketStory.create({

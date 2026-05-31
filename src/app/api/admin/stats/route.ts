@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getDbOrNull } from '@/lib/demo-data';
+import { db } from '@/lib/demo-data';
 
 const DEMO_STATS = {
   users: { seekers: 156, guides: 23, admins: 3, total: 182 },
@@ -14,24 +14,16 @@ const DEMO_STATS = {
 
 export async function GET() {
   try {
-    const db = getDbOrNull();
-    if (!db) {
-      return NextResponse.json({ stats: DEMO_STATS }, { status: 200 });
-    }
-
-    // Total users by role
     const [seekerCount, guideCount, adminCount] = await Promise.all([
       db.user.count({ where: { role: 'seeker' } }),
       db.user.count({ where: { role: 'guide' } }),
       db.user.count({ where: { role: 'admin' } }),
     ]);
 
-    // Active sessions
     const activeSessions = await db.session.count({
       where: { completedAt: null },
     });
 
-    // Requests by status
     const [openRequests, matchedRequests, completedRequests, cancelledRequests] =
       await Promise.all([
         db.request.count({ where: { status: 'open' } }),
@@ -40,7 +32,6 @@ export async function GET() {
         db.request.count({ where: { status: 'cancelled' } }),
       ]);
 
-    // Total revenue
     const releasedSessions = await db.session.findMany({
       where: { escrowStatus: 'released' },
       select: { amount: true, platformFee: true },
@@ -50,7 +41,6 @@ export async function GET() {
       0
     );
 
-    // Average rating
     const ratedSessions = await db.session.findMany({
       where: { ratingSeeker: { not: null } },
       select: { ratingSeeker: true },
@@ -61,7 +51,6 @@ export async function GET() {
           ratedSessions.length
         : 0;
 
-    // Guides pending verification
     const pendingVerification = await db.guideProfile.count({
       where: { status: 'pending' },
     });

@@ -1,13 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { DEMO_ZONES, getDbOrNull } from '@/lib/demo-data';
+import { DEMO_ZONES, db } from '@/lib/demo-data';
 
 export async function GET() {
   try {
-    const db = getDbOrNull();
-    if (!db) {
-      return NextResponse.json({ zones: DEMO_ZONES.map(z => ({ ...z, _count: { vendors: 0, priceRadar: 0, requests: 0 } })) }, { status: 200 });
-    }
-
     const zones = await db.zone.findMany({
       include: {
         _count: {
@@ -34,11 +29,6 @@ export async function POST(request: NextRequest) {
 
     if (!name) {
       return NextResponse.json({ error: 'Zone name is required' }, { status: 400 });
-    }
-
-    const db = getDbOrNull();
-    if (!db) {
-      return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
     }
 
     const zone = await db.zone.create({
