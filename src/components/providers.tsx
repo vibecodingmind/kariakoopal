@@ -1,22 +1,41 @@
 'use client';
 
-import { useState, useEffect, useSyncExternalStore } from 'react';
+import { useState, useEffect } from 'react';
 import { SessionProvider } from 'next-auth/react';
+import { useAuthStore } from '@/lib/stores/auth-store';
 
 // ── Hydration Gate ──
-// Waits for zustand-persist to rehydrate before rendering children.
-// Prevents the "flash" on mobile where the app briefly renders with
-// default (unauthenticated) state before the persisted state loads.
+// Waits for zustand-persist to FULLY rehydrate before rendering children.
+// Prevents the "flash/blink" on mobile where the app briefly renders with
+// default (unauthenticated) state before the persisted state loads from localStorage.
 function HydrationGate({ children }: { children: React.ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    // Use requestAnimationFrame to give zustand-persist a tick
-    // to rehydrate from localStorage before we show the UI
-    const id = requestAnimationFrame(() => {
+    // Check if zustand-persist has already hydrated (synchronous check)
+    // The `persist` API on the store exposes `hasHydrated()` and `onFinishHydration()`
+    const store = useAuthStore;
+
+    if (store.persist?.hasHydrated?.()) {
+      setHydrated(true);
+      return;
+    }
+
+    // If not yet hydrated, subscribe to the hydration finish event
+    const unsubFinish = store.persist?.onFinishHydration?.(() => {
       setHydrated(true);
     });
-    return () => cancelAnimationFrame(id);
+
+    // Safety timeout: if hydration doesn't complete within 3 seconds,
+    // show the UI anyway (prevents infinite loading on broken storage)
+    const timeout = setTimeout(() => {
+      setHydrated(true);
+    }, 3000);
+
+    return () => {
+      unsubFinish?.();
+      clearTimeout(timeout);
+    };
   }, []);
 
   if (!hydrated) {
