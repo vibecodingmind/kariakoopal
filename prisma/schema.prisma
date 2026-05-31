@@ -1304,3 +1304,59 @@ model APIClient {
   @@index([apiKey])
   @@index([isActive])
 }
+
+// ── Feature: Loyalty Points & Streaks ──
+model LoyaltyAccount {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  points          Int      @default(0)
+  lifetimePoints  Int      @default(0)
+  currentStreak   Int      @default(0)
+  longestStreak   Int      @default(0)
+  lastActivityDate String? // ISO date string
+  tier            String   @default("bronze") // bronze, silver, gold, diamond
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  transactions LoyaltyTransaction[]
+
+  @@index([userId])
+  @@index([tier])
+  @@index([currentStreak])
+}
+
+model LoyaltyTransaction {
+  id          String   @id @default(cuid())
+  accountId   String
+  points      Int      // positive for earn/bonus, negative for redeem
+  type        String   // earn, redeem, bonus, adjustment
+  reason      String   // session_completed, daily_login, streak_bonus_7day, redeemed_discount, etc.
+  referenceId String?  // optional link to session/reward/referral
+  metadata    String   @default("{}") // JSON: extra context
+  createdAt   DateTime @default(now())
+
+  account LoyaltyAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([accountId])
+  @@index([type])
+  @@index([reason])
+  @@index([createdAt])
+}
+
+model LoyaltyReward {
+  id             String   @id @default(cuid())
+  name           String
+  nameSw         String   @default("")
+  description    String   @default("")
+  descriptionSw  String   @default("")
+  pointsCost     Int
+  type           String   @default("discount") // discount, feature_unlock, cashback, free_session
+  value          Float    @default(0) // percentage for discount, amount for cashback, minutes for free_session
+  isActive       Boolean  @default(true)
+  icon           String   @default("Gift") // lucide icon name
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([type])
+}

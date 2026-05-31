@@ -10,6 +10,7 @@ import {
   DollarSign, Wallet, Shield, FileText, Megaphone, Bell,
   BarChart3, Settings, ChevronLeft, ChevronRight, ArrowLeft,
   Menu, X, Languages, Zap, Star, Building2, BarChart2, ScanFace,
+  Trophy,
 } from 'lucide-react';
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -54,6 +55,7 @@ const NAV_GROUPS: NavGroup[] = [
       { label: 'Revenue', href: '/admin/revenue', icon: DollarSign },
       { label: 'Payouts', href: '/admin/payouts', icon: Wallet },
       { label: 'Featured Listings', href: '/admin/featured', icon: Star },
+      { label: 'Loyalty Program', href: '/admin/loyalty', icon: Trophy },
       { label: 'Corporate Accounts', href: '/admin/corporate', icon: Building2 },
     ],
   },

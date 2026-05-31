@@ -34,6 +34,12 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
     }
   ],
   "categories": ["shopping", "travel", "lifestyle", "business"],
@@ -80,7 +86,14 @@
     }
   ],
   "related_applications": [],
-  "screenshots": [],
-  "iarc_rating_id": "",
+  "screenshots": [
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Chimbo Direct App"
+    }
+  ],
   "display_override": ["standalone", "minimal-ui"]
 }
