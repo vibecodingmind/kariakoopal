@@ -32,11 +32,18 @@ export async function POST(request: NextRequest) {
         });
 
         // Also fetch guide profile if user is a guide
-        let guideProfile = null;
+        let guideProfile: Record<string, unknown> | null = null;
         if (updatedUser.role === 'guide') {
-          guideProfile = await db.guideProfile.findUnique({
+          const rawProfile = await db.guideProfile.findUnique({
             where: { userId: updatedUser.id },
           });
+          if (rawProfile) {
+            guideProfile = {
+              ...rawProfile,
+              zones: JSON.parse(rawProfile.zones || '[]'),
+              languages: JSON.parse(rawProfile.languages || '[]'),
+            };
+          }
         }
 
         return NextResponse.json({ user: updatedUser, token, guideProfile }, { status: 200 });
@@ -53,16 +60,11 @@ export async function POST(request: NextRequest) {
     let isNewUser = false;
 
     if (!user) {
-      if (!name) {
-        return NextResponse.json(
-          { error: 'Name is required for new users' },
-          { status: 400 }
-        );
-      }
-      // Validate role
+      // Auto-create user for login flow (demo mode / phone auth)
+      const userName = name || phone.replace(/^\+/, '');
       const userRole = (role === 'guide' || role === 'admin') ? role : 'seeker';
       user = await db.user.create({
-        data: { phone, name, email: email || null, role: userRole },
+        data: { phone, name: userName, email: email || null, role: userRole },
       });
       isNewUser = true;
 
@@ -126,18 +128,26 @@ export async function POST(request: NextRequest) {
     });
 
     // Fetch guide profile if user is a guide
-    let guideProfile = null;
+    let guideProfile: Record<string, unknown> | null = null;
     if (user.role === 'guide') {
-      guideProfile = await db.guideProfile.findUnique({
+      const rawProfile = await db.guideProfile.findUnique({
         where: { userId: user.id },
       });
+      if (rawProfile) {
+        // Parse JSON string fields to arrays for frontend compatibility
+        guideProfile = {
+          ...rawProfile,
+          zones: JSON.parse(rawProfile.zones || '[]'),
+          languages: JSON.parse(rawProfile.languages || '[]'),
+        };
+      }
     }
 
     // Fetch badges if guide
-    let badges: never[] | { id: string; guideId: string; badgeType: string; awardedAt: string }[] = [];
+    let badges: { id: string; guideId: string; badgeType: string; awardedAt: string }[] = [];
     if (user.role === 'guide' && guideProfile) {
       badges = await db.badge.findMany({
-        where: { guideId: guideProfile.id },
+        where: { guideId: (guideProfile as { id: string }).id },
       });
     }
 

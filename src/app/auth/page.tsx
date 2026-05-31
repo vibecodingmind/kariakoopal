@@ -118,7 +118,8 @@ function AuthContent() {
     setError('');
     try {
       const fullPhone = phone.startsWith('+') ? phone : `+255${phone.replace(/^0/, '')}`;
-      await login(fullPhone, 'seeker', 'Demo Seeker');
+      // Don't override role for login - the API will use the existing user's role
+      await login(fullPhone, undefined, undefined);
     } catch { setError(language === 'sw' ? 'Hitilafu katika kuingia' : 'Login failed. Please try again.'); }
   };
 

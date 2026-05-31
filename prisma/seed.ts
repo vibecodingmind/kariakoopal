@@ -158,6 +158,49 @@ async function main() {
   }
   console.log('✅ Seasonal events created');
 
+  // ── Create Demo Users ──
+  const demoUsers = [
+    { phone: '+14155550001', name: 'Sarah Johnson', role: 'seeker', languagePref: 'en' },
+    { phone: '+255712000001', name: 'Hamisi Juma', role: 'guide', languagePref: 'en' },
+    { phone: '+255700000001', name: 'Admin User', role: 'admin', languagePref: 'en' },
+    // Extra demo seekers
+    { phone: '+255713000001', name: 'Amina Khalfan', role: 'seeker', languagePref: 'sw' },
+    { phone: '+255715000001', name: 'John Tourist', role: 'seeker', languagePref: 'en' },
+    // Extra demo guides
+    { phone: '+255714000001', name: 'Fatma Hassan', role: 'guide', languagePref: 'sw' },
+    { phone: '+255716000001', name: 'Asha Mohamed', role: 'guide', languagePref: 'en' },
+    { phone: '+255717000001', name: 'Mwanaildi Juma', role: 'guide', languagePref: 'sw' },
+    { phone: '+255718000001', name: 'Halima Abdi', role: 'guide', languagePref: 'sw' },
+  ];
+
+  for (const u of demoUsers) {
+    const user = await prisma.user.upsert({
+      where: { phone: u.phone },
+      update: {},
+      create: u,
+    });
+
+    // Create guide profiles for guide users
+    if (u.role === 'guide') {
+      await prisma.guideProfile.upsert({
+        where: { userId: user.id },
+        update: {},
+        create: {
+          userId: user.id,
+          bio: '',
+          status: 'active',
+          zones: JSON.stringify([electronics.id, fabrics.id]),
+          languages: JSON.stringify(['sw', 'en']),
+          avgRating: 4.5 + Math.random() * 0.5,
+          totalSessions: Math.floor(50 + Math.random() * 200),
+          isOnline: true,
+          currentStatus: 'online',
+        },
+      });
+    }
+  }
+  console.log('✅ Demo users created');
+
   console.log('🎉 Seed complete!');
 }
 
