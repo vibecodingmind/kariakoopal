@@ -98,13 +98,11 @@ function SidebarContent({ collapsed, pathname }: { collapsed: boolean; pathname:
               transition={{ duration: 0.2 }}
               className="overflow-hidden whitespace-nowrap"
             >
-              <Image
-                src="/logo-header.png"
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/logo.svg"
                 alt="Chimbo Direct"
-                width={130}
-                height={45}
                 className="h-8 w-auto brightness-0 invert"
-                priority
               />
               <p className="text-white/40 text-[10px] font-medium mt-0.5">Admin Panel</p>
             </motion.div>
@@ -115,13 +113,11 @@ function SidebarContent({ collapsed, pathname }: { collapsed: boolean; pathname:
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
             >
-              <Image
-                src="/logo-header.png"
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/logo.svg"
                 alt="Chimbo Direct"
-                width={40}
-                height={14}
                 className="h-5 w-auto brightness-0 invert"
-                priority
               />
             </motion.div>
           )}

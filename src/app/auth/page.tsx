@@ -7,7 +7,6 @@ import { useAppStore } from '@/lib/stores/app-store';
 import { t } from '@/lib/i18n';
 import { LanguageToggle } from '@/components/language-toggle';
 import { Input } from '@/components/ui/input';
-import Image from 'next/image';
 import { Mail, Lock, Eye, EyeOff, Shield, Compass, MapPin, Loader2, ArrowRight } from 'lucide-react';
 import { signIn, useSession } from 'next-auth/react';
 import { toast } from 'sonner';
@@ -137,13 +136,11 @@ function AuthContent() {
         <div className="w-full max-w-sm">
           <div className="text-center mb-8">
             <div className="mx-auto mb-4">
-              <Image
-                src="/logo-header.png"
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/logo.svg"
                 alt="Chimbo Direct"
-                width={180}
-                height={62}
                 className="h-14 w-auto mx-auto"
-                priority
               />
             </div>
             <p className="text-[#6C757D] dark:text-[#8B949E] mt-2 text-sm">{t('auth_subtitle', language)}</p>

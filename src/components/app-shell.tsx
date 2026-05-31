@@ -233,13 +233,11 @@ function TopHeader() {
     <header className="knav sticky top-0 z-50">
       <div className="flex items-center justify-between px-4 h-14 max-w-4xl mx-auto">
         <Link href="/" prefetch={true} className="flex items-center group">
-          <Image
-            src="/logo-header.png"
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logo.svg"
             alt="Chimbo Direct"
-            width={140}
-            height={49}
             className="h-9 w-auto"
-            priority
           />
         </Link>
 
@@ -373,13 +371,11 @@ function AdminTopHeader() {
       <div className="flex items-center justify-between px-4 h-14 max-w-[1600px] mx-auto">
         <div className="flex items-center gap-3">
           {/* Full logo for admin header */}
-          <Image
-            src="/logo-header.png"
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logo.svg"
             alt="Chimbo Direct Admin"
-            width={140}
-            height={49}
             className="h-8 w-auto brightness-0 invert"
-            priority
           />
         </div>
         <div className="flex items-center gap-2">
