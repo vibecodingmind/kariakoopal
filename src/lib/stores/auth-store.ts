@@ -54,6 +54,7 @@ interface AuthState {
 
   // Actions
   login: (phone: string, role?: string, name?: string) => Promise<void>;
+  loginWithEmail: (email: string, password: string, name?: string, role?: string) => Promise<void>;
   socialLogin: (provider: string, providerId: string, email: string, name: string, avatarUrl?: string) => Promise<void>;
   logout: () => void;
   setUser: (user: User) => void;
@@ -91,6 +92,37 @@ export const useAuthStore = create<AuthState>()(
 
           if (!res.ok) {
             throw new Error('Login failed');
+          }
+
+          const data = await res.json();
+
+          set({
+            user: data.user,
+            guideProfile: data.guideProfile || null,
+            badges: data.badges || [],
+            isAuthenticated: true,
+            language: (data.user?.languagePref as Language) || 'sw',
+            currentView: data.user?.role === 'admin' ? 'admin' : 'home',
+            isLoading: false,
+          });
+        } catch {
+          set({ isLoading: false });
+          throw new Error('Login failed');
+        }
+      },
+
+      loginWithEmail: async (email: string, password: string, name?: string, role?: string) => {
+        set({ isLoading: true });
+        try {
+          const res = await fetch('/api/auth', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password, name, role }),
+          });
+
+          if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            throw new Error(errData.error || 'Login failed');
           }
 
           const data = await res.json();

@@ -3,17 +3,15 @@
 import { useState, useEffect, useRef, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/lib/stores/auth-store';
-import { useAppStore } from '@/lib/stores/app-store';
-import { t } from '@/lib/i18n';
 import { LanguageToggle } from '@/components/language-toggle';
 import { Input } from '@/components/ui/input';
 import {
-  MapPin, Phone, Shield, Compass, Loader2, Mail, User, Eye, EyeOff,
-  ArrowRight, CheckCircle2, Star, Zap, Users, Sparkles
+  MapPin, Shield, Compass, Loader2, Mail, User, Eye, EyeOff,
+  ArrowRight, CheckCircle2, Star, Zap, Lock
 } from 'lucide-react';
 import { signIn, useSession } from 'next-auth/react';
 import { toast } from 'sonner';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 // ── NextAuth Session Sync ──
 function NextAuthSessionSync() {
@@ -52,16 +50,13 @@ function NextAuthSessionSync() {
   return null;
 }
 
-// ── Animated Background Dots ──
+// ── Animated Background ──
 function AnimatedBackground() {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {/* Floating orbs */}
       <div className="absolute top-[10%] right-[15%] w-72 h-72 rounded-full bg-[#F59E0B]/5 blur-3xl animate-float" />
       <div className="absolute bottom-[20%] left-[10%] w-96 h-96 rounded-full bg-white/3 blur-3xl animate-float-slow" />
       <div className="absolute top-[60%] right-[5%] w-48 h-48 rounded-full bg-[#34D399]/5 blur-3xl animate-float-reverse" />
-
-      {/* Grid pattern overlay */}
       <div className="absolute inset-0 opacity-[0.015]"
         style={{
           backgroundImage: `radial-gradient(circle, white 1px, transparent 1px)`,
@@ -74,20 +69,19 @@ function AnimatedBackground() {
 
 // ── Auth Screen ──
 function AuthContent() {
-  const { login, language, isLoading, isAuthenticated, user } = useAuthStore();
-  const { showOnboarding } = useAppStore();
+  const { loginWithEmail, login, language, isLoading, isAuthenticated, user } = useAuthStore();
   const router = useRouter();
   const searchParams = useSearchParams();
   const preselectedRole = searchParams.get('role');
 
   const [authMode, setAuthMode] = useState<'login' | 'register'>(preselectedRole === 'guide' ? 'register' : 'login');
-  const [step, setStep] = useState<'main' | 'otp' | 'role'>('main');
-  const [phone, setPhone] = useState('');
-  const [otp, setOtp] = useState('');
+  const [step, setStep] = useState<'main' | 'role'>('main');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [selectedRole, setSelectedRole] = useState<'seeker' | 'guide' | ''>(
     preselectedRole === 'guide' ? 'guide' : preselectedRole === 'seeker' ? 'seeker' : ''
   );
@@ -102,41 +96,41 @@ function AuthContent() {
     }
   }, [isAuthenticated, user, router]);
 
-  const handleSendOtp = () => {
-    if (phone.length < 9) { setError(language === 'sw' ? 'Weka nambari sahihi ya simu' : 'Enter a valid phone number'); return; }
-    if (authMode === 'register' && !name.trim()) { setError(language === 'sw' ? 'Weka jina lako' : 'Enter your name'); return; }
-    setError(''); setStep('otp');
-  };
-
-  const handleVerifyOtp = () => {
-    if (otp.length < 4) { setError(language === 'sw' ? 'Weka nambari ya uthibitisho' : 'Enter the verification code'); return; }
+  // ── Email + Password Login ──
+  const handleLogin = async () => {
+    if (!email.trim()) { setError(language === 'sw' ? 'Weka barua pepe yako' : 'Enter your email'); return; }
+    if (!password) { setError(language === 'sw' ? 'Weka nenosiri lako' : 'Enter your password'); return; }
     setError('');
-    if (authMode === 'register') setStep('role');
-    else {
-      // Login: go directly
-      handleLogin();
+    try {
+      await loginWithEmail(email.trim().toLowerCase(), password);
+    } catch {
+      setError(language === 'sw' ? 'Barua pepe au nenosiri si sahihi' : 'Invalid email or password. Please try again.');
     }
   };
 
-  const handleLogin = async () => {
+  // ── Email + Password Registration ──
+  const handleRegister = async () => {
+    if (!name.trim()) { setError(language === 'sw' ? 'Weka jina lako' : 'Enter your name'); return; }
+    if (!email.trim()) { setError(language === 'sw' ? 'Weka barua pepe yako' : 'Enter your email'); return; }
+    if (!password || password.length < 6) { setError(language === 'sw' ? 'Nenosiri lazima liwe na herufi 6 au zaidi' : 'Password must be at least 6 characters'); return; }
+    if (password !== confirmPassword) { setError(language === 'sw' ? 'Nenosiri hazilingani' : 'Passwords do not match'); return; }
+    if (!agreeTerms) { setError(language === 'sw' ? 'Kubali masharti na sera' : 'Please agree to the Terms and Privacy Policy'); return; }
     setError('');
-    try {
-      const fullPhone = phone.startsWith('+') ? phone : `+255${phone.replace(/^0/, '')}`;
-      // Don't override role for login - the API will use the existing user's role
-      await login(fullPhone, undefined, undefined);
-    } catch { setError(language === 'sw' ? 'Hitilafu katika kuingia' : 'Login failed. Please try again.'); }
+    setStep('role');
   };
 
+  // ── Role Select after Registration ──
   const handleRoleSelect = async () => {
     if (!selectedRole) return;
     setError('');
     try {
-      const fullPhone = phone.startsWith('+') ? phone : `+255${phone.replace(/^0/, '')}`;
-      const roleName = name || (selectedRole === 'seeker' ? 'Demo Seeker' : 'Demo Guide');
-      await login(fullPhone, selectedRole, roleName);
-    } catch { setError(language === 'sw' ? 'Hitilafu katika kuingia' : 'Registration failed. Please try again.'); }
+      await loginWithEmail(email.trim().toLowerCase(), password, name.trim(), selectedRole);
+    } catch {
+      setError(language === 'sw' ? 'Usajili umeshindikana. Jaribu tena.' : 'Registration failed. Please try again.');
+    }
   };
 
+  // ── Quick Demo Login (kept for development) ──
   const quickLogin = async (role: string) => {
     setError('');
     try {
@@ -148,12 +142,14 @@ function AuthContent() {
     } catch { setError(language === 'sw' ? 'Hitilafu katika kuingia' : 'Login failed'); }
   };
 
+  // ── Social Login ──
   const handleSocialLogin = useCallback((provider: string) => {
-    const providerMap: Record<string, string> = { 'Google': 'google', 'google': 'google', 'Facebook': 'facebook', 'facebook': 'facebook', 'Apple': 'apple', 'apple': 'apple' };
-    const providerId = providerMap[provider];
-    if (providerId === 'google' || providerId === 'facebook') { signIn(providerId, { callbackUrl: '/' }); }
-    else { toast.info(`${provider} ${t('demo_mode', language).toLowerCase()} — Coming soon!`); }
-  }, [language]);
+    if (provider === 'google' || provider === 'facebook') {
+      signIn(provider, { callbackUrl: '/' });
+    } else {
+      toast.info(`${provider} — Coming soon!`);
+    }
+  }, []);
 
   const sw = language === 'sw';
 
@@ -208,7 +204,7 @@ function AuthContent() {
                       authMode === 'login' ? 'auth-tab-active' : 'auth-tab-inactive'
                     }`}
                   >
-                    {sw ? 'Ingia' : 'Login'}
+                    {sw ? 'Ingia' : 'Sign In'}
                   </button>
                   <button
                     onClick={() => { setAuthMode('register'); setError(''); }}
@@ -216,7 +212,7 @@ function AuthContent() {
                       authMode === 'register' ? 'auth-tab-active' : 'auth-tab-inactive'
                     }`}
                   >
-                    {sw ? 'Jisajili' : 'Register'}
+                    {sw ? 'Jisajili' : 'Create Account'}
                   </button>
                 </div>
               )}
@@ -231,9 +227,32 @@ function AuthContent() {
                 </motion.div>
               )}
 
-              {/* ── MAIN STEP: Login or Register form ── */}
+              {/* ── MAIN STEP ── */}
               {step === 'main' && (
                 <div className="space-y-4">
+                  {/* ── Social Login Buttons (TOP — Primary) ── */}
+                  <div className="space-y-2.5">
+                    <button onClick={() => handleSocialLogin('google')} className="w-full flex items-center justify-center gap-3 h-12 rounded-xl bg-white dark:bg-white border border-[#E2E8F0] dark:border-[#475569] hover:bg-gray-50 dark:hover:bg-gray-100 transition-colors shadow-sm">
+                      <svg className="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                      <span className="text-sm font-semibold text-[#1F2937]">Continue with Google</span>
+                    </button>
+                    <button onClick={() => handleSocialLogin('facebook')} className="w-full flex items-center justify-center gap-3 h-12 rounded-xl bg-[#1877F2] hover:bg-[#166FE5] transition-colors shadow-sm">
+                      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="white"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                      <span className="text-sm font-semibold text-white">Continue with Facebook</span>
+                    </button>
+                  </div>
+
+                  {/* Divider */}
+                  <div className="relative flex items-center gap-3 py-1">
+                    <div className="flex-1 h-px bg-[#E2E8F0] dark:bg-[#475569]" />
+                    <span className="text-[11px] text-[#64748B] dark:text-[#94A3B8] whitespace-nowrap font-medium uppercase tracking-wider">
+                      {sw ? 'au kwa barua pepe' : 'or sign in with email'}
+                    </span>
+                    <div className="flex-1 h-px bg-[#E2E8F0] dark:bg-[#475569]" />
+                  </div>
+
+                  {/* ── Email+Password Form ── */}
+
                   {/* Name field - only register */}
                   {authMode === 'register' && (
                     <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-1.5">
@@ -253,72 +272,83 @@ function AuthContent() {
                     </motion.div>
                   )}
 
-                  {/* Email field - only register */}
-                  {authMode === 'register' && (
-                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-1.5">
-                      <label className="text-xs font-semibold text-[#64748B] dark:text-[#94A3B8] uppercase tracking-wider">
-                        {sw ? 'Barua Pepe' : 'Email'} <span className="text-[#64748B] font-normal normal-case">({sw ? 'si lazima' : 'optional'})</span>
-                      </label>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#64748B]" />
-                        <Input
-                          type="email"
-                          placeholder={sw ? 'barua@mfano.com' : 'email@example.com'}
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          className="kinput pl-10 w-full"
-                        />
-                      </div>
-                    </motion.div>
-                  )}
-
-                  {/* Phone field */}
+                  {/* Email field */}
                   <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-[#64748B] dark:text-[#94A3B8] uppercase tracking-wider">
-                      {sw ? 'Nambari ya Simu' : 'Phone Number'}
+                      {sw ? 'Barua Pepe' : 'Email Address'}
                     </label>
-                    <div className="flex gap-2">
-                      <div className="flex items-center px-3 bg-[#F1F5F9] dark:bg-[#334155] rounded-xl text-sm font-semibold min-w-fit border border-[#E2E8F0] dark:border-[#475569] h-11">
-                        🇹🇿 +255
-                      </div>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#64748B]" />
                       <Input
-                        type="tel"
-                        placeholder={sw ? '712 345 678' : '712 345 678'}
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                        className="kinput flex-1 h-11"
-                        maxLength={10}
+                        type="email"
+                        placeholder={sw ? 'barua@mfano.com' : 'email@example.com'}
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="kinput pl-10 w-full"
+                        onKeyDown={(e) => { if (e.key === 'Enter' && authMode === 'login') handleLogin(); }}
                       />
                     </div>
                   </div>
 
-                  {/* Password field - login */}
-                  {authMode === 'login' && (
-                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <label className="text-xs font-semibold text-[#64748B] dark:text-[#94A3B8] uppercase tracking-wider">
-                          {sw ? 'Nenosiri' : 'Password'}
-                        </label>
+                  {/* Password field */}
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-semibold text-[#64748B] dark:text-[#94A3B8] uppercase tracking-wider">
+                        {sw ? 'Nenosiri' : 'Password'}
+                      </label>
+                      {authMode === 'login' && (
                         <button className="text-xs font-medium text-[#065F46] dark:text-[#34D399] hover:underline">
                           {sw ? 'Umesahau?' : 'Forgot?'}
                         </button>
-                      </div>
+                      )}
+                    </div>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#64748B]" />
+                      <Input
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder={authMode === 'login'
+                          ? (sw ? 'Weka nenosiri lako' : 'Enter your password')
+                          : (sw ? 'Weka nenosiri (herufi 6+)' : 'Create a password (6+ chars)')
+                        }
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="kinput pl-10 pr-10 w-full"
+                        onKeyDown={(e) => { if (e.key === 'Enter' && authMode === 'login') handleLogin(); }}
+                      />
+                      <button
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748B] hover:text-[#065F46] transition-colors"
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Confirm Password - only register */}
+                  {authMode === 'register' && (
+                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-1.5">
+                      <label className="text-xs font-semibold text-[#64748B] dark:text-[#94A3B8] uppercase tracking-wider">
+                        {sw ? 'Thibitisha Nenosiri' : 'Confirm Password'}
+                      </label>
                       <div className="relative">
                         <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#64748B]" />
                         <Input
-                          type={showPassword ? 'text' : 'password'}
-                          placeholder={sw ? 'Weka nenosiri' : 'Enter password'}
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          className="kinput pl-10 pr-10 w-full h-11"
+                          type={showConfirmPassword ? 'text' : 'password'}
+                          placeholder={sw ? 'Weka nenosiri tena' : 'Re-enter your password'}
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          className="kinput pl-10 pr-10 w-full"
                         />
                         <button
-                          onClick={() => setShowPassword(!showPassword)}
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748B] hover:text-[#065F46] transition-colors"
                         >
-                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
                       </div>
+                      {password && confirmPassword && password !== confirmPassword && (
+                        <p className="text-[10px] text-[#DC2626] mt-1">{sw ? 'Nenosiri hazilingani' : 'Passwords do not match'}</p>
+                      )}
                     </motion.div>
                   )}
 
@@ -336,80 +366,28 @@ function AuthContent() {
                       <span className="text-xs text-[#64748B] dark:text-[#94A3B8] leading-relaxed">
                         {sw
                           ? 'Nakubaliana na Masharti ya Matumizi na Sera ya Faragha ya KariakoGuide'
-                          : 'I agree to KariakoGuide\'s Terms of Service and Privacy Policy'}
+                          : "I agree to KariakoGuide's Terms of Service and Privacy Policy"}
                       </span>
                     </motion.div>
                   )}
 
                   {/* Submit button */}
                   <button
-                    onClick={handleSendOtp}
-                    disabled={authMode === 'register' && !agreeTerms}
+                    onClick={authMode === 'login' ? handleLogin : handleRegister}
+                    disabled={authMode === 'register' && (!agreeTerms || !email || !password)}
                     className="kbtn w-full h-12 text-sm disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none"
                   >
+                    {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                     {authMode === 'login' ? (
                       <>{sw ? 'Ingia kwenye Akaunti' : 'Sign In'}<ArrowRight className="w-4 h-4" /></>
                     ) : (
-                      <>{sw ? 'Endelea kujisajili' : 'Continue Registration'}<ArrowRight className="w-4 h-4" /></>
+                      <>{sw ? 'Unda Akaunti' : 'Create Account'}<ArrowRight className="w-4 h-4" /></>
                     )}
                   </button>
-
-                  {/* Divider */}
-                  <div className="relative flex items-center gap-3 py-1">
-                    <div className="flex-1 h-px bg-[#E2E8F0] dark:bg-[#475569]" />
-                    <span className="text-[11px] text-[#64748B] dark:text-[#94A3B8] whitespace-nowrap font-medium uppercase tracking-wider">
-                      {sw ? 'au ingia kwa' : 'or continue with'}
-                    </span>
-                    <div className="flex-1 h-px bg-[#E2E8F0] dark:bg-[#475569]" />
-                  </div>
-
-                  {/* Social Login */}
-                  <div className="flex gap-3">
-                    <button onClick={() => handleSocialLogin('Google')} className="auth-social-btn flex-1">
-                      <svg className="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-                      <span className="text-sm font-medium">Google</span>
-                    </button>
-                    <button onClick={() => handleSocialLogin('Facebook')} className="auth-social-btn flex-1">
-                      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-                      <span className="text-sm font-medium">Facebook</span>
-                    </button>
-                  </div>
                 </div>
               )}
 
-              {/* ── OTP STEP ── */}
-              {step === 'otp' && (
-                <div className="space-y-4">
-                  <div className="text-center mb-2">
-                    <div className="w-14 h-14 rounded-2xl bg-[#ECFDF5] dark:bg-[#022C22] mx-auto flex items-center justify-center mb-3">
-                      <Phone className="w-6 h-6 text-[#065F46] dark:text-[#34D399]" />
-                    </div>
-                    <h2 className="text-lg font-bold">{sw ? 'Thibitisha Nambari yako' : 'Verify Your Number'}</h2>
-                    <p className="text-sm text-[#64748B] dark:text-[#94A3B8] mt-1">
-                      {sw ? `Tumetuma nambari kwa +255${phone.replace(/^0/, '')}` : `We sent a code to +255${phone.replace(/^0/, '')}`}
-                    </p>
-                  </div>
-                  <Input
-                    type="text"
-                    placeholder="• • • • • •"
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                    className="kinput text-center text-2xl tracking-[0.5em] h-14 font-bold"
-                    maxLength={6}
-                  />
-                  <p className="text-xs text-[#64748B] dark:text-[#94A3B8] text-center">
-                    {sw ? 'Weka nambari yoyote (mfano: 123456)' : 'Enter any code (e.g. 123456) — Demo mode'}
-                  </p>
-                  <button onClick={handleVerifyOtp} className="kbtn w-full h-12 text-sm">
-                    <Shield className="w-4 h-4" />{sw ? 'Thibitisha' : 'Verify Code'}
-                  </button>
-                  <button onClick={() => setStep('main')} className="w-full py-2.5 rounded-xl text-sm font-medium border border-[#E2E8F0] dark:border-[#475569] hover:bg-[#F1F5F9] dark:hover:bg-[#334155] transition-colors">
-                    {sw ? 'Rudi' : 'Go Back'}
-                  </button>
-                </div>
-              )}
-
-              {/* ── ROLE SELECTION STEP ── */}
+              {/* ── ROLE SELECTION STEP (after register) ── */}
               {step === 'role' && (
                 <div className="space-y-4">
                   <div className="text-center mb-2">
@@ -485,6 +463,9 @@ function AuthContent() {
                     {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                     {sw ? 'Anza Sasa' : 'Get Started'}
                     <ArrowRight className="w-4 h-4" />
+                  </button>
+                  <button onClick={() => setStep('main')} className="w-full py-2.5 rounded-xl text-sm font-medium border border-[#E2E8F0] dark:border-[#475569] hover:bg-[#F1F5F9] dark:hover:bg-[#334155] transition-colors">
+                    {sw ? 'Rudi' : 'Go Back'}
                   </button>
                 </div>
               )}
