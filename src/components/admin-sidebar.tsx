@@ -49,7 +49,7 @@ const NAV_GROUPS: NavGroup[] = [
     category: 'Finance',
     items: [
       { label: 'Revenue', href: '/admin/revenue', icon: DollarSign },
-      { label: 'Payouts', href: '/admin/revenue', icon: Wallet },
+      { label: 'Payouts', href: '/admin/payouts', icon: Wallet },
     ],
   },
   {
@@ -70,7 +70,7 @@ const NAV_GROUPS: NavGroup[] = [
     category: 'Platform',
     items: [
       { label: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
-      { label: 'Settings', href: '/settings', icon: Settings },
+      { label: 'Settings', href: '/admin/settings', icon: Settings },
     ],
   },
 ];
