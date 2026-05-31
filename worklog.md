@@ -1,60 +1,142 @@
+# Kariako Guide - Work Log
+
+---
+Task ID: 1
+Agent: Main
+Task: Check current code state
+
+Work Log:
+- Explored entire codebase structure
+- Found auth routing already works: admin→/admin, guide→/guide, seeker→/seeker
+- Found AdminSidebar component exists but is NEVER imported/used in any layout
+- Found admin pages render inside AppShell without sidebar integration
+- Identified admin sidebar layout issue: fixed left-0 positioning, no max-width on content
+
+Stage Summary:
+- Role-based routing already implemented in auth page and home page
+- Key problem: AdminSidebar not integrated into admin layout
+- Need to create admin layout.tsx with sidebar integration
+
+---
+Task ID: 2
+Agent: Main
+Task: Fix admin sidebar layout - center it, prevent content from being too wide
+
+Work Log:
+- Created /src/app/(app)/admin/layout.tsx with AdminSidebar + max-w-6xl content
+- Modified AdminSidebar: changed from fixed to sticky positioning
+- Added rounded-tr-2xl to sidebar for visual polish
+- Added AdminTopHeader component in AppShell (dark theme, simplified for admin)
+- Updated AppShell to show AdminTopHeader for /admin/* routes
+- Admin pages now have proper sidebar + centered content layout
+
+Stage Summary:
+- Admin sidebar now stays in document flow (sticky, not fixed)
+- Content area has max-w-6xl with proper padding
+- Dark admin-specific header replaces the light TopHeader
+- Mobile: Sheet-based sidebar with hamburger button
+
+---
+Task ID: 3
+Agent: Main
+Task: Verify role-based routing
+
+Work Log:
+- Confirmed auth page redirects: admin→/admin, guide→/guide, seeker→/seeker
+- Confirmed home page redirects authenticated users to role dashboard
+- Confirmed middleware enforces cross-role isolation
+- Confirmed auth API sets user_role cookie properly
+
+Stage Summary:
+- Role-based routing is fully functional
+- All three roles have proper dashboard pages
+
 ---
 Task ID: 4
-Agent: Main Agent
-Task: M-Pesa Daraja API Integration, End-to-End Booking Flow, Security Hardening
+Agent: Subagent + Main
+Task: HIGH: M-Pesa API + End-to-End Booking Flow + Security Hardening
 
 Work Log:
-- Read worklog.md and all existing files: wallet page, seeker/guide bookings pages, session page, middleware, auth route, prisma schema, auth store
-- Created /src/lib/mpesa.ts: M-Pesa Daraja API helpers (getAccessToken, generatePassword, initiateSTKPush, querySTKStatus, isDemoMode, generateMockReceipt) - supports sandbox/production and demo mode fallback
-- Created /src/app/api/payments/mpesa/stk-push/route.ts: STK Push endpoint with input sanitization, demo mode
-- Created /src/app/api/payments/mpesa/callback/route.ts: Daraja callback handler, extracts transaction result, always returns success to Safaricom
-- Created /src/app/api/payments/mpesa/status/route.ts: Query STK Push transaction status
-- Updated /src/app/(app)/wallet/page.tsx: Added M-Pesa Top Up section with phone input, preset amounts (5K/10K/25K/50K TZS), STK Push integration with pending/success/failed states, receipt display, Swahili i18n
-- Created /src/app/api/bookings/route.ts: GET (list bookings for seeker/guide) and POST (create booking) with demo data fallback
-- Created /src/app/api/bookings/[id]/route.ts: GET (single booking detail) and PATCH (update status - confirm/start/complete/cancel/dispute/review) with demo fallback
-- Created /src/components/booking-card.tsx: Reusable SeekerBookingCard and GuideBookingCard components with status badges, payment badges, timeline, action buttons
-- Updated /src/app/(app)/seeker/bookings/page.tsx: Tab filters (Upcoming/Active/Completed/Cancelled), "Book a Guide" CTA, cancel/dispute/review dialogs
-- Updated /src/app/(app)/guide/bookings/page.tsx: Tab filters (Pending/Confirmed/Active/Completed), earnings summary, accept/reject/start session/end session buttons
-- Updated /src/app/(app)/seeker/session/[id]/page.tsx: Full session detail with status timeline, chat, QR check-in, live location, payment status, review/rating section
-- Created /src/lib/rate-limit.ts: In-memory rate limiter with per-identifier sliding window, pre-configured limiters (api: 100/min, auth: 10/min, payment: 5/min, booking: 20/min)
-- Created /src/lib/sanitize.ts: Input sanitization utilities (sanitizeString, sanitizePhone, sanitizeEmail, sanitizeNumber, sanitizeBookingStatus, sanitizeRole)
-- Updated /src/middleware.ts: Added rate limiting for API/auth/payment routes, CSRF origin validation for state-changing methods, security headers (X-Content-Type-Options, X-Frame-Options, X-XSS-Protection, Referrer-Policy, Permissions-Policy) - all existing RBAC logic preserved
-- Updated /src/app/api/auth/route.ts: Added rate limiting (5 attempts/min per IP), input sanitization for phone/email/name/role - all existing logic preserved
-- Verified all APIs working: bookings (seeker+guide), M-Pesa STK push, M-Pesa status, booking detail, booking PATCH, security headers, CSRF protection, rate limiting
+- M-Pesa Daraja API: stk-push, callback, status routes created
+- M-Pesa helper lib at /src/lib/mpesa.ts with sandbox/production support
+- M-Pesa top-up section added to wallet page with preset amounts
+- Booking API: create, list, update status (full flow)
+- Booking pages: seeker bookings, guide bookings, session detail
+- Booking card component created
+- Rate limiter: /src/lib/rate-limit.ts with per-IP sliding window
+- Input sanitization: /src/lib/sanitize.ts with phone, email, string, number validators
+- Middleware updated with security headers + CSRF protection
+- Build errors fixed: authRateLimit→rateLimiters.auth, sanitizeSearch→sanitizeString, isValidEmail→sanitizeEmail
 
 Stage Summary:
-- 4 new API route files: /api/payments/mpesa/stk-push, /callback, /status; /api/bookings, /api/bookings/[id]
-- 2 new lib files: mpesa.ts, rate-limit.ts, sanitize.ts
-- 4 updated pages: wallet, seeker/bookings, guide/bookings, seeker/session/[id]
-- 1 new component: booking-card.tsx
-- 2 updated core files: middleware.ts (security), auth route (rate limiting)
-- All features work in demo mode when env vars are missing
-- Security: rate limiting, CSRF, security headers, input sanitization all verified
+- Full M-Pesa integration with demo mode fallback
+- Complete booking flow: pending→confirmed→in_progress→completed
+- Security headers on all responses
+- Rate limiting for API, auth, payment, booking routes
+- Input sanitization across all API routes
 
 ---
-Task ID: 4-remaining
-Agent: Main Agent
-Task: M-Pesa Wallet Top-Up Fix, Middleware Security Headers Hardening, Build Verification
+Task ID: 5
+Agent: Subagent
+Task: HIGH: Real-time Chat & Notifications
 
 Work Log:
-- Read worklog.md and all existing files: wallet page, middleware, status API route, stk-push route, mpesa.ts lib, auth store, rate-limit.ts, sanitize.ts
-- Task 1: M-Pesa Top Up already existed in wallet page from previous task. Updated status API to support GET with query params per spec:
-  - Added GET handler to /src/app/api/payments/mpesa/status/route.ts that reads CheckoutRequestID from searchParams (?CheckoutRequestID=xxx)
-  - Kept existing POST handler for backward compatibility
-  - Updated wallet page polling to use GET instead of POST: `fetch('/api/payments/mpesa/status?CheckoutRequestID=...')` instead of POST with JSON body
-  - All M-Pesa features preserved: preset amounts (5K/10K/25K/50K TZS), phone pre-fill, STK Push integration, pending/success/failed states, receipt display, wallet balance update
-- Task 2: Refactored middleware security headers to apply to ALL responses:
-  - Created `withSecurityHeaders()` helper function that adds all 5 security headers to any NextResponse
-  - Previously, security headers were only on the initial `NextResponse.next()` — 429, 403, and redirect responses lacked them
-  - Now ALL response paths (rate limit 429, CSRF 403, login redirect, role redirects, normal next) go through `withSecurityHeaders()`
-  - Moved CSRF protection to run before API-specific logic so it applies to ALL POST/PUT/DELETE/PATCH requests (not just API routes)
-  - For non-API routes with invalid origin, returns 403 plain text response with security headers
-  - All existing RBAC and auth logic preserved intact
-- Task 3: Verified build — `npx next build` completed clean, `bun run lint` passed with no errors
+- Chat API: conversation list, send message, get messages with cursor pagination
+- Chat pages: /chat (conversation list) and /chat/[id] (full chat interface)
+- Chat bubble component with sent/received styling, read receipts, typing indicator
+- useChat hook with 3-second polling for conversations
+- useConversationMessages hook with 3-second polling for messages
+- Enhanced notifications: grouped by Today/Yesterday/Earlier
+- Notification types: booking, chat, payment, verification, review, system
+- use-realtime hook: 15-second polling for notifications
+- Notification store updated with all new types
+- Chat button added to header, Messages added to user menu
 
 Stage Summary:
-- 2 updated files: /src/app/api/payments/mpesa/status/route.ts (added GET handler), /src/middleware.ts (security headers on all responses, CSRF broadened)
-- 1 updated file: /src/app/(app)/wallet/page.tsx (status polling uses GET with query params)
-- Build and lint both pass clean
-- All security headers now guaranteed on every response (429, 403, redirects, normal)
-- CSRF protection applies to all routes, not just API
+- WhatsApp-like chat interface with polling-based real-time
+- Full notification system with type-specific icons and grouping
+- Optimistic updates for sent messages
+
+---
+Task ID: 8
+Agent: Subagent
+Task: MEDIUM: AI Vision, Email, Search, Verification, Content Pages
+
+Work Log:
+- AI Vision: VLM endpoint with z-ai-web-dev-sdk + demo fallback
+- AI Vision page enhanced with camera capture and upload
+- Email system: 5 templates (welcome, booking, payment, verification, password reset)
+- Email works in demo mode (console logging), nodemailer ready for production
+- Advanced search: filters by type, price, rating, zone + AI suggestions
+- Guide verification wizard: 4-step process (personal info, quiz, selfie, documents)
+- Content pages: help, terms, privacy, about
+- Analytics tracking utility created
+- PWA offline page, manifest.json updated
+- Sitemap.xml generation
+- Swahili i18n expanded
+
+Stage Summary:
+- All MEDIUM priority features implemented
+- AI Vision uses real VLM API with fallback
+- Email system ready for SMTP configuration
+- Guide verification with quiz and document upload
+- All content pages with rich, bilingual content
+
+---
+Task ID: 10
+Agent: Main
+Task: Build, verify, and deploy
+
+Work Log:
+- Fixed build errors in security route (wrong import names)
+- Fixed build errors in search route (sanitizeSearch→sanitizeString)
+- Fixed AI vision route parsing error (simplified VLM call)
+- Fixed email.ts nodemailer import error (removed dynamic import)
+- Build verified clean: npx next build succeeds
+- Git commit + push to GitHub
+- Railway auto-deploys from GitHub push
+
+Stage Summary:
+- Build is clean
+- Code pushed to https://github.com/vibecodingmind/kariakoopal
+- Railway deployment: https://web-production-91b90.up.railway.app/
