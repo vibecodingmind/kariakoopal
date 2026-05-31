@@ -13,7 +13,7 @@ import { Onboarding } from '@/components/onboarding';
 
 export default function SeekerDashboard() {
   const { user, language, isAuthenticated } = useAuthStore();
-  const { showOnboarding } = useAppStore();
+  const { showOnboarding, completeOnboarding } = useAppStore();
   const router = useRouter();
   const sw = language === 'sw';
   const l = (en: string, swText: string) => (sw ? swText : en);
@@ -21,6 +21,13 @@ export default function SeekerDashboard() {
   useEffect(() => {
     if (!isAuthenticated) router.replace('/auth');
   }, [isAuthenticated, router]);
+
+  // Auto-skip onboarding for demo users for seamless demo experience
+  useEffect(() => {
+    if (isAuthenticated && user?.id?.startsWith('demo-') && showOnboarding) {
+      completeOnboarding();
+    }
+  }, [isAuthenticated, user, showOnboarding, completeOnboarding]);
 
   if (isAuthenticated && user?.role === 'seeker' && showOnboarding) {
     return <Onboarding />;

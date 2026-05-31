@@ -120,8 +120,7 @@ function BottomNav() {
               onClick={() => router.push(tab.href)}
               className={`bottom-nav-item ${active ? 'bottom-nav-item-active' : 'bottom-nav-item-inactive'}`}
             >
-              <div className="relative">
-                {active && <div className="bottom-nav-indicator" />}
+              <div className={`relative flex items-center justify-center transition-all duration-300 ${active ? 'bottom-nav-icon-pill' : ''}`}>
                 <tab.icon className={`w-5 h-5 transition-all duration-300 ${active ? 'bottom-nav-icon-active stroke-[2.5]' : 'stroke-[1.5]'}`} />
               </div>
               <span className={`text-[10px] transition-all duration-300 ${active ? 'font-bold' : 'font-medium'}`}>
