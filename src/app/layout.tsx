@@ -12,7 +12,7 @@ const inter = Inter({
 });
 
 export const viewport: Viewport = {
-  themeColor: "#0B5D3A",
+  themeColor: "#3730A3",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -49,7 +49,7 @@ export default function RootLayout({
     <html lang="sw" suppressHydrationWarning>
       <head>
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#0B5D3A" />
+        <meta name="theme-color" content="#3730A3" />
         <link rel="apple-touch-icon" href="/logo.svg" />
         <link rel="apple-touch-icon" sizes="192x192" href="/logo.svg" />
         <link rel="apple-touch-icon" sizes="512x512" href="/logo.svg" />
@@ -58,7 +58,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="Kariako Guide" />
       </head>
       <body
-        className={`${inter.variable} antialiased bg-[#F8F9FA] text-[#212529] dark:bg-[#0D1117] dark:text-[#F0F6FC]`}
+        className={`${inter.variable} antialiased bg-[#FAFAF9] text-[#1C1917] dark:bg-[#0C0A1D] dark:text-[#E7E5E4]`}
       >
         <Providers>
           {children}

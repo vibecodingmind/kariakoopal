@@ -76,8 +76,8 @@ export default function StoriesPage() {
   return (
     <div className="px-4 py-4 space-y-5">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-2xl font-bold text-[#0A4D3C] dark:text-[#2EA77A]">{l('Market Stories', 'Hadithi za Soko')}</h1>
-        <p className="text-sm text-[#6C757D] mt-1">{l('Local insights, tips & tales from Kariakoo', 'Maoni ya karibu, mapendekezo na hadithi kutoka Kariakoo')}</p>
+        <h1 className="text-2xl font-bold text-[#312E81] dark:text-[#818CF8]">{l('Market Stories', 'Hadithi za Soko')}</h1>
+        <p className="text-sm text-[#78716C] mt-1">{l('Local insights, tips & tales from Kariakoo', 'Maoni ya karibu, mapendekezo na hadithi kutoka Kariakoo')}</p>
       </motion.div>
 
       {/* Category Chips */}
@@ -92,7 +92,7 @@ export default function StoriesPage() {
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="kcard-green p-5 cursor-pointer" onClick={() => setExpandedId(expandedId === featured.id ? null : featured.id)}>
           <div className="flex items-center gap-2 mb-2">
             <span className="kbadge kbadge-gold">Featured</span>
-            {featured.hasAudio && <Volume2 className="w-3.5 h-3.5 text-[#FFD23F]" />}
+            {featured.hasAudio && <Volume2 className="w-3.5 h-3.5 text-[#D97706]" />}
           </div>
           <h2 className="text-lg font-bold text-white">{sw ? featured.titleSw : featured.title}</h2>
           <p className="text-xs text-white/60 mt-1 flex items-center gap-3">
@@ -126,30 +126,30 @@ export default function StoriesPage() {
             onClick={() => setExpandedId(expandedId === story.id ? null : story.id)}
           >
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-lg bg-[#E8F5EE] dark:bg-[#0D2818] flex items-center justify-center shrink-0">
-                <BookOpen className="w-5 h-5 text-[#0B5D3A] dark:text-[#2EA77A]" />
+              <div className="w-10 h-10 rounded-lg bg-[#E0E7FF] dark:bg-[#1E1B4B] flex items-center justify-center shrink-0">
+                <BookOpen className="w-5 h-5 text-[#3730A3] dark:text-[#818CF8]" />
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-0.5">
                   {story.tags.map(tag => <span key={tag} className="kbadge kbadge-verified text-[8px]">{tag}</span>)}
-                  {story.hasAudio && <Volume2 className="w-3 h-3 text-[#0B5D3A]" />}
+                  {story.hasAudio && <Volume2 className="w-3 h-3 text-[#3730A3]" />}
                 </div>
                 <h4 className="font-semibold text-sm">{sw ? story.titleSw : story.title}</h4>
-                <p className="text-xs text-[#6C757D] mt-0.5 flex items-center gap-3">
+                <p className="text-xs text-[#78716C] mt-0.5 flex items-center gap-3">
                   <span>{story.author}</span>
                   <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{story.readTime} min</span>
                 </p>
               </div>
             </div>
-            <p className="text-sm text-[#6C757D] mt-2 leading-relaxed">{sw ? story.excerptSw : story.excerpt}</p>
+            <p className="text-sm text-[#78716C] mt-2 leading-relaxed">{sw ? story.excerptSw : story.excerpt}</p>
             <AnimatePresence>
               {expandedId === story.id && (
                 <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
-                  <p className="text-sm text-[#6C757D] mt-2 leading-relaxed whitespace-pre-line">{sw ? story.contentSw : story.content}</p>
+                  <p className="text-sm text-[#78716C] mt-2 leading-relaxed whitespace-pre-line">{sw ? story.contentSw : story.content}</p>
                 </motion.div>
               )}
             </AnimatePresence>
-            <div className="flex items-center justify-center mt-2 text-[#6C757D]">
+            <div className="flex items-center justify-center mt-2 text-[#78716C]">
               {expandedId === story.id ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </div>
           </motion.div>

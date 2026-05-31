@@ -6,7 +6,7 @@ const tiers = {
     name: 'Starter',
     price: 0,
     priceDisplay: 'Free',
-    color: '#6C757D',
+    color: '#78716C',
     features: [
       { name: 'Basic profile', included: true },
       { name: 'Up to 2 zones', included: true },
@@ -24,7 +24,7 @@ const tiers = {
     name: 'Pro',
     price: 15000,
     priceDisplay: 'TZS 15,000/mo',
-    color: '#0A4D3C',
+    color: '#312E81',
     features: [
       { name: 'Enhanced profile', included: true },
       { name: 'Up to 5 zones', included: true },
@@ -42,7 +42,7 @@ const tiers = {
     name: 'Elite',
     price: 35000,
     priceDisplay: 'TZS 35,000/mo',
-    color: '#FFD23F',
+    color: '#D97706',
     features: [
       { name: 'Premium profile', included: true },
       { name: 'All zones', included: true },

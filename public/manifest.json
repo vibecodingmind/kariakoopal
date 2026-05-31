@@ -4,8 +4,8 @@
   "description": "Your guide to Kariakoo market - Find trusted local guides",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f59e0b",
-  "theme_color": "#d97706",
+  "background_color": "#312E81",
+  "theme_color": "#312E81",
   "orientation": "portrait-primary",
   "lang": "sw",
   "icons": [

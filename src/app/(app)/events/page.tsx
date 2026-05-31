@@ -50,7 +50,7 @@ const EVENTS = [
   },
 ];
 
-const TYPE_COLORS: Record<string, string> = { religious: '#0077B6', cultural: '#8A2BE2', seasonal: '#FFA500', commercial: '#14B8A6' };
+const TYPE_COLORS: Record<string, string> = { religious: '#0891B2', cultural: '#7C3AED', seasonal: '#F59E0B', commercial: '#14B8A6' };
 const CATEGORIES = ['All', 'Cultural', 'Religious', 'Seasonal', 'Commercial'];
 const TYPE_MAP: Record<number, string> = { 1: 'cultural', 2: 'religious', 3: 'seasonal', 4: 'commercial' };
 
@@ -74,8 +74,8 @@ export default function EventsPage() {
   return (
     <div className="px-4 py-4 space-y-5">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-2xl font-bold text-[#0A4D3C] dark:text-[#2EA77A]">{l('Kariakoo Events', 'Matukio ya Kariakoo')}</h1>
-        <p className="text-sm text-[#6C757D] mt-1">{l('Seasonal, cultural & commercial events in the market', 'Matukio ya msimu, kitamaduni na kibiashara sokoni')}</p>
+        <h1 className="text-2xl font-bold text-[#312E81] dark:text-[#818CF8]">{l('Kariakoo Events', 'Matukio ya Kariakoo')}</h1>
+        <p className="text-sm text-[#78716C] mt-1">{l('Seasonal, cultural & commercial events in the market', 'Matukio ya msimu, kitamaduni na kibiashara sokoni')}</p>
       </motion.div>
 
       {/* Category Chips */}
@@ -107,28 +107,28 @@ export default function EventsPage() {
                     </span>
                   </div>
                   <h3 className="font-bold text-base">{sw ? event.titleSw : event.title}</h3>
-                  <div className="flex items-center gap-3 mt-1.5 text-xs text-[#6C757D]">
+                  <div className="flex items-center gap-3 mt-1.5 text-xs text-[#78716C]">
                     <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{event.startDate}{event.endDate && event.endDate !== event.startDate ? ` — ${event.endDate}` : ''}</span>
                   </div>
                   <div className="flex items-center gap-1 mt-1 flex-wrap">
                     {event.zones.map(z => (
-                      <span key={z} className="text-[10px] text-[#0B5D3A] bg-[#E8F5EE] px-1.5 py-0.5 rounded">{z}</span>
+                      <span key={z} className="text-[10px] text-[#3730A3] bg-[#E0E7FF] px-1.5 py-0.5 rounded">{z}</span>
                     ))}
                   </div>
                 </div>
                 <button
                   onClick={() => toggleReminder(event.id)}
-                  className={`p-2 rounded-lg transition-colors ${reminders.includes(event.id) ? 'bg-[#0B5D3A] text-white' : 'bg-[#F1F3F5] dark:bg-[#21262D] text-[#6C757D]'}`}
+                  className={`p-2 rounded-lg transition-colors ${reminders.includes(event.id) ? 'bg-[#3730A3] text-white' : 'bg-[#F5F5F4] dark:bg-[#242244] text-[#78716C]'}`}
                 >
                   <Bell className="w-4 h-4" />
                 </button>
               </div>
 
-              <p className="text-sm text-[#6C757D] mt-3 leading-relaxed">{sw ? event.descriptionSw : event.description}</p>
+              <p className="text-sm text-[#78716C] mt-3 leading-relaxed">{sw ? event.descriptionSw : event.description}</p>
 
               {/* Insider Tip */}
-              <div className="mt-3 p-3 rounded-lg bg-[#FFD23F]/10 border border-[#FFD23F]/20">
-                <p className="text-xs font-medium text-[#0A4D3A] dark:text-[#2EA77A] flex items-start gap-1.5">
+              <div className="mt-3 p-3 rounded-lg bg-[#D97706]/10 border border-[#D97706]/20">
+                <p className="text-xs font-medium text-[#0A4D3A] dark:text-[#818CF8] flex items-start gap-1.5">
                   <Lightbulb className="w-3.5 h-3.5 shrink-0 mt-0.5" />
                   <span>{l('Insider Tip', 'Ushauri wa Ndani')}: {sw ? event.tipSw : event.tip}</span>
                 </p>
@@ -140,7 +140,7 @@ export default function EventsPage() {
 
       {reminders.length > 0 && (
         <div className="kcard-green p-4 text-center">
-          <Bell className="w-6 h-6 text-[#FFD23F] mx-auto mb-2" />
+          <Bell className="w-6 h-6 text-[#D97706] mx-auto mb-2" />
           <p className="text-sm font-medium text-white">{reminders.length} {l('reminders set', 'vikumbusho vimewekwa')}</p>
           <p className="text-xs text-white/60 mt-1">{l('You\'ll be notified before each event', 'Utaarifiwa kabla ya kila tukio')}</p>
         </div>

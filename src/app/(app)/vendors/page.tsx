@@ -25,8 +25,8 @@ const VENDORS = [
 ];
 
 const ZONE_COLORS: Record<string, string> = {
-  electronics: '#0077B6', fabrics: '#8A2BE2', wholesale: '#14B8A6',
-  spices: '#EF4444', kitchenware: '#FFA500', artisanal: '#8B5E3C',
+  electronics: '#0891B2', fabrics: '#7C3AED', wholesale: '#14B8A6',
+  spices: '#EF4444', kitchenware: '#F59E0B', artisanal: '#8B5E3C',
 };
 
 const CATEGORIES = ['All', 'Electronics', 'Fabrics', 'Wholesale', 'Spices', 'Kitchenware', 'Crafts'];
@@ -57,15 +57,15 @@ export default function VendorsPage() {
   return (
     <div className="px-4 py-4 space-y-5">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-2xl font-bold text-[#0A4D3C] dark:text-[#2EA77A]">{l('Vendor Directory', 'Orodha ya Wauzaji')}</h1>
-        <p className="text-sm text-[#6C757D] mt-1">{l('Browse verified stalls across Kariakoo', 'Vinjua maduka yaliyothibitishwa Kariakoo')}</p>
+        <h1 className="text-2xl font-bold text-[#312E81] dark:text-[#818CF8]">{l('Vendor Directory', 'Orodha ya Wauzaji')}</h1>
+        <p className="text-sm text-[#78716C] mt-1">{l('Browse verified stalls across Kariakoo', 'Vinjua maduka yaliyothibitishwa Kariakoo')}</p>
       </motion.div>
 
       {/* Search */}
       <div className="ksearch flex items-center gap-2 px-4 py-3">
-        <Search className="w-4 h-4 text-[#6C757D]" />
-        <input type="text" placeholder={l('Search vendors...', 'Tafuta wauzaji...')} value={search} onChange={e => setSearch(e.target.value)} className="flex-1 bg-transparent text-sm outline-none placeholder:text-[#6C757D]" />
-        <button onClick={() => setSortBy(sortBy === 'recs' ? 'rating' : sortBy === 'rating' ? 'name' : 'recs')} className="flex items-center gap-1 text-xs text-[#6C757D] hover:text-[#0A4D3A]">
+        <Search className="w-4 h-4 text-[#78716C]" />
+        <input type="text" placeholder={l('Search vendors...', 'Tafuta wauzaji...')} value={search} onChange={e => setSearch(e.target.value)} className="flex-1 bg-transparent text-sm outline-none placeholder:text-[#78716C]" />
+        <button onClick={() => setSortBy(sortBy === 'recs' ? 'rating' : sortBy === 'rating' ? 'name' : 'recs')} className="flex items-center gap-1 text-xs text-[#78716C] hover:text-[#0A4D3A]">
           <ArrowUpDown className="w-3 h-3" />
           {sortBy === 'recs' ? l('Recs', 'Map.)') : sortBy === 'rating' ? l('Rating', 'Alama') : l('Name', 'Jina')}
         </button>
@@ -92,25 +92,25 @@ export default function VendorsPage() {
             className="kcard p-4 cursor-pointer hover:shadow-md transition-all"
           >
             <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold shrink-0" style={{ background: ZONE_COLORS[vendor.zone] || '#0B5D3A' }}>
+              <div className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold shrink-0" style={{ background: ZONE_COLORS[vendor.zone] || '#3730A3' }}>
                 {vendor.name.charAt(0)}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5">
                   <h4 className="font-semibold text-sm truncate">{vendor.name}</h4>
-                  {vendor.verified && <ShieldCheck className="w-3.5 h-3.5 text-[#0B5D3A] shrink-0" />}
+                  {vendor.verified && <ShieldCheck className="w-3.5 h-3.5 text-[#3730A3] shrink-0" />}
                 </div>
                 <div className="flex items-center gap-2 mt-0.5">
-                  <span className="text-xs text-[#6C757D] flex items-center gap-1"><MapPin className="w-3 h-3" />{vendor.stall}</span>
+                  <span className="text-xs text-[#78716C] flex items-center gap-1"><MapPin className="w-3 h-3" />{vendor.stall}</span>
                   <span className="kbadge text-[8px]" style={{ background: (ZONE_COLORS[vendor.zone] || '#999') + '15', color: ZONE_COLORS[vendor.zone] }}>{vendor.category}</span>
                 </div>
               </div>
-              <ChevronRight className="w-4 h-4 text-[#6C757D] shrink-0" />
+              <ChevronRight className="w-4 h-4 text-[#78716C] shrink-0" />
             </div>
-            <div className="flex items-center gap-4 mt-3 pt-3 border-t border-[#E9ECEF] dark:border-[#30363D]">
-              <div className="flex items-center gap-1"><Star className="w-3.5 h-3.5 fill-[#FFD23F] text-[#FFD23F]" /><span className="text-xs font-medium">{vendor.rating}</span></div>
-              <div className="flex items-center gap-1"><ThumbsUp className="w-3.5 h-3.5 text-[#0B5D3A]" /><span className="text-xs">{vendor.recs}</span></div>
-              <div className="flex items-center gap-1"><Clock className="w-3.5 h-3.5 text-[#6C757D]" /><span className="text-xs text-[#6C757D]">{vendor.hours}</span></div>
+            <div className="flex items-center gap-4 mt-3 pt-3 border-t border-[#E7E5E4] dark:border-[#2E2C4A]">
+              <div className="flex items-center gap-1"><Star className="w-3.5 h-3.5 fill-[#D97706] text-[#D97706]" /><span className="text-xs font-medium">{vendor.rating}</span></div>
+              <div className="flex items-center gap-1"><ThumbsUp className="w-3.5 h-3.5 text-[#3730A3]" /><span className="text-xs">{vendor.recs}</span></div>
+              <div className="flex items-center gap-1"><Clock className="w-3.5 h-3.5 text-[#78716C]" /><span className="text-xs text-[#78716C]">{vendor.hours}</span></div>
             </div>
           </motion.div>
         ))}
@@ -119,9 +119,9 @@ export default function VendorsPage() {
       {/* CTA */}
       {!isAuthenticated && (
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="kcard-yellow p-5 text-center">
-          <Store className="w-8 h-8 text-[#0A4D3C] mx-auto mb-2" />
-          <h3 className="font-bold text-[#0A4D3C]">{l('Become a Verified Vendor', 'Kuwa Muuzaji Aliyethibitishwa')}</h3>
-          <p className="text-sm text-[#0A4D3C]/70 mt-1">{l('Get discovered by thousands of buyers', 'Patikana na wanunuzi elfu')}</p>
+          <Store className="w-8 h-8 text-[#312E81] mx-auto mb-2" />
+          <h3 className="font-bold text-[#312E81]">{l('Become a Verified Vendor', 'Kuwa Muuzaji Aliyethibitishwa')}</h3>
+          <p className="text-sm text-[#312E81]/70 mt-1">{l('Get discovered by thousands of buyers', 'Patikana na wanunuzi elfu')}</p>
           <button onClick={() => router.push('/auth')} className="kbtn mt-3 text-sm">{l('Get Started', 'Anza Sasa')}</button>
         </motion.div>
       )}

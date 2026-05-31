@@ -22,8 +22,8 @@ export default function GuideDashboard() {
     <div className="px-4 py-4 space-y-5">
       {/* Welcome */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-        <p className="text-sm text-[#6C757D]">{l('Hello,', 'Hujambo,')}</p>
-        <h1 className="text-2xl font-bold text-[#0A4D3C] dark:text-[#2EA77A]">{user.name} 🧭</h1>
+        <p className="text-sm text-[#78716C]">{l('Hello,', 'Hujambo,')}</p>
+        <h1 className="text-2xl font-bold text-[#312E81] dark:text-[#818CF8]">{user.name} 🧭</h1>
         <div className="flex items-center gap-2 mt-1">
           <div className="w-2 h-2 rounded-full bg-[#10B981]" />
           <span className="text-xs text-[#10B981] font-medium">{l('Online', 'Mtandaoni')}</span>
@@ -46,43 +46,43 @@ export default function GuideDashboard() {
       {/* Stats */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="grid grid-cols-3 gap-3">
         <div className="kcard p-3 text-center">
-          <Users className="w-5 h-5 text-[#0B5D3A] mx-auto mb-1" />
+          <Users className="w-5 h-5 text-[#3730A3] mx-auto mb-1" />
           <p className="text-lg font-bold">28</p>
-          <p className="text-[10px] text-[#6C757D]">{l('Sessions', 'Vipindi')}</p>
+          <p className="text-[10px] text-[#78716C]">{l('Sessions', 'Vipindi')}</p>
         </div>
         <div className="kcard p-3 text-center">
-          <Star className="w-5 h-5 text-[#FFD23F] mx-auto mb-1 fill-[#FFD23F]" />
+          <Star className="w-5 h-5 text-[#D97706] mx-auto mb-1 fill-[#D97706]" />
           <p className="text-lg font-bold">4.8</p>
-          <p className="text-[10px] text-[#6C757D]">{l('Rating', 'Alama')}</p>
+          <p className="text-[10px] text-[#78716C]">{l('Rating', 'Alama')}</p>
         </div>
         <div className="kcard p-3 text-center">
-          <Clock className="w-5 h-5 text-[#0B5D3A] mx-auto mb-1" />
+          <Clock className="w-5 h-5 text-[#3730A3] mx-auto mb-1" />
           <p className="text-lg font-bold">42h</p>
-          <p className="text-[10px] text-[#6C757D]">{l('Hours', 'Masaa')}</p>
+          <p className="text-[10px] text-[#78716C]">{l('Hours', 'Masaa')}</p>
         </div>
       </motion.div>
 
       {/* Quick Actions */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="grid grid-cols-2 gap-3">
         <button onClick={() => router.push('/guide/sessions')} className="kcard p-4 text-left">
-          <Zap className="w-6 h-6 text-[#0B5D3A] mb-2" />
+          <Zap className="w-6 h-6 text-[#3730A3] mb-2" />
           <h3 className="font-bold text-sm">{l('Sessions', 'Vipindi')}</h3>
-          <p className="text-xs text-[#6C757D]">{l('Manage bookings', 'Simamia uhifadhi')}</p>
+          <p className="text-xs text-[#78716C]">{l('Manage bookings', 'Simamia uhifadhi')}</p>
         </button>
         <button onClick={() => router.push('/guide/packages')} className="kcard p-4 text-left">
-          <Package className="w-6 h-6 text-[#0B5D3A] mb-2" />
+          <Package className="w-6 h-6 text-[#3730A3] mb-2" />
           <h3 className="font-bold text-sm">{l('Packages', 'Pakiti')}</h3>
-          <p className="text-xs text-[#6C757D]">{l('Create deals', 'Unda mikataba')}</p>
+          <p className="text-xs text-[#78716C]">{l('Create deals', 'Unda mikataba')}</p>
         </button>
         <button onClick={() => router.push('/guide/earnings')} className="kcard p-4 text-left">
-          <DollarSign className="w-6 h-6 text-[#0B5D3A] mb-2" />
+          <DollarSign className="w-6 h-6 text-[#3730A3] mb-2" />
           <h3 className="font-bold text-sm">{l('Earnings', 'Mapato')}</h3>
-          <p className="text-xs text-[#6C757D]">{l('View payouts', 'Tazama malipo')}</p>
+          <p className="text-xs text-[#78716C]">{l('View payouts', 'Tazama malipo')}</p>
         </button>
         <button onClick={() => router.push('/guide/profile')} className="kcard p-4 text-left">
-          <MapPin className="w-6 h-6 text-[#0B5D3A] mb-2" />
+          <MapPin className="w-6 h-6 text-[#3730A3] mb-2" />
           <h3 className="font-bold text-sm">{l('Profile', 'Wasifu')}</h3>
-          <p className="text-xs text-[#6C757D]">{l('Edit details', 'Hariri maelezo')}</p>
+          <p className="text-xs text-[#78716C]">{l('Edit details', 'Hariri maelezo')}</p>
         </button>
       </motion.div>
 
@@ -97,9 +97,9 @@ export default function GuideDashboard() {
             <div key={i} className="kcard p-4">
               <div className="flex items-center justify-between mb-2">
                 <h4 className="font-semibold text-sm">{req.name}</h4>
-                <span className="text-sm font-bold text-[#0A4D3C]">TZS {req.budget.toLocaleString()}</span>
+                <span className="text-sm font-bold text-[#312E81]">TZS {req.budget.toLocaleString()}</span>
               </div>
-              <p className="text-xs text-[#6C757D]">{req.need} · {req.zone}</p>
+              <p className="text-xs text-[#78716C]">{req.need} · {req.zone}</p>
               <div className="flex gap-2 mt-3">
                 <button className="kbtn flex-1 text-xs py-2">{l('Accept', 'Kubali')}</button>
                 <button className="kbtn-outline flex-1 text-xs py-2">{l('Decline', 'Kataa')}</button>

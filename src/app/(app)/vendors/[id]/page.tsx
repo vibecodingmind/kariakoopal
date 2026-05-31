@@ -13,11 +13,11 @@ const VENDOR_DATA: Record<string, {
   categories: string[]; rating: number; recs: number; verified: boolean;
   contact: string; hours: string; bio: string; bioSw: string;
 }> = {
-  v1: { name: 'Zaki Electronics', zone: 'electronics', zoneName: 'Electronics Zone', zoneColor: '#0077B6', stall: 'A-12', categories: ['Phones', 'Accessories', 'Repairs'], rating: 4.8, recs: 234, verified: true, contact: '+255712001234', hours: '8:00-19:00', bio: 'Family-run electronics shop since 1998. Known for honest pricing and expert phone repairs. All phones come with 30-day warranty.', bioSw: 'Duka la elektroniki la kifamilia tangu 1998. Linajulikana kwa bei ya haki na urekebishaji wa simu wa kitaalamu. Simu zote huja na dhamani ya siku 30.' },
-  v2: { name: 'Mama Kanga Shop', zone: 'fabrics', zoneName: 'Fabrics Zone', zoneColor: '#8A2BE2', stall: 'B-45', categories: ['Kanga', 'Kitenge', 'Lace'], rating: 4.9, recs: 312, verified: true, contact: '+255716007890', hours: '7:00-18:00', bio: 'The largest kanga collection in Kariakoo. Mama Kanga has been dressing Dar es Salaam for 25 years. Custom printing available for orders of 50+ sets.', bioSw: 'Mkusanyiko mkubwa zaidi wa kanga Kariakoo. Mama Kanga amekuva akiwavalisha Dar es Salaam kwa miaka 25. Uchapishaji maalum unapatikana kwa maagizo ya seti 50+.' },
+  v1: { name: 'Zaki Electronics', zone: 'electronics', zoneName: 'Electronics Zone', zoneColor: '#0891B2', stall: 'A-12', categories: ['Phones', 'Accessories', 'Repairs'], rating: 4.8, recs: 234, verified: true, contact: '+255712001234', hours: '8:00-19:00', bio: 'Family-run electronics shop since 1998. Known for honest pricing and expert phone repairs. All phones come with 30-day warranty.', bioSw: 'Duka la elektroniki la kifamilia tangu 1998. Linajulikana kwa bei ya haki na urekebishaji wa simu wa kitaalamu. Simu zote huja na dhamani ya siku 30.' },
+  v2: { name: 'Mama Kanga Shop', zone: 'fabrics', zoneName: 'Fabrics Zone', zoneColor: '#7C3AED', stall: 'B-45', categories: ['Kanga', 'Kitenge', 'Lace'], rating: 4.9, recs: 312, verified: true, contact: '+255716007890', hours: '7:00-18:00', bio: 'The largest kanga collection in Kariakoo. Mama Kanga has been dressing Dar es Salaam for 25 years. Custom printing available for orders of 50+ sets.', bioSw: 'Mkusanyiko mkubwa zaidi wa kanga Kariakoo. Mama Kanga amekuva akiwavalisha Dar es Salaam kwa miaka 25. Uchapishaji maalum unapatikana kwa maagizo ya seti 50+.' },
   v3: { name: 'Al-Falah Wholesale', zone: 'wholesale', zoneName: 'Wholesale Zone', zoneColor: '#14B8A6', stall: 'C-08', categories: ['Rice', 'Oil', 'Sugar', 'Bulk'], rating: 4.7, recs: 267, verified: true, contact: '+255720003456', hours: '6:00-17:00', bio: 'Wholesale specialist with direct connections to importers. Best bulk prices in Kariakoo guaranteed. Free delivery within Dar for orders over 500,000 TZS.', bioSw: 'Mtaalamu wa jumla na mahusiano ya moja kwa moja na waagizaji. Bei bora za jumla Kariakoo zimehakikishwa. Usafirishaji bila malipo ndani ya Dar kwa maagizo zaidi ya TZS 500,000.' },
   v4: { name: 'Spice Paradise', zone: 'spices', zoneName: 'Spices Zone', zoneColor: '#EF4444', stall: 'D-22', categories: ['Spices', 'Herbs', 'Tea'], rating: 4.6, recs: 178, verified: false, contact: '+255722001234', hours: '8:00-17:00', bio: 'Fresh spices sourced directly from Zanzibar and India. Our chai masala blend is the most recommended in the market.', bioSw: 'Viungo safi vinavyotoka moja kwa moja Zanzibar na India. Mchanganyiko wetu wa chai masala unapendekezwa zaidi sokoni.' },
-  v5: { name: 'Kitchen World', zone: 'kitchenware', zoneName: 'Kitchenware Zone', zoneColor: '#FFA500', stall: 'E-15', categories: ['Kitchen', 'Home', 'Cookware'], rating: 4.5, recs: 145, verified: true, contact: '+255724009012', hours: '8:00-18:00', bio: 'Premium kitchenware at fair prices. Stainless steel items with 1-year warranty. Bulk discounts for restaurants and hotels.', bioSw: 'Vifaa vya jikoni vya hali ya juu kwa bei ya haki. Vitu vya stainless steel na dhamana ya mwaka 1. Punguzo la jumla kwa migahawa na hoteli.' },
+  v5: { name: 'Kitchen World', zone: 'kitchenware', zoneName: 'Kitchenware Zone', zoneColor: '#F59E0B', stall: 'E-15', categories: ['Kitchen', 'Home', 'Cookware'], rating: 4.5, recs: 145, verified: true, contact: '+255724009012', hours: '8:00-18:00', bio: 'Premium kitchenware at fair prices. Stainless steel items with 1-year warranty. Bulk discounts for restaurants and hotels.', bioSw: 'Vifaa vya jikoni vya hali ya juu kwa bei ya haki. Vitu vya stainless steel na dhamana ya mwaka 1. Punguzo la jumla kwa migahawa na hoteli.' },
   v6: { name: 'Craft Masters', zone: 'artisanal', zoneName: 'Artisanal Zone', zoneColor: '#8B5E3C', stall: 'F-08', categories: ['Crafts', 'Carvings', 'Jewelry'], rating: 4.7, recs: 98, verified: true, contact: '+255726007890', hours: '9:00-17:00', bio: 'Third-generation artisans preserving traditional Makonde carving techniques. Every piece is handcrafted with a story.', bioSw: 'Wafundi wa kizazi cha tatu wanaohifadhi mbinu za jadi za uchongaji Makonde. Kila kipande kinatengenezwa kwa mkono chenye hadithi.' },
 };
 
@@ -34,7 +34,7 @@ export default function VendorProfilePage() {
   if (!vendor) {
     return (
       <div className="px-4 py-8 text-center">
-        <p className="text-lg font-semibold text-[#6C757D]">{l('Vendor not found', 'Muuzaji hajapatikana')}</p>
+        <p className="text-lg font-semibold text-[#78716C]">{l('Vendor not found', 'Muuzaji hajapatikana')}</p>
         <button onClick={() => router.push('/vendors')} className="kbtn mt-4">{l('Back to Vendors', 'Rudi kwa Wauzaji')}</button>
       </div>
     );
@@ -43,7 +43,7 @@ export default function VendorProfilePage() {
   return (
     <div className="px-4 py-4 space-y-5">
       <motion.div initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }}>
-        <button onClick={() => router.push('/vendors')} className="flex items-center gap-1 text-sm text-[#6C757D] hover:text-[#0A4D3A]">
+        <button onClick={() => router.push('/vendors')} className="flex items-center gap-1 text-sm text-[#78716C] hover:text-[#0A4D3A]">
           <ArrowLeft className="w-4 h-4" /> {l('Back', 'Rudi')}
         </button>
       </motion.div>
@@ -57,34 +57,34 @@ export default function VendorProfilePage() {
           <div className="flex-1">
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-bold">{vendor.name}</h1>
-              {vendor.verified && <ShieldCheck className="w-5 h-5 text-[#0B5D3A]" />}
+              {vendor.verified && <ShieldCheck className="w-5 h-5 text-[#3730A3]" />}
             </div>
-            <p className="text-sm text-[#6C757D] mt-0.5 flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{vendor.zoneName} · {l('Stall', 'Duka')} {vendor.stall}</p>
+            <p className="text-sm text-[#78716C] mt-0.5 flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{vendor.zoneName} · {l('Stall', 'Duka')} {vendor.stall}</p>
           </div>
         </div>
 
         {vendor.verified && (
-          <div className="mt-4 p-3 rounded-lg bg-[#E8F5EE] dark:bg-[#0D2818] flex items-center gap-3">
-            <QrCode className="w-8 h-8 text-[#0B5D3A] dark:text-[#2EA77A]" />
+          <div className="mt-4 p-3 rounded-lg bg-[#E0E7FF] dark:bg-[#1E1B4B] flex items-center gap-3">
+            <QrCode className="w-8 h-8 text-[#3730A3] dark:text-[#818CF8]" />
             <div>
-              <p className="text-sm font-semibold text-[#0B5D3A] dark:text-[#2EA77A]">{l('Verified Vendor', 'Muuzaji Aliyethibitishwa')}</p>
-              <p className="text-xs text-[#6C757D]">{l('Scannable QR code available', 'Nambari ya QR inapatikana')}</p>
+              <p className="text-sm font-semibold text-[#3730A3] dark:text-[#818CF8]">{l('Verified Vendor', 'Muuzaji Aliyethibitishwa')}</p>
+              <p className="text-xs text-[#78716C]">{l('Scannable QR code available', 'Nambari ya QR inapatikana')}</p>
             </div>
           </div>
         )}
 
         <div className="grid grid-cols-3 gap-3 mt-4">
-          <div className="text-center p-2 rounded-lg bg-[#F8F9FA] dark:bg-[#21262D]">
-            <div className="flex items-center justify-center gap-1"><Star className="w-4 h-4 fill-[#FFD23F] text-[#FFD23F]" /><span className="font-bold text-sm">{vendor.rating}</span></div>
-            <p className="text-[10px] text-[#6C757D] mt-0.5">{l('Rating', 'Alama')}</p>
+          <div className="text-center p-2 rounded-lg bg-[#FAFAF9] dark:bg-[#242244]">
+            <div className="flex items-center justify-center gap-1"><Star className="w-4 h-4 fill-[#D97706] text-[#D97706]" /><span className="font-bold text-sm">{vendor.rating}</span></div>
+            <p className="text-[10px] text-[#78716C] mt-0.5">{l('Rating', 'Alama')}</p>
           </div>
-          <div className="text-center p-2 rounded-lg bg-[#F8F9FA] dark:bg-[#21262D]">
-            <div className="flex items-center justify-center gap-1"><ThumbsUp className="w-4 h-4 text-[#0B5D3A]" /><span className="font-bold text-sm">{vendor.recs}</span></div>
-            <p className="text-[10px] text-[#6C757D] mt-0.5">{l('Recommend', 'Pendekeza')}</p>
+          <div className="text-center p-2 rounded-lg bg-[#FAFAF9] dark:bg-[#242244]">
+            <div className="flex items-center justify-center gap-1"><ThumbsUp className="w-4 h-4 text-[#3730A3]" /><span className="font-bold text-sm">{vendor.recs}</span></div>
+            <p className="text-[10px] text-[#78716C] mt-0.5">{l('Recommend', 'Pendekeza')}</p>
           </div>
-          <div className="text-center p-2 rounded-lg bg-[#F8F9FA] dark:bg-[#21262D]">
-            <div className="flex items-center justify-center gap-1"><Clock className="w-4 h-4 text-[#6C757D]" /><span className="font-bold text-xs">{vendor.hours}</span></div>
-            <p className="text-[10px] text-[#6C757D] mt-0.5">{l('Hours', 'Masaa')}</p>
+          <div className="text-center p-2 rounded-lg bg-[#FAFAF9] dark:bg-[#242244]">
+            <div className="flex items-center justify-center gap-1"><Clock className="w-4 h-4 text-[#78716C]" /><span className="font-bold text-xs">{vendor.hours}</span></div>
+            <p className="text-[10px] text-[#78716C] mt-0.5">{l('Hours', 'Masaa')}</p>
           </div>
         </div>
       </motion.div>
@@ -99,21 +99,21 @@ export default function VendorProfilePage() {
       {/* About */}
       <div className="kcard p-5">
         <h3 className="font-semibold text-sm mb-2">{l('About', 'Kuhusu')}</h3>
-        <p className="text-sm text-[#6C757D] leading-relaxed">{sw ? vendor.bioSw : vendor.bio}</p>
+        <p className="text-sm text-[#78716C] leading-relaxed">{sw ? vendor.bioSw : vendor.bio}</p>
       </div>
 
       {/* Contact */}
       <div className="kcard p-5">
         <h3 className="font-semibold text-sm mb-3">{l('Contact', 'Mawasiliano')}</h3>
         <div className="flex items-center gap-3">
-          <Phone className="w-4 h-4 text-[#0B5D3A]" />
+          <Phone className="w-4 h-4 text-[#3730A3]" />
           <span className="text-sm">{vendor.contact}</span>
         </div>
       </div>
 
       {/* CTA */}
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="kcard-green p-5 text-center">
-        <Navigation className="w-8 h-8 text-[#FFD23F] mx-auto mb-2" />
+        <Navigation className="w-8 h-8 text-[#D97706] mx-auto mb-2" />
         <h3 className="font-bold text-white">{l('Need Help Finding This Stall?', 'Unahitaji Msaada Wa Kupata Duka Hili?')}</h3>
         <p className="text-sm text-white/70 mt-1">{l('A local guide can navigate you directly here', 'Mwongozo wa karani anaweza kukuelekeza moja kwa moja hapa')}</p>
         <button onClick={() => router.push(isAuthenticated ? '/seeker/find' : '/auth')} className="kbtn-yellow mt-3 text-sm">

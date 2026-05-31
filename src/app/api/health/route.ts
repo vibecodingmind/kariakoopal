@@ -25,11 +25,11 @@ export async function GET() {
 async function seedDemoData() {
   // Create zones
   const zones = [
-    { id: 'zone-electronics', name: 'Electronics Zone', nameSw: 'Eneo la Elektroniki', description: 'The tech hub of Kariakoo', color: '#0077B6' },
-    { id: 'zone-fabrics', name: 'Fabrics Zone', nameSw: 'Eneo la Vitenge', description: 'Vibrant textiles', color: '#8A2BE2' },
+    { id: 'zone-electronics', name: 'Electronics Zone', nameSw: 'Eneo la Elektroniki', description: 'The tech hub of Kariakoo', color: '#0891B2' },
+    { id: 'zone-fabrics', name: 'Fabrics Zone', nameSw: 'Eneo la Vitenge', description: 'Vibrant textiles', color: '#7C3AED' },
     { id: 'zone-wholesale', name: 'Wholesale Zone', nameSw: 'Eneo la Jumla', description: 'Bulk buying paradise', color: '#14B8A6' },
     { id: 'zone-spices', name: 'Spices Zone', nameSw: 'Eneo la Viungo', description: 'Aromatic treasures', color: '#EF4444' },
-    { id: 'zone-kitchenware', name: 'Kitchenware Zone', nameSw: 'Eneo la Chombo', description: 'Kitchen essentials', color: '#FFA500' },
+    { id: 'zone-kitchenware', name: 'Kitchenware Zone', nameSw: 'Eneo la Chombo', description: 'Kitchen essentials', color: '#F59E0B' },
     { id: 'zone-artisanal', name: 'Artisanal Zone', nameSw: 'Eneo la Kisanii', description: 'Handcrafted treasures', color: '#8B5E3C' },
   ];
 

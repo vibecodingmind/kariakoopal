@@ -17,13 +17,13 @@ export default function BuddyPage() {
   return (
     <div className="px-4 py-4 space-y-5">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-2xl font-bold text-[#0A4D3C] dark:text-[#2EA77A]">{l('Find a Buddy', 'Tafuta Rafiki')}</h1>
-        <p className="text-sm text-[#6C757D] mt-1">{l('Share guide costs with other seekers', 'Shiriki gharama za mwongozo na watafutaji wengine')}</p>
+        <h1 className="text-2xl font-bold text-[#312E81] dark:text-[#818CF8]">{l('Find a Buddy', 'Tafuta Rafiki')}</h1>
+        <p className="text-sm text-[#78716C] mt-1">{l('Share guide costs with other seekers', 'Shiriki gharama za mwongozo na watafutaji wengine')}</p>
       </motion.div>
 
       <div className="kcard-green p-4">
         <div className="flex items-center gap-3 mb-2">
-          <Users className="w-6 h-6 text-[#FFD23F]" />
+          <Users className="w-6 h-6 text-[#D97706]" />
           <div>
             <h3 className="font-bold text-white text-sm">{l('How It Works', 'Jinsi Inavyofanya Kazi')}</h3>
             <p className="text-xs text-white/60 mt-0.5">{l('Split the guide fee 50/50 with a matched seeker', 'Gawanya ada ya mwongozo 50/50 na mtafutaji aliye na pendwa')}</p>
@@ -36,20 +36,20 @@ export default function BuddyPage() {
         {BUDDY_MATCHES.map((buddy, i) => (
           <motion.div key={buddy.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="kcard p-4">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-12 h-12 rounded-full bg-[#FFD23F] flex items-center justify-center text-[#0A4D3C] font-bold">{buddy.avatar}</div>
+              <div className="w-12 h-12 rounded-full bg-[#D97706] flex items-center justify-center text-[#312E81] font-bold">{buddy.avatar}</div>
               <div className="flex-1">
                 <h4 className="font-semibold text-sm">{buddy.name}</h4>
-                <p className="text-xs text-[#6C757D]">{l('Looking for:', 'Anatafuta:')} {buddy.shared}</p>
+                <p className="text-xs text-[#78716C]">{l('Looking for:', 'Anatafuta:')} {buddy.shared}</p>
               </div>
             </div>
-            <div className="flex items-center gap-3 text-xs text-[#6C757D] mb-3">
+            <div className="flex items-center gap-3 text-xs text-[#78716C] mb-3">
               <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{buddy.zone}</span>
               <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{buddy.timeSlot}</span>
             </div>
-            <div className="flex items-center justify-between pt-3 border-t border-[#E9ECEF] dark:border-[#30363D]">
+            <div className="flex items-center justify-between pt-3 border-t border-[#E7E5E4] dark:border-[#2E2C4A]">
               <div>
-                <p className="text-xs text-[#6C757D]">{l('Your share with', 'Sehemu yako na')} {buddy.guide}</p>
-                <p className="font-bold text-[#0A4D3C]">TZS {buddy.price.toLocaleString()} <span className="text-xs font-normal text-[#6C757D]">{l('(50% off)', '(punguzo 50%)')}</span></p>
+                <p className="text-xs text-[#78716C]">{l('Your share with', 'Sehemu yako na')} {buddy.guide}</p>
+                <p className="font-bold text-[#312E81]">TZS {buddy.price.toLocaleString()} <span className="text-xs font-normal text-[#78716C]">{l('(50% off)', '(punguzo 50%)')}</span></p>
               </div>
               <button className="kbtn text-xs py-1.5">{l('Join', 'Jiunge')}</button>
             </div>

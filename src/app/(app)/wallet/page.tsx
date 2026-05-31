@@ -104,9 +104,9 @@ export default function WalletPage() {
     switch (type) {
       case 'deposit': return <ArrowDownLeft className="w-4 h-4 text-[#10B981]" />;
       case 'withdrawal': return <ArrowUpRight className="w-4 h-4 text-[#F59E0B]" />;
-      case 'payment': return <Minus className="w-4 h-4 text-[#E63946]" />;
-      case 'refund': return <ArrowDownLeft className="w-4 h-4 text-[#0077B6]" />;
-      case 'subscription': return <CreditCard className="w-4 h-4 text-[#8A2BE2]" />;
+      case 'payment': return <Minus className="w-4 h-4 text-[#DC2626]" />;
+      case 'refund': return <ArrowDownLeft className="w-4 h-4 text-[#0891B2]" />;
+      case 'subscription': return <CreditCard className="w-4 h-4 text-[#7C3AED]" />;
       default: return <WalletIcon className="w-4 h-4" />;
     }
   };
@@ -123,21 +123,21 @@ export default function WalletPage() {
   return (
     <div className="px-4 py-4 space-y-5">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-2xl font-bold text-[#0A4D3C] dark:text-[#2EA77A]">{l('Wallet', 'Mkoba')}</h1>
-        <p className="text-sm text-[#6C757D] mt-1">{l('Manage your funds and transactions', 'Simamia pesa zako na miamala')}</p>
+        <h1 className="text-2xl font-bold text-[#312E81] dark:text-[#818CF8]">{l('Wallet', 'Mkoba')}</h1>
+        <p className="text-sm text-[#78716C] mt-1">{l('Manage your funds and transactions', 'Simamia pesa zako na miamala')}</p>
       </motion.div>
 
       {/* Balance Card */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="kcard-green p-5">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm text-white/70">{l('Total Balance', 'Salio Jumla')}</span>
-          <Shield className="w-4 h-4 text-[#FFD23F]" />
+          <Shield className="w-4 h-4 text-[#D97706]" />
         </div>
         <p className="text-3xl font-bold text-white">TZS {walletBalance.toLocaleString()}</p>
         <div className="grid grid-cols-2 gap-3 mt-4">
           <div className="p-3 rounded-lg bg-white/10">
             <p className="text-xs text-white/60">{l('Available', 'Inapatikana')}</p>
-            <p className="text-lg font-bold text-[#FFD23F]">TZS {availableBalance.toLocaleString()}</p>
+            <p className="text-lg font-bold text-[#D97706]">TZS {availableBalance.toLocaleString()}</p>
           </div>
           <div className="p-3 rounded-lg bg-white/10">
             <p className="text-xs text-white/60">{l('Pending', 'Inasubiri')}</p>
@@ -157,9 +157,9 @@ export default function WalletPage() {
       {/* Quick Actions */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="grid grid-cols-3 gap-3">
         {[
-          { icon: Send, label: l('Send', 'Tuma'), color: '#0077B6' },
-          { icon: Smartphone, label: l('M-Pesa', 'M-Pesa'), color: '#0B5D3A' },
-          { icon: TrendingUp, label: l('Statement', 'Taarifa'), color: '#FFA500' },
+          { icon: Send, label: l('Send', 'Tuma'), color: '#0891B2' },
+          { icon: Smartphone, label: l('M-Pesa', 'M-Pesa'), color: '#3730A3' },
+          { icon: TrendingUp, label: l('Statement', 'Taarifa'), color: '#F59E0B' },
         ].map((action, i) => (
           <button key={i} className="kcard p-3 text-center hover:shadow-md transition-all active:scale-95">
             <action.icon className="w-5 h-5 mx-auto mb-1.5" style={{ color: action.color }} />
@@ -172,7 +172,7 @@ export default function WalletPage() {
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-bold">{l('Transaction History', 'Historia ya Miamala')}</h2>
-          <Filter className="w-4 h-4 text-[#6C757D]" />
+          <Filter className="w-4 h-4 text-[#78716C]" />
         </div>
         <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2">
           {(['all', 'deposits', 'withdrawals', 'payments', 'refunds'] as FilterTab[]).map(tab => (
@@ -180,7 +180,7 @@ export default function WalletPage() {
               key={tab}
               onClick={() => setFilter(tab)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
-                filter === tab ? 'bg-[#0A4D3C] text-white' : 'bg-[#F1F3F5] dark:bg-[#21262D] text-[#6C757D]'
+                filter === tab ? 'bg-[#312E81] text-white' : 'bg-[#F5F5F4] dark:bg-[#242244] text-[#78716C]'
               }`}
             >
               {tab === 'all' ? l('All', 'Zote') :
@@ -205,7 +205,7 @@ export default function WalletPage() {
           >
             <div className="flex items-center gap-3">
               <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                tx.type === 'deposit' || tx.type === 'refund' ? 'bg-[#E8F5EE]' :
+                tx.type === 'deposit' || tx.type === 'refund' ? 'bg-[#E0E7FF]' :
                 tx.type === 'withdrawal' ? 'bg-[#FEF3C7]' :
                 tx.type === 'subscription' ? 'bg-[#F3E8FF]' : 'bg-[#FEE2E2]'
               }`}>
@@ -213,11 +213,11 @@ export default function WalletPage() {
               </div>
               <div>
                 <p className="text-sm font-medium">{tx.description}</p>
-                <p className="text-[10px] text-[#6C757D]">{tx.date} · {tx.time}</p>
+                <p className="text-[10px] text-[#78716C]">{tx.date} · {tx.time}</p>
               </div>
             </div>
             <div className="text-right">
-              <p className={`text-sm font-bold ${tx.amount > 0 ? 'text-[#10B981]' : 'text-[#E63946]'}`}>
+              <p className={`text-sm font-bold ${tx.amount > 0 ? 'text-[#10B981]' : 'text-[#DC2626]'}`}>
                 {tx.amount > 0 ? '+' : ''}TZS {Math.abs(tx.amount).toLocaleString()}
               </p>
               {getStatusBadge(tx.status)}
@@ -241,23 +241,23 @@ export default function WalletPage() {
               animate={{ y: 0 }}
               exit={{ y: 300 }}
               transition={{ type: 'spring', damping: 25 }}
-              className="w-full max-w-lg bg-white dark:bg-[#161B22] rounded-t-3xl p-6 space-y-4"
+              className="w-full max-w-lg bg-white dark:bg-[#1A1832] rounded-t-3xl p-6 space-y-4"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-bold">{l('Top Up Wallet', 'Weka Pesa kwenye Mkoba')}</h3>
-                <button onClick={() => !processing && setShowTopUp(false)} className="w-8 h-8 rounded-full bg-[#F1F3F5] dark:bg-[#21262D] flex items-center justify-center">
+                <button onClick={() => !processing && setShowTopUp(false)} className="w-8 h-8 rounded-full bg-[#F5F5F4] dark:bg-[#242244] flex items-center justify-center">
                   <X className="w-4 h-4" />
                 </button>
               </div>
 
               {success ? (
                 <div className="text-center py-8">
-                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-16 h-16 rounded-full bg-[#E8F5EE] flex items-center justify-center mx-auto mb-3">
+                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-16 h-16 rounded-full bg-[#E0E7FF] flex items-center justify-center mx-auto mb-3">
                     <CheckCircle2 className="w-8 h-8 text-[#10B981]" />
                   </motion.div>
                   <p className="font-bold text-lg">{l('Top Up Successful!', 'Amana Imefanikiwa!')}</p>
-                  <p className="text-sm text-[#6C757D]">TZS {topUpAmount.toLocaleString()} {l('added to your wallet', 'imeongezwa kwenye mkoba wako')}</p>
+                  <p className="text-sm text-[#78716C]">TZS {topUpAmount.toLocaleString()} {l('added to your wallet', 'imeongezwa kwenye mkoba wako')}</p>
                 </div>
               ) : (
                 <>
@@ -269,7 +269,7 @@ export default function WalletPage() {
                           key={amt}
                           onClick={() => setTopUpAmount(amt)}
                           className={`py-2.5 rounded-xl text-sm font-medium transition-all ${
-                            topUpAmount === amt ? 'bg-[#0A4D3C] text-white' : 'bg-[#F1F3F5] dark:bg-[#21262D] text-[#6C757D]'
+                            topUpAmount === amt ? 'bg-[#312E81] text-white' : 'bg-[#F5F5F4] dark:bg-[#242244] text-[#78716C]'
                           }`}
                         >
                           {amt >= 1000 ? `${amt / 1000}K` : amt}
@@ -324,23 +324,23 @@ export default function WalletPage() {
               animate={{ y: 0 }}
               exit={{ y: 300 }}
               transition={{ type: 'spring', damping: 25 }}
-              className="w-full max-w-lg bg-white dark:bg-[#161B22] rounded-t-3xl p-6 space-y-4"
+              className="w-full max-w-lg bg-white dark:bg-[#1A1832] rounded-t-3xl p-6 space-y-4"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-bold">{l('Withdraw Funds', 'Toa Pesa')}</h3>
-                <button onClick={() => !processing && setShowWithdraw(false)} className="w-8 h-8 rounded-full bg-[#F1F3F5] dark:bg-[#21262D] flex items-center justify-center">
+                <button onClick={() => !processing && setShowWithdraw(false)} className="w-8 h-8 rounded-full bg-[#F5F5F4] dark:bg-[#242244] flex items-center justify-center">
                   <X className="w-4 h-4" />
                 </button>
               </div>
 
               {success ? (
                 <div className="text-center py-8">
-                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-16 h-16 rounded-full bg-[#E8F5EE] flex items-center justify-center mx-auto mb-3">
+                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-16 h-16 rounded-full bg-[#E0E7FF] flex items-center justify-center mx-auto mb-3">
                     <CheckCircle2 className="w-8 h-8 text-[#10B981]" />
                   </motion.div>
                   <p className="font-bold text-lg">{l('Withdrawal Initiated!', 'Utoaji Umeanza!')}</p>
-                  <p className="text-sm text-[#6C757D]">TZS {withdrawAmount.toLocaleString()} {l('being sent to your M-Pesa', 'inatolewa kwa M-Pesa yako')}</p>
+                  <p className="text-sm text-[#78716C]">TZS {withdrawAmount.toLocaleString()} {l('being sent to your M-Pesa', 'inatolewa kwa M-Pesa yako')}</p>
                 </div>
               ) : (
                 <>
@@ -362,8 +362,8 @@ export default function WalletPage() {
                     <label className="text-sm font-medium mb-2 block">{l('Withdrawal Method', 'Njia ya Utoaji')}</label>
                     <div className="grid grid-cols-3 gap-2">
                       {['M-Pesa', 'Tigo Pesa', 'Airtel Money'].map(method => (
-                        <button key={method} className="kcard p-2.5 text-center text-xs font-medium hover:border-[#0A4D3C] transition-colors">
-                          <Smartphone className="w-4 h-4 mx-auto mb-1 text-[#0B5D3A]" />{method}
+                        <button key={method} className="kcard p-2.5 text-center text-xs font-medium hover:border-[#312E81] transition-colors">
+                          <Smartphone className="w-4 h-4 mx-auto mb-1 text-[#3730A3]" />{method}
                         </button>
                       ))}
                     </div>

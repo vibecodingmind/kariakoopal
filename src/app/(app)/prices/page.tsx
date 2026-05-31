@@ -56,14 +56,14 @@ export default function PricesPage() {
   return (
     <div className="px-4 py-4 space-y-5">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-2xl font-bold text-[#0A4D3C] dark:text-[#2EA77A]">{l('Price Radar', 'Rada ya Bei')}</h1>
-        <p className="text-sm text-[#6C757D] mt-1">{l('Real-time fair market prices across Kariakoo', 'Bei za haki za soko za wakati halisi Kariakoo')}</p>
+        <h1 className="text-2xl font-bold text-[#312E81] dark:text-[#818CF8]">{l('Price Radar', 'Rada ya Bei')}</h1>
+        <p className="text-sm text-[#78716C] mt-1">{l('Real-time fair market prices across Kariakoo', 'Bei za haki za soko za wakati halisi Kariakoo')}</p>
       </motion.div>
 
       {/* Search */}
       <div className="ksearch flex items-center gap-2 px-4 py-3">
-        <Search className="w-4 h-4 text-[#6C757D]" />
-        <input type="text" placeholder={l('Search items...', 'Tafuta bidhaa...')} value={search} onChange={e => setSearch(e.target.value)} className="flex-1 bg-transparent text-sm outline-none placeholder:text-[#6C757D]" />
+        <Search className="w-4 h-4 text-[#78716C]" />
+        <input type="text" placeholder={l('Search items...', 'Tafuta bidhaa...')} value={search} onChange={e => setSearch(e.target.value)} className="flex-1 bg-transparent text-sm outline-none placeholder:text-[#78716C]" />
       </div>
 
       {/* Category Chips */}
@@ -76,8 +76,8 @@ export default function PricesPage() {
       {/* Watch List Badge */}
       {watchList.length > 0 && (
         <div className="kcard p-3 flex items-center justify-between">
-          <span className="text-sm font-medium flex items-center gap-2"><Eye className="w-4 h-4 text-[#0B5D3A]" />{watchList.length} {l('items on watch list', 'bidhaa kwenye orodha')}</span>
-          <button onClick={() => setWatchList([])} className="text-xs text-[#E63946]">{l('Clear', 'Futa')}</button>
+          <span className="text-sm font-medium flex items-center gap-2"><Eye className="w-4 h-4 text-[#3730A3]" />{watchList.length} {l('items on watch list', 'bidhaa kwenye orodha')}</span>
+          <button onClick={() => setWatchList([])} className="text-xs text-[#DC2626]">{l('Clear', 'Futa')}</button>
         </div>
       )}
 
@@ -97,8 +97,8 @@ export default function PricesPage() {
                   <h4 className="font-semibold text-sm">{price.item}</h4>
                   {price.fair ? <TrendingDown className="w-3.5 h-3.5 text-[#10B981]" /> : <TrendingUp className="w-3.5 h-3.5 text-[#F59E0B]" />}
                 </div>
-                <p className="text-xs text-[#6C757D] mt-0.5">{price.zone}</p>
-                <p className="text-base font-bold text-[#0A4D3C] dark:text-[#2EA77A] mt-1.5">
+                <p className="text-xs text-[#78716C] mt-0.5">{price.zone}</p>
+                <p className="text-base font-bold text-[#312E81] dark:text-[#818CF8] mt-1.5">
                   TZS {price.min.toLocaleString()} — {price.max.toLocaleString()}
                 </p>
               </div>
@@ -106,12 +106,12 @@ export default function PricesPage() {
                 <span className={`kbadge ${price.fair ? 'kbadge-verified' : 'kbadge-pending'}`}>
                   {price.fair ? l('Fair', 'Haki') : l('Moderate', 'Wastani')}
                 </span>
-                <button onClick={() => toggleWatch(price.id)} className={`text-xs px-2 py-1 rounded-md transition-colors ${watchList.includes(price.id) ? 'bg-[#0B5D3A] text-white' : 'bg-[#F1F3F5] dark:bg-[#21262D] text-[#6C757D] hover:text-[#0B5D3A]'}`}>
+                <button onClick={() => toggleWatch(price.id)} className={`text-xs px-2 py-1 rounded-md transition-colors ${watchList.includes(price.id) ? 'bg-[#3730A3] text-white' : 'bg-[#F5F5F4] dark:bg-[#242244] text-[#78716C] hover:text-[#3730A3]'}`}>
                   <Eye className="w-3 h-3" />
                 </button>
               </div>
             </div>
-            <div className="flex items-center gap-1 mt-2 text-[10px] text-[#6C757D]">
+            <div className="flex items-center gap-1 mt-2 text-[10px] text-[#78716C]">
               <RefreshCw className="w-3 h-3" />{l('Updated', 'Ilisasishwa')} {price.updated}
             </div>
           </motion.div>
@@ -120,7 +120,7 @@ export default function PricesPage() {
 
       {/* Currency Converter */}
       <div className="kcard p-5">
-        <h3 className="font-semibold text-sm mb-3 flex items-center gap-2"><DollarSign className="w-4 h-4 text-[#0B5D3A]" />{l('Currency Converter', 'Kibadilishaji cha Fedha')}</h3>
+        <h3 className="font-semibold text-sm mb-3 flex items-center gap-2"><DollarSign className="w-4 h-4 text-[#3730A3]" />{l('Currency Converter', 'Kibadilishaji cha Fedha')}</h3>
         <div className="flex items-center gap-2 mb-3">
           <input
             type="number"
@@ -132,7 +132,7 @@ export default function PricesPage() {
         </div>
         <div className="space-y-2">
           {EXCHANGE_RATES.map(er => (
-            <div key={er.currency} className="flex items-center justify-between py-1.5 border-b border-[#E9ECEF] dark:border-[#30363D] last:border-0">
+            <div key={er.currency} className="flex items-center justify-between py-1.5 border-b border-[#E7E5E4] dark:border-[#2E2C4A] last:border-0">
               <span className="text-sm flex items-center gap-2"><span>{er.flag}</span>{er.currency}</span>
               <span className="text-sm font-medium">{(convertAmount * er.rate).toLocaleString()} TZS</span>
             </div>
@@ -142,7 +142,7 @@ export default function PricesPage() {
 
       {/* CTA */}
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="kcard-green p-5 text-center">
-        <DollarSign className="w-8 h-8 text-[#FFD23F] mx-auto mb-2" />
+        <DollarSign className="w-8 h-8 text-[#D97706] mx-auto mb-2" />
         <h3 className="font-bold text-white">{l('Want Better Prices?', 'Unataka Bei Bora?')}</h3>
         <p className="text-sm text-white/70 mt-1">{l('A local guide can negotiate the best deals for you', 'Mwongozo wa karibu anaweza kujadili mikataba bora kwa ajili yako')}</p>
         <button onClick={() => router.push(isAuthenticated ? '/seeker/find' : '/auth')} className="kbtn-yellow mt-3 text-sm">{l('Get a Guide', 'Pata Mwongozo')}</button>

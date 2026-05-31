@@ -679,9 +679,9 @@ function OverviewView({ lang, stats, zones, disputes, pendingGuides, users, onNa
     }
   });
   const ratingDistribution = [
-    { rating: '5 ★', count: ratingBuckets[4], fill: '#0B5D3A' },
-    { rating: '4 ★', count: ratingBuckets[3], fill: '#2EA77A' },
-    { rating: '3 ★', count: ratingBuckets[2], fill: '#FFD700' },
+    { rating: '5 ★', count: ratingBuckets[4], fill: '#3730A3' },
+    { rating: '4 ★', count: ratingBuckets[3], fill: '#818CF8' },
+    { rating: '3 ★', count: ratingBuckets[2], fill: '#FBBF24' },
     { rating: '2 ★', count: ratingBuckets[1], fill: '#F97316' },
     { rating: '1 ★', count: ratingBuckets[0], fill: '#EF4444' },
   ];
@@ -1105,7 +1105,7 @@ function ZonesView({ lang, zones, onRefresh }: {
   const [formName, setFormName] = useState('');
   const [formNameSw, setFormNameSw] = useState('');
   const [formDesc, setFormDesc] = useState('');
-  const [formColor, setFormColor] = useState('#4CAF50');
+  const [formColor, setFormColor] = useState('#059669');
   const [saving, setSaving] = useState(false);
 
   const openEdit = (zone: ZoneItem) => {
@@ -1121,7 +1121,7 @@ function ZonesView({ lang, zones, onRefresh }: {
     setFormName('');
     setFormNameSw('');
     setFormDesc('');
-    setFormColor('#4CAF50');
+    setFormColor('#059669');
     setCreateDialogOpen(true);
   };
 
@@ -1654,9 +1654,9 @@ function AnalyticsView({ lang, stats, zones, users, sessions }: {
     }
   });
   const ratingDist = [
-    { name: '5 ★', value: ratingBucketsAnalytics[4], fill: '#0B5D3A' },
-    { name: '4 ★', value: ratingBucketsAnalytics[3], fill: '#2EA77A' },
-    { name: '3 ★', value: ratingBucketsAnalytics[2], fill: '#FFD700' },
+    { name: '5 ★', value: ratingBucketsAnalytics[4], fill: '#3730A3' },
+    { name: '4 ★', value: ratingBucketsAnalytics[3], fill: '#818CF8' },
+    { name: '3 ★', value: ratingBucketsAnalytics[2], fill: '#FBBF24' },
     { name: '2 ★', value: ratingBucketsAnalytics[1], fill: '#F97316' },
     { name: '1 ★', value: ratingBucketsAnalytics[0], fill: '#EF4444' },
   ];
@@ -1753,7 +1753,7 @@ function AnalyticsView({ lang, stats, zones, users, sessions }: {
                   <XAxis dataKey="name" tick={{ fontSize: 10 }} interval={dateRange === 'week' ? 0 : 'preserveStartEnd'} />
                   <YAxis tick={{ fontSize: 11 }} />
                   <RechartsTooltip />
-                  <Line type="monotone" dataKey="sessions" stroke="#0B5D3A" strokeWidth={2} dot={dateRange === 'week' ? true : false} />
+                  <Line type="monotone" dataKey="sessions" stroke="#3730A3" strokeWidth={2} dot={dateRange === 'week' ? true : false} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -1773,7 +1773,7 @@ function AnalyticsView({ lang, stats, zones, users, sessions }: {
                   <XAxis dataKey="name" tick={{ fontSize: 10 }} interval={dateRange === 'week' ? 0 : 'preserveStartEnd'} />
                   <YAxis tick={{ fontSize: 11 }} tickFormatter={v => `${(v / 1000).toFixed(0)}k`} />
                   <RechartsTooltip formatter={(v: number) => formatTZS(v)} />
-                  <Line type="monotone" dataKey="revenue" stroke="#FFD700" strokeWidth={2} dot={dateRange === 'week' ? true : false} />
+                  <Line type="monotone" dataKey="revenue" stroke="#FBBF24" strokeWidth={2} dot={dateRange === 'week' ? true : false} />
                 </LineChart>
               </ResponsiveContainer>
             </div>

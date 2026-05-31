@@ -7,11 +7,11 @@ import { db } from '@/lib/db';
 
 // ── Zones ──
 export const DEMO_ZONES = [
-  { id: 'zone-electronics', name: 'Electronics Zone', nameSw: 'Eneo la Elektroniki', description: 'The tech hub of Kariakoo — phones, accessories, gadgets & expert repairs.', geoBounds: '{}', color: '#0077B6', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-  { id: 'zone-fabrics', name: 'Fabrics Zone', nameSw: 'Eneo la Vitenge', description: 'Vibrant textiles — kanga, kitenge, lace, silk & custom tailoring.', geoBounds: '{}', color: '#8A2BE2', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: 'zone-electronics', name: 'Electronics Zone', nameSw: 'Eneo la Elektroniki', description: 'The tech hub of Kariakoo — phones, accessories, gadgets & expert repairs.', geoBounds: '{}', color: '#0891B2', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: 'zone-fabrics', name: 'Fabrics Zone', nameSw: 'Eneo la Vitenge', description: 'Vibrant textiles — kanga, kitenge, lace, silk & custom tailoring.', geoBounds: '{}', color: '#7C3AED', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
   { id: 'zone-wholesale', name: 'Wholesale Zone', nameSw: 'Eneo la Jumla', description: 'Bulk buying paradise — rice, oil, sugar & household supplies by the sack.', geoBounds: '{}', color: '#14B8A6', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
   { id: 'zone-spices', name: 'Spices Zone', nameSw: 'Eneo la Viungo', description: 'Aromatic treasures — turmeric, cardamom, cinnamon, cloves & herbal remedies.', geoBounds: '{}', color: '#EF4444', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-  { id: 'zone-kitchenware', name: 'Kitchenware Zone', nameSw: 'Eneo la Chombo', description: 'Everything for the kitchen — pots, pans, utensils & home essentials.', geoBounds: '{}', color: '#FFA500', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: 'zone-kitchenware', name: 'Kitchenware Zone', nameSw: 'Eneo la Chombo', description: 'Everything for the kitchen — pots, pans, utensils & home essentials.', geoBounds: '{}', color: '#F59E0B', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
   { id: 'zone-artisanal', name: 'Artisanal Zone', nameSw: 'Eneo la Kisanii', description: 'Handcrafted treasures — baskets, carvings, jewelry & traditional crafts.', geoBounds: '{}', color: '#8B5E3C', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
 ];
 

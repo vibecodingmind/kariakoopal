@@ -37,12 +37,12 @@ export default function SeekerProfilePage() {
       {/* Profile Header */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="kcard p-5 text-center relative">
         <div className="relative inline-block">
-          <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-[#0A4D3C] to-[#2EA77A] flex items-center justify-center text-white font-bold text-3xl mx-auto shadow-lg shadow-[#0A4D3C]/20">
+          <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-[#312E81] to-[#818CF8] flex items-center justify-center text-white font-bold text-3xl mx-auto shadow-lg shadow-[#312E81]/20">
             {user?.name?.split(' ').map(n => n[0]).join('') || 'U'}
           </div>
           {editing && (
-            <button className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-[#FFD23F] flex items-center justify-center shadow-md">
-              <Camera className="w-4 h-4 text-[#0A4D3C]" />
+            <button className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-[#D97706] flex items-center justify-center shadow-md">
+              <Camera className="w-4 h-4 text-[#312E81]" />
             </button>
           )}
         </div>
@@ -55,13 +55,13 @@ export default function SeekerProfilePage() {
         ) : (
           <>
             <h2 className="text-xl font-bold mt-3">{user?.name || 'User'}</h2>
-            <p className="text-sm text-[#6C757D] mt-0.5">{user?.phone}</p>
-            {user?.email && <p className="text-xs text-[#6C757D]">{user.email}</p>}
+            <p className="text-sm text-[#78716C] mt-0.5">{user?.phone}</p>
+            {user?.email && <p className="text-xs text-[#78716C]">{user.email}</p>}
           </>
         )}
         <div className="flex items-center justify-center gap-2 mt-2">
           <span className="kbadge kbadge-verified">{l('Seeker', 'Mtafutaji')}</span>
-          <span className="text-[10px] text-[#6C757D]">{l('Since', 'Tangu')} {memberSince}</span>
+          <span className="text-[10px] text-[#78716C]">{l('Since', 'Tangu')} {memberSince}</span>
         </div>
 
         <div className="flex items-center justify-center gap-2 mt-4">
@@ -92,9 +92,9 @@ export default function SeekerProfilePage() {
           { label: l('Balance', 'Salio'), value: `${(walletBalance / 1000).toFixed(0)}K`, icon: Wallet },
         ].map((stat, i) => (
           <div key={i} className="kcard p-2.5 text-center">
-            <stat.icon className="w-4 h-4 mx-auto mb-1 text-[#0B5D3A]" />
+            <stat.icon className="w-4 h-4 mx-auto mb-1 text-[#3730A3]" />
             <p className="text-sm font-bold">{stat.value}</p>
-            <p className="text-[9px] text-[#6C757D]">{stat.label}</p>
+            <p className="text-[9px] text-[#78716C]">{stat.label}</p>
           </div>
         ))}
       </motion.div>
@@ -107,7 +107,7 @@ export default function SeekerProfilePage() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center">
-              <Wallet className="w-5 h-5 text-[#FFD23F]" />
+              <Wallet className="w-5 h-5 text-[#D97706]" />
             </div>
             <div>
               <p className="text-xs text-white/60">{l('Wallet Balance', 'Salio la Mkoba')}</p>
@@ -121,32 +121,32 @@ export default function SeekerProfilePage() {
       {/* Menu Items */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="kcard p-0 overflow-hidden">
         {[
-          { icon: Star, label: l('My Reviews', 'Mapitio Yangu'), href: '/seeker/history', color: '#FFD23F' },
-          { icon: MapPin, label: l('Saved Zones', 'Maeneo Yaliyohifadhiwa'), href: '/market', color: '#0B5D3A' },
-          { icon: ShoppingBag, label: l('Shopping Lists', 'Orodha za Manunuzi'), href: '/seeker/shopping-list', color: '#FFA500' },
-          { icon: Bell, label: l('Notifications', 'Arifa'), href: '/notifications', color: '#0077B6', badge: '3' },
-          { icon: Settings, label: l('Settings', 'Mipangilio'), href: '/settings', color: '#6C757D' },
-          { icon: Shield, label: l('Privacy & Security', 'Faragha na Usalama'), href: '/settings/security', color: '#0B5D3A' },
-          { icon: HelpCircle, label: l('Help & Support', 'Msaada'), href: '#', color: '#6C757D' },
+          { icon: Star, label: l('My Reviews', 'Mapitio Yangu'), href: '/seeker/history', color: '#D97706' },
+          { icon: MapPin, label: l('Saved Zones', 'Maeneo Yaliyohifadhiwa'), href: '/market', color: '#3730A3' },
+          { icon: ShoppingBag, label: l('Shopping Lists', 'Orodha za Manunuzi'), href: '/seeker/shopping-list', color: '#F59E0B' },
+          { icon: Bell, label: l('Notifications', 'Arifa'), href: '/notifications', color: '#0891B2', badge: '3' },
+          { icon: Settings, label: l('Settings', 'Mipangilio'), href: '/settings', color: '#78716C' },
+          { icon: Shield, label: l('Privacy & Security', 'Faragha na Usalama'), href: '/settings/security', color: '#3730A3' },
+          { icon: HelpCircle, label: l('Help & Support', 'Msaada'), href: '#', color: '#78716C' },
         ].map((item, i) => (
           <button
             key={i}
             onClick={() => item.href !== '#' && router.push(item.href)}
-            className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-[#F1F3F5] dark:hover:bg-[#21262D] transition-colors border-b border-[#E9ECEF] dark:border-[#30363D] last:border-0 active:scale-[0.98]"
+            className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-[#F5F5F4] dark:hover:bg-[#242244] transition-colors border-b border-[#E7E5E4] dark:border-[#2E2C4A] last:border-0 active:scale-[0.98]"
           >
             <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${item.color}15` }}>
               <item.icon className="w-4 h-4" style={{ color: item.color }} />
             </div>
             <span className="text-sm font-medium flex-1 text-left">{item.label}</span>
-            {item.badge && <span className="w-5 h-5 rounded-full bg-[#E63946] text-white text-[9px] font-bold flex items-center justify-center">{item.badge}</span>}
-            <ChevronRight className="w-4 h-4 text-[#6C757D]" />
+            {item.badge && <span className="w-5 h-5 rounded-full bg-[#DC2626] text-white text-[9px] font-bold flex items-center justify-center">{item.badge}</span>}
+            <ChevronRight className="w-4 h-4 text-[#78716C]" />
           </button>
         ))}
       </motion.div>
 
       {/* Logout */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
-        <button onClick={handleLogout} className="w-full py-3 rounded-xl border-2 border-[#E63946] text-[#E63946] font-semibold text-sm hover:bg-[#FEE2E2] transition-colors flex items-center justify-center gap-2 active:scale-95">
+        <button onClick={handleLogout} className="w-full py-3 rounded-xl border-2 border-[#DC2626] text-[#DC2626] font-semibold text-sm hover:bg-[#FEE2E2] transition-colors flex items-center justify-center gap-2 active:scale-95">
           <LogOut className="w-4 h-4" />{l('Logout', 'Toka')}
         </button>
       </motion.div>

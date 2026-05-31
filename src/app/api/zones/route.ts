@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
         nameSw: nameSw || '',
         description: description || '',
         geoBounds: JSON.stringify(geoBounds || {}),
-        color: color || '#4CAF50',
+        color: color || '#059669',
       },
     });
 

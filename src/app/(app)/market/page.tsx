@@ -10,11 +10,11 @@ import {
 import { motion } from 'framer-motion';
 
 const ZONES = [
-  { id: 'electronics', name: 'Electronics Zone', nameSw: 'Eneo la Elektroniki', color: '#0077B6', icon: Zap, stalls: 340, desc: 'Phones, gadgets, accessories & repairs', descSw: 'Simu, vifaa na urekebishaji' },
-  { id: 'fabrics', name: 'Fabrics Zone', nameSw: 'Eneo la Vitenge', color: '#8A2BE2', icon: Scissors, stalls: 520, desc: 'Kanga, kitenge, lace & fashion fabrics', descSw: 'Kanga, kitenge, lace na nguo za mitindo' },
+  { id: 'electronics', name: 'Electronics Zone', nameSw: 'Eneo la Elektroniki', color: '#0891B2', icon: Zap, stalls: 340, desc: 'Phones, gadgets, accessories & repairs', descSw: 'Simu, vifaa na urekebishaji' },
+  { id: 'fabrics', name: 'Fabrics Zone', nameSw: 'Eneo la Vitenge', color: '#7C3AED', icon: Scissors, stalls: 520, desc: 'Kanga, kitenge, lace & fashion fabrics', descSw: 'Kanga, kitenge, lace na nguo za mitindo' },
   { id: 'wholesale', name: 'Wholesale Zone', nameSw: 'Eneo la Jumla', color: '#14B8A6', icon: Package, stalls: 280, desc: 'Bulk goods, rice, oil & supplies', descSw: 'Bidhaa za jumla, mchele, mafuta na vifaa' },
   { id: 'spices', name: 'Spices Zone', nameSw: 'Eneo la Viungo', color: '#EF4444', icon: Flower2, stalls: 150, desc: 'Turmeric, cardamom, cinnamon & herbs', descSw: 'Haldi, iliki, mdalasini na mimea' },
-  { id: 'kitchenware', name: 'Kitchenware Zone', nameSw: 'Eneo la Chombo', color: '#FFA500', icon: ChefHat, stalls: 190, desc: 'Pots, utensils, cookware & home goods', descSw: 'Sufuria, vifaa na bidhaa za nyumba' },
+  { id: 'kitchenware', name: 'Kitchenware Zone', nameSw: 'Eneo la Chombo', color: '#F59E0B', icon: ChefHat, stalls: 190, desc: 'Pots, utensils, cookware & home goods', descSw: 'Sufuria, vifaa na bidhaa za nyumba' },
   { id: 'artisanal', name: 'Artisanal Zone', nameSw: 'Eneo la Kisanii', color: '#8B5E3C', icon: Paintbrush, stalls: 95, desc: 'Handwoven baskets, carvings & crafts', descSw: 'Vikapu, uchongaji na sanaa za mkono' },
 ];
 
@@ -48,8 +48,8 @@ export default function MarketPage() {
     <div className="px-4 py-4 space-y-5">
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-        <h1 className="text-2xl font-bold text-[#0A4D3C] dark:text-[#2EA77A]">{l('Explore Market', 'Gundua Soko')}</h1>
-        <p className="text-sm text-[#6C757D] dark:text-[#8B949E] mt-1">
+        <h1 className="text-2xl font-bold text-[#312E81] dark:text-[#818CF8]">{l('Explore Market', 'Gundua Soko')}</h1>
+        <p className="text-sm text-[#78716C] dark:text-[#A1A1AA] mt-1">
           {l('Discover 10,000+ stalls across 6 zones', 'Gundua maduka zaidi ya 10,000 katika maeneo 6')}
         </p>
       </motion.div>
@@ -57,13 +57,13 @@ export default function MarketPage() {
       {/* Search */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.4 }}>
         <div className="ksearch flex items-center gap-2 px-4 py-3">
-          <Search className="w-4 h-4 text-[#6C757D]" />
+          <Search className="w-4 h-4 text-[#78716C]" />
           <input
             type="text"
             placeholder={l('Search zones, vendors, categories...', 'Tafuta maeneo, wauzaji, makundi...')}
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="flex-1 bg-transparent text-sm outline-none placeholder:text-[#6C757D]"
+            className="flex-1 bg-transparent text-sm outline-none placeholder:text-[#78716C]"
           />
           <button className="kbtn text-xs py-1.5 px-3">
             <Filter className="w-3 h-3" />
@@ -86,8 +86,8 @@ export default function MarketPage() {
 
       {/* Zone Cards */}
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold text-[#333] dark:text-[#F0F6FC]">{l('Zones', 'Maeneo')}</h2>
-        <button onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')} className="text-[#6C757D] hover:text-[#0A4D3C] transition-colors">
+        <h2 className="text-lg font-bold text-[#1C1917] dark:text-[#E7E5E4]">{l('Zones', 'Maeneo')}</h2>
+        <button onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')} className="text-[#78716C] hover:text-[#312E81] transition-colors">
           {viewMode === 'grid' ? <List className="w-5 h-5" /> : <Grid3X3 className="w-5 h-5" />}
         </button>
       </div>
@@ -105,15 +105,15 @@ export default function MarketPage() {
             <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-3`} style={{ backgroundColor: zone.color + '15' }}>
               <zone.icon className="w-5 h-5" style={{ color: zone.color }} />
             </div>
-            <h3 className="font-semibold text-sm text-[#333] dark:text-[#F0F6FC] group-hover:text-[#0A4D3C] dark:group-hover:text-[#2EA77A] transition-colors">
+            <h3 className="font-semibold text-sm text-[#1C1917] dark:text-[#E7E5E4] group-hover:text-[#312E81] dark:group-hover:text-[#818CF8] transition-colors">
               {sw ? zone.nameSw : zone.name}
             </h3>
-            <p className="text-xs text-[#6C757D] dark:text-[#8B949E] mt-1 line-clamp-2">
+            <p className="text-xs text-[#78716C] dark:text-[#A1A1AA] mt-1 line-clamp-2">
               {sw ? zone.descSw : zone.desc}
             </p>
             <div className="flex items-center justify-between mt-3">
               <span className="text-xs font-semibold" style={{ color: zone.color }}>{zone.stalls}+ {l('stalls', 'maduka')}</span>
-              <ChevronRight className="w-4 h-4 text-[#6C757D] group-hover:text-[#0A4D3C] transition-colors" />
+              <ChevronRight className="w-4 h-4 text-[#78716C] group-hover:text-[#312E81] transition-colors" />
             </div>
           </motion.div>
         ))}
@@ -122,8 +122,8 @@ export default function MarketPage() {
       {/* Featured Vendors */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-bold text-[#333] dark:text-[#F0F6FC]">{l('Featured Vendors', 'Wauzaji Bora')}</h2>
-          <button onClick={() => router.push('/vendors')} className="text-sm font-medium text-[#0A4D3A] dark:text-[#2EA77A]">{l('See All', 'Tazama Zote')}</button>
+          <h2 className="text-lg font-bold text-[#1C1917] dark:text-[#E7E5E4]">{l('Featured Vendors', 'Wauzaji Bora')}</h2>
+          <button onClick={() => router.push('/vendors')} className="text-sm font-medium text-[#0A4D3A] dark:text-[#818CF8]">{l('See All', 'Tazama Zote')}</button>
         </div>
         <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
           {FEATURED_VENDORS.map((vendor, i) => (
@@ -136,15 +136,15 @@ export default function MarketPage() {
               className="kcard p-4 min-w-[200px] cursor-pointer hover:shadow-md transition-all"
             >
               <div className="flex items-center gap-2 mb-2">
-                <div className="w-8 h-8 rounded-full bg-[#0B5D3A] flex items-center justify-center text-white text-xs font-bold">
+                <div className="w-8 h-8 rounded-full bg-[#3730A3] flex items-center justify-center text-white text-xs font-bold">
                   {vendor.name.charAt(0)}
                 </div>
-                {vendor.verified && <ShieldCheck className="w-4 h-4 text-[#0B5D3A]" />}
+                {vendor.verified && <ShieldCheck className="w-4 h-4 text-[#3730A3]" />}
               </div>
               <h4 className="font-semibold text-sm truncate">{vendor.name}</h4>
-              <p className="text-xs text-[#6C757D] mt-0.5">{vendor.stall}</p>
+              <p className="text-xs text-[#78716C] mt-0.5">{vendor.stall}</p>
               <div className="flex items-center gap-1 mt-2">
-                <Star className="w-3 h-3 fill-[#FFD23F] text-[#FFD23F]" />
+                <Star className="w-3 h-3 fill-[#D97706] text-[#D97706]" />
                 <span className="text-xs font-medium">{vendor.rating}</span>
                 <span className="kbadge kbadge-verified ml-auto">{vendor.category}</span>
               </div>
@@ -158,15 +158,15 @@ export default function MarketPage() {
         <h3 className="text-lg font-bold text-white mb-2">{l('Live Market Data', 'Data ya Soko ya Moja kwa Moja')}</h3>
         <div className="grid grid-cols-3 gap-4 mt-4">
           <div>
-            <p className="text-2xl font-bold text-[#FFD23F]">10K+</p>
+            <p className="text-2xl font-bold text-[#D97706]">10K+</p>
             <p className="text-xs text-white/70">{l('Stalls', 'Maduka')}</p>
           </div>
           <div>
-            <p className="text-2xl font-bold text-[#FFD23F]">6</p>
+            <p className="text-2xl font-bold text-[#D97706]">6</p>
             <p className="text-xs text-white/70">{l('Zones', 'Maeneo')}</p>
           </div>
           <div>
-            <p className="text-2xl font-bold text-[#FFD23F]">2.5K+</p>
+            <p className="text-2xl font-bold text-[#D97706]">2.5K+</p>
             <p className="text-xs text-white/70">{l('Guides', 'Miongozo')}</p>
           </div>
         </div>

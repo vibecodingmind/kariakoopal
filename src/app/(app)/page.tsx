@@ -13,11 +13,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 // ── Data ──
 
 const ZONES = [
-  { id: 'electronics', name: 'Electronics Zone', nameSw: 'Eneo la Elektroniki', color: '#0077B6', icon: Zap, stalls: 340, desc: 'Phones, gadgets, accessories & repairs', descSw: 'Simu, vifaa na urekebishaji', trend: '+12%', trending: true },
-  { id: 'fabrics', name: 'Fabrics Zone', nameSw: 'Eneo la Vitenge', color: '#8A2BE2', icon: Scissors, stalls: 520, desc: 'Kanga, kitenge, lace & fashion fabrics', descSw: 'Kanga, kitenge, lace na nguo za mitindo', trend: '+8%', trending: true },
+  { id: 'electronics', name: 'Electronics Zone', nameSw: 'Eneo la Elektroniki', color: '#0891B2', icon: Zap, stalls: 340, desc: 'Phones, gadgets, accessories & repairs', descSw: 'Simu, vifaa na urekebishaji', trend: '+12%', trending: true },
+  { id: 'fabrics', name: 'Fabrics Zone', nameSw: 'Eneo la Vitenge', color: '#7C3AED', icon: Scissors, stalls: 520, desc: 'Kanga, kitenge, lace & fashion fabrics', descSw: 'Kanga, kitenge, lace na nguo za mitindo', trend: '+8%', trending: true },
   { id: 'wholesale', name: 'Wholesale Zone', nameSw: 'Eneo la Jumla', color: '#14B8A6', icon: Package, stalls: 280, desc: 'Bulk goods, rice, oil & supplies', descSw: 'Bidhaa za jumla, mchele, mafuta na vifaa', trend: '+5%', trending: false },
   { id: 'spices', name: 'Spices Zone', nameSw: 'Eneo la Viungo', color: '#EF4444', icon: Flower2, stalls: 150, desc: 'Turmeric, cardamom, cinnamon & herbs', descSw: 'Haldi, iliki, mdalasini na mimea', trend: '+15%', trending: true },
-  { id: 'kitchenware', name: 'Kitchenware Zone', nameSw: 'Eneo la Chombo', color: '#FFA500', icon: ChefHat, stalls: 190, desc: 'Pots, utensils, cookware & home goods', descSw: 'Sufuria, vifaa na bidhaa za nyumba', trend: '+3%', trending: false },
+  { id: 'kitchenware', name: 'Kitchenware Zone', nameSw: 'Eneo la Chombo', color: '#F59E0B', icon: ChefHat, stalls: 190, desc: 'Pots, utensils, cookware & home goods', descSw: 'Sufuria, vifaa na bidhaa za nyumba', trend: '+3%', trending: false },
   { id: 'artisanal', name: 'Artisanal Zone', nameSw: 'Eneo la Kisanii', color: '#8B5E3C', icon: Paintbrush, stalls: 95, desc: 'Handwoven baskets, carvings & crafts', descSw: 'Vikapu, uchongaji na sanaa za mkono', trend: '+20%', trending: true },
 ];
 
@@ -44,8 +44,8 @@ const HOT_PRICES = [
 ];
 
 const ZONE_COLORS: Record<string, string> = {
-  electronics: '#0077B6', fabrics: '#8A2BE2', wholesale: '#14B8A6',
-  spices: '#EF4444', kitchenware: '#FFA500', artisanal: '#8B5E3C',
+  electronics: '#0891B2', fabrics: '#7C3AED', wholesale: '#14B8A6',
+  spices: '#EF4444', kitchenware: '#F59E0B', artisanal: '#8B5E3C',
 };
 
 // ── Component ──
@@ -75,7 +75,7 @@ export default function HomePage() {
         className="khero-search relative overflow-hidden"
       >
         {/* Decorative elements */}
-        <div className="absolute -top-12 -right-12 w-40 h-40 bg-[#FFD23F]/5 rounded-full blur-2xl" />
+        <div className="absolute -top-12 -right-12 w-40 h-40 bg-[#D97706]/5 rounded-full blur-2xl" />
         <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-white/3 rounded-full blur-2xl" />
 
         <div className="relative z-10">
@@ -99,15 +99,15 @@ export default function HomePage() {
                   className="w-11 h-11 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center relative backdrop-blur-sm transition-colors"
                 >
                   <Bell className="w-5 h-5 text-white" />
-                  <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-[#FFD23F] rounded-full animate-pulse-dot" />
+                  <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-[#D97706] rounded-full animate-pulse-dot" />
                 </motion.button>
               )}
             </AnimatePresence>
           </div>
 
           {/* Search Input */}
-          <div className={`flex items-center gap-2.5 bg-white dark:bg-[#161B22] rounded-2xl px-4 py-3 transition-all duration-200 ${searchFocused ? 'shadow-xl ring-2 ring-[#FFD23F]/40' : 'shadow-lg'}`}>
-            <Search className="w-4.5 h-4.5 text-[#6C757D] shrink-0" />
+          <div className={`flex items-center gap-2.5 bg-white dark:bg-[#1A1832] rounded-2xl px-4 py-3 transition-all duration-200 ${searchFocused ? 'shadow-xl ring-2 ring-[#D97706]/40' : 'shadow-lg'}`}>
+            <Search className="w-4.5 h-4.5 text-[#78716C] shrink-0" />
             <input
               type="text"
               placeholder={l('Search vendors, zones, items...', 'Tafuta wauzaji, maeneo, bidhaa...')}
@@ -115,21 +115,21 @@ export default function HomePage() {
               onChange={e => setSearch(e.target.value)}
               onFocus={() => setSearchFocused(true)}
               onBlur={() => setSearchFocused(false)}
-              className="flex-1 bg-transparent text-sm outline-none placeholder:text-[#6C757D] dark:placeholder:text-[#8B949E]"
+              className="flex-1 bg-transparent text-sm outline-none placeholder:text-[#78716C] dark:placeholder:text-[#A1A1AA]"
             />
             {search && (
-              <button onClick={() => setSearch('')} className="text-xs text-[#6C757D] hover:text-[#0A4D3C] font-medium transition-colors">✕</button>
+              <button onClick={() => setSearch('')} className="text-xs text-[#78716C] hover:text-[#312E81] font-medium transition-colors">✕</button>
             )}
           </div>
 
           {/* Quick Actions */}
           <div className="flex gap-2.5 mt-4">
             <Link href="/guides" prefetch={true} className="flex-1 flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 rounded-xl py-2.5 transition-all backdrop-blur-sm active:scale-95">
-              <Compass className="w-4 h-4 text-[#FFD23F]" />
+              <Compass className="w-4 h-4 text-[#D97706]" />
               <span className="text-xs font-bold text-white">{l('Find Guide', 'Tafuta Mwongozo')}</span>
             </Link>
             <Link href="/prices" prefetch={true} className="flex-1 flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 rounded-xl py-2.5 transition-all backdrop-blur-sm active:scale-95">
-              <BarChart3 className="w-4 h-4 text-[#FFD23F]" />
+              <BarChart3 className="w-4 h-4 text-[#D97706]" />
               <span className="text-xs font-bold text-white">{l('Price Radar', 'Rada ya Bei')}</span>
             </Link>
           </div>
@@ -139,13 +139,13 @@ export default function HomePage() {
       {/* ═══ LIVE MARKET STATS ═══ */}
       <div className="grid grid-cols-3 gap-3">
         {[
-          { value: '10K+', label: l('Stalls', 'Maduka'), color: '#0A4D3C', bg: '#E8F5EE' },
-          { value: '6', label: l('Zones', 'Maeneo'), color: '#0077B6', bg: '#DBEAFE' },
+          { value: '10K+', label: l('Stalls', 'Maduka'), color: '#312E81', bg: '#E0E7FF' },
+          { value: '6', label: l('Zones', 'Maeneo'), color: '#0891B2', bg: '#DBEAFE' },
           { value: '2.5K+', label: l('Guides', 'Miongozo'), color: '#14B8A6', bg: '#CCFBF1' },
         ].map((stat, i) => (
           <div key={i} className="kcard-glass p-3.5 text-center">
             <p className="text-xl font-black" style={{ color: stat.color }}>{stat.value}</p>
-            <p className="text-[10px] font-bold text-[#6C757D] dark:text-[#8B949E] uppercase tracking-widest mt-0.5">{stat.label}</p>
+            <p className="text-[10px] font-bold text-[#78716C] dark:text-[#A1A1AA] uppercase tracking-widest mt-0.5">{stat.label}</p>
           </div>
         ))}
       </div>
@@ -153,8 +153,8 @@ export default function HomePage() {
       {/* ═══ MARKET ZONES ═══ */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-black text-[#333] dark:text-[#F0F6FC]">{l('Market Zones', 'Maeneo ya Soko')}</h2>
-          <Link href="/market" prefetch={true} className="text-xs font-bold text-[#0A4D3C] dark:text-[#2EA77A] flex items-center gap-0.5 hover:gap-1.5 transition-all">
+          <h2 className="text-lg font-black text-[#1C1917] dark:text-[#E7E5E4]">{l('Market Zones', 'Maeneo ya Soko')}</h2>
+          <Link href="/market" prefetch={true} className="text-xs font-bold text-[#312E81] dark:text-[#818CF8] flex items-center gap-0.5 hover:gap-1.5 transition-all">
             {l('See All', 'Tazama Zote')} <ChevronRight className="w-3.5 h-3.5" />
           </Link>
         </div>
@@ -177,15 +177,15 @@ export default function HomePage() {
                   </span>
                 )}
               </div>
-              <h3 className="font-bold text-[13px] text-[#333] dark:text-[#F0F6FC] group-hover:text-[#0A4D3C] dark:group-hover:text-[#2EA77A] transition-colors leading-tight">
+              <h3 className="font-bold text-[13px] text-[#1C1917] dark:text-[#E7E5E4] group-hover:text-[#312E81] dark:group-hover:text-[#818CF8] transition-colors leading-tight">
                 {sw ? zone.nameSw : zone.name}
               </h3>
-              <p className="text-[11px] text-[#6C757D] dark:text-[#8B949E] mt-1 line-clamp-1">
+              <p className="text-[11px] text-[#78716C] dark:text-[#A1A1AA] mt-1 line-clamp-1">
                 {sw ? zone.descSw : zone.desc}
               </p>
-              <div className="flex items-center justify-between mt-3 pt-2 border-t border-[#E9ECEF]/50 dark:border-[#30363D]/50">
+              <div className="flex items-center justify-between mt-3 pt-2 border-t border-[#E7E5E4]/50 dark:border-[#2E2C4A]/50">
                 <span className="text-[11px] font-bold" style={{ color: zone.color }}>{zone.stalls}+ {l('stalls', 'maduka')}</span>
-                <ChevronRight className="w-3.5 h-3.5 text-[#6C757D] group-hover:text-[#0A4D3C] group-hover:translate-x-0.5 transition-all" />
+                <ChevronRight className="w-3.5 h-3.5 text-[#78716C] group-hover:text-[#312E81] group-hover:translate-x-0.5 transition-all" />
               </div>
             </Link>
           ))}
@@ -196,10 +196,10 @@ export default function HomePage() {
       <div>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2.5">
-            <h2 className="text-lg font-black text-[#333] dark:text-[#F0F6FC]">{l('Hot Prices', 'Bei Moto')}</h2>
+            <h2 className="text-lg font-black text-[#1C1917] dark:text-[#E7E5E4]">{l('Hot Prices', 'Bei Moto')}</h2>
             <span className="kbadge kbadge-live flex items-center gap-1"><span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse-dot" />{l('LIVE', 'MOJA KWA MOJA')}</span>
           </div>
-          <Link href="/prices" prefetch={true} className="text-xs font-bold text-[#0A4D3C] dark:text-[#2EA77A] flex items-center gap-0.5 hover:gap-1.5 transition-all">
+          <Link href="/prices" prefetch={true} className="text-xs font-bold text-[#312E81] dark:text-[#818CF8] flex items-center gap-0.5 hover:gap-1.5 transition-all">
             {l('All Prices', 'Bei Zote')} <ChevronRight className="w-3.5 h-3.5" />
           </Link>
         </div>
@@ -222,10 +222,10 @@ export default function HomePage() {
                       <TrendingUp className="w-4 h-4 text-[#F59E0B] shrink-0" />
                     )}
                   </div>
-                  <p className="text-xs text-[#6C757D] mt-0.5 font-medium">{price.category}</p>
+                  <p className="text-xs text-[#78716C] mt-0.5 font-medium">{price.category}</p>
                 </div>
                 <div className="text-right shrink-0 ml-4">
-                  <p className="text-sm font-black text-[#0A4D3C] dark:text-[#2EA77A]">
+                  <p className="text-sm font-black text-[#312E81] dark:text-[#818CF8]">
                     TZS {price.min.toLocaleString()}
                   </p>
                   <span className={`kbadge text-[9px] ${price.fair ? 'kbadge-verified' : 'kbadge-pending'}`}>
@@ -241,8 +241,8 @@ export default function HomePage() {
       {/* ═══ FEATURED VENDORS ═══ */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-black text-[#333] dark:text-[#F0F6FC]">{l('Featured Vendors', 'Wauzaji Bora')}</h2>
-          <Link href="/vendors" prefetch={true} className="text-xs font-bold text-[#0A4D3C] dark:text-[#2EA77A] flex items-center gap-0.5 hover:gap-1.5 transition-all">
+          <h2 className="text-lg font-black text-[#1C1917] dark:text-[#E7E5E4]">{l('Featured Vendors', 'Wauzaji Bora')}</h2>
+          <Link href="/vendors" prefetch={true} className="text-xs font-bold text-[#312E81] dark:text-[#818CF8] flex items-center gap-0.5 hover:gap-1.5 transition-all">
             {l('See All', 'Tazama Zote')} <ChevronRight className="w-3.5 h-3.5" />
           </Link>
         </div>
@@ -259,14 +259,14 @@ export default function HomePage() {
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-sm font-black shadow-sm" style={{ background: `linear-gradient(135deg, ${ZONE_COLORS[vendor.zone]}, ${ZONE_COLORS[vendor.zone]}CC)` }}>
                   {vendor.name.charAt(0)}
                 </div>
-                {vendor.verified && <ShieldCheck className="w-4 h-4 text-[#0B5D3A] shrink-0" />}
+                {vendor.verified && <ShieldCheck className="w-4 h-4 text-[#3730A3] shrink-0" />}
               </div>
               <h4 className="font-bold text-xs truncate">{vendor.name}</h4>
-              <p className="text-[10px] text-[#6C757D] mt-0.5 flex items-center gap-1 font-medium">
+              <p className="text-[10px] text-[#78716C] mt-0.5 flex items-center gap-1 font-medium">
                 <MapPin className="w-2.5 h-2.5" />{vendor.stall}
               </p>
               <div className="flex items-center gap-1 mt-2.5">
-                <Star className="w-3.5 h-3.5 fill-[#FFD23F] text-[#FFD23F]" />
+                <Star className="w-3.5 h-3.5 fill-[#D97706] text-[#D97706]" />
                 <span className="text-[11px] font-bold">{vendor.rating}</span>
                 <span className="ml-auto kbadge text-[8px]" style={{ background: (ZONE_COLORS[vendor.zone] || '#999') + '12', color: ZONE_COLORS[vendor.zone] }}>
                   {sw ? vendor.categorySw : vendor.category}
@@ -281,10 +281,10 @@ export default function HomePage() {
       <div>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <h2 className="text-lg font-black text-[#333] dark:text-[#F0F6FC]">{l('Top Guides', 'Miongozo Bora')}</h2>
-            <Sparkles className="w-4 h-4 text-[#FFD23F]" />
+            <h2 className="text-lg font-black text-[#1C1917] dark:text-[#E7E5E4]">{l('Top Guides', 'Miongozo Bora')}</h2>
+            <Sparkles className="w-4 h-4 text-[#D97706]" />
           </div>
-          <Link href="/guides" prefetch={true} className="text-xs font-bold text-[#0A4D3C] dark:text-[#2EA77A] flex items-center gap-0.5 hover:gap-1.5 transition-all">
+          <Link href="/guides" prefetch={true} className="text-xs font-bold text-[#312E81] dark:text-[#818CF8] flex items-center gap-0.5 hover:gap-1.5 transition-all">
             {l('All Guides', 'Wote')} <ChevronRight className="w-3.5 h-3.5" />
           </Link>
         </div>
@@ -305,28 +305,28 @@ export default function HomePage() {
                   >
                     {guide.name.split(' ').map(n => n[0]).join('')}
                   </div>
-                  <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-[#10B981] border-2 border-white dark:border-[#161B22] shadow-sm" />
+                  <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-[#10B981] border-2 border-white dark:border-[#1A1832] shadow-sm" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
                     <h4 className="font-bold text-sm truncate">{guide.name}</h4>
-                    {guide.verified && <ShieldCheck className="w-4 h-4 text-[#0B5D3A] shrink-0" />}
+                    {guide.verified && <ShieldCheck className="w-4 h-4 text-[#3730A3] shrink-0" />}
                   </div>
-                  <p className="text-xs text-[#6C757D] font-medium">{guide.specialty}</p>
+                  <p className="text-xs text-[#78716C] font-medium">{guide.specialty}</p>
                   <div className="flex items-center gap-3 mt-1.5">
                     <div className="flex items-center gap-1">
-                      <Star className="w-3 h-3 fill-[#FFD23F] text-[#FFD23F]" />
+                      <Star className="w-3 h-3 fill-[#D97706] text-[#D97706]" />
                       <span className="text-xs font-bold">{guide.rating}</span>
                     </div>
                     <div className="flex items-center gap-1">
-                      <Users className="w-3 h-3 text-[#6C757D]" />
-                      <span className="text-xs text-[#6C757D] font-medium">{guide.sessions} {l('sessions', 'vipindi')}</span>
+                      <Users className="w-3 h-3 text-[#78716C]" />
+                      <span className="text-xs text-[#78716C] font-medium">{guide.sessions} {l('sessions', 'vipindi')}</span>
                     </div>
                   </div>
                 </div>
                 <div className="text-right shrink-0">
                   <span className="text-[10px] font-black text-[#10B981] bg-[#10B981]/8 px-2 py-0.5 rounded-md">{l('ONLINE', 'MTANDAONI')}</span>
-                  <ChevronRight className="w-4 h-4 text-[#6C757D] mt-1.5 group-hover:text-[#0A4D3C] group-hover:translate-x-0.5 transition-all" />
+                  <ChevronRight className="w-4 h-4 text-[#78716C] mt-1.5 group-hover:text-[#312E81] group-hover:translate-x-0.5 transition-all" />
                 </div>
               </div>
             </Link>
@@ -337,7 +337,7 @@ export default function HomePage() {
       {/* ═══ CTA: FIND A GUIDE ═══ */}
       <div className="kcard-green p-6 text-center">
         <div className="relative z-10">
-          <Compass className="w-10 h-10 text-[#FFD23F] mx-auto mb-3" />
+          <Compass className="w-10 h-10 text-[#D97706] mx-auto mb-3" />
           <h3 className="font-black text-white text-xl">{l('Navigate Like a Local', 'Tembea Kama Mtaa')}</h3>
           <p className="text-sm text-white/60 mt-2 leading-relaxed max-w-xs mx-auto">
             {l(
@@ -359,9 +359,9 @@ export default function HomePage() {
       {/* ═══ CTA: JOIN AS GUIDE ═══ */}
       {!isAuthenticated && (
         <div className="kcard-premium p-6 text-center">
-          <Store className="w-10 h-10 text-[#0A4D3C] dark:text-[#2EA77A] mx-auto mb-3" />
-          <h3 className="font-black text-[#0A4D3C] dark:text-[#2EA77A]">{l('Are You a Local Expert?', 'Wewe ni Mtaalamu wa Karibu?')}</h3>
-          <p className="text-sm text-[#6C757D] dark:text-[#8B949E] mt-2">
+          <Store className="w-10 h-10 text-[#312E81] dark:text-[#818CF8] mx-auto mb-3" />
+          <h3 className="font-black text-[#312E81] dark:text-[#818CF8]">{l('Are You a Local Expert?', 'Wewe ni Mtaalamu wa Karibu?')}</h3>
+          <p className="text-sm text-[#78716C] dark:text-[#A1A1AA] mt-2">
             {l('Join as a guide and monetize your local knowledge.', 'Jiunge kama mwongozo na pata pato kutoka kwa ujuzi wako.')}
           </p>
           <Link

@@ -31,24 +31,24 @@ export default function NotificationsPage() {
 
   const getIcon = (type: string) => {
     switch (type) {
-      case 'session': return <Compass className="w-4 h-4 text-[#0B5D3A]" />;
-      case 'payment': return <DollarSign className="w-4 h-4 text-[#FFD23F]" />;
+      case 'session': return <Compass className="w-4 h-4 text-[#3730A3]" />;
+      case 'payment': return <DollarSign className="w-4 h-4 text-[#D97706]" />;
       case 'success': return <CheckCircle2 className="w-4 h-4 text-[#10B981]" />;
       case 'warning': return <AlertTriangle className="w-4 h-4 text-[#F59E0B]" />;
-      case 'error': return <X className="w-4 h-4 text-[#E63946]" />;
-      case 'system': return <Info className="w-4 h-4 text-[#0077B6]" />;
-      default: return <Bell className="w-4 h-4 text-[#6C757D]" />;
+      case 'error': return <X className="w-4 h-4 text-[#DC2626]" />;
+      case 'system': return <Info className="w-4 h-4 text-[#0891B2]" />;
+      default: return <Bell className="w-4 h-4 text-[#78716C]" />;
     }
   };
 
   const getBgColor = (type: string, read: boolean) => {
     if (read) return '';
     switch (type) {
-      case 'session': return 'bg-[#E8F5EE]/50 dark:bg-[#0D2818]/50';
+      case 'session': return 'bg-[#E0E7FF]/50 dark:bg-[#1E1B4B]/50';
       case 'payment': return 'bg-[#FEF3C7]/50 dark:bg-[#3D2E0A]/50';
-      case 'success': return 'bg-[#E8F5EE]/50 dark:bg-[#0D2818]/50';
+      case 'success': return 'bg-[#E0E7FF]/50 dark:bg-[#1E1B4B]/50';
       case 'warning': return 'bg-[#FEF3C7]/50 dark:bg-[#3D2E0A]/50';
-      default: return 'bg-[#F1F3F5]/50 dark:bg-[#21262D]/50';
+      default: return 'bg-[#F5F5F4]/50 dark:bg-[#242244]/50';
     }
   };
 
@@ -70,8 +70,8 @@ export default function NotificationsPage() {
     <div className="px-4 py-4 space-y-5">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[#0A4D3C] dark:text-[#2EA77A]">{l('Notifications', 'Arifa')}</h1>
-          <p className="text-sm text-[#6C757D] mt-0.5">
+          <h1 className="text-2xl font-bold text-[#312E81] dark:text-[#818CF8]">{l('Notifications', 'Arifa')}</h1>
+          <p className="text-sm text-[#78716C] mt-0.5">
             {unreadCount > 0 ? `${unreadCount} ${l('unread', 'hazijasomwa')}` : l('All caught up!', 'Zote zimesomwa!')}
           </p>
         </div>
@@ -82,7 +82,7 @@ export default function NotificationsPage() {
             </button>
           )}
           {notifications.length > 0 && (
-            <button onClick={clearAll} className="w-8 h-8 rounded-lg flex items-center justify-center text-[#6C757D] hover:bg-[#F1F3F5] dark:hover:bg-[#21262D]">
+            <button onClick={clearAll} className="w-8 h-8 rounded-lg flex items-center justify-center text-[#78716C] hover:bg-[#F5F5F4] dark:hover:bg-[#242244]">
               <Trash2 className="w-4 h-4" />
             </button>
           )}
@@ -101,12 +101,12 @@ export default function NotificationsPage() {
             key={tab.key}
             onClick={() => setFilter(tab.key)}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors flex items-center gap-1.5 ${
-              filter === tab.key ? 'bg-[#0A4D3C] text-white' : 'bg-[#F1F3F5] dark:bg-[#21262D] text-[#6C757D]'
+              filter === tab.key ? 'bg-[#312E81] text-white' : 'bg-[#F5F5F4] dark:bg-[#242244] text-[#78716C]'
             }`}
           >
             {tab.label}
             {tab.count > 0 && (
-              <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-bold ${filter === tab.key ? 'bg-white/20' : 'bg-[#E9ECEF] dark:bg-[#30363D]'}`}>
+              <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-bold ${filter === tab.key ? 'bg-white/20' : 'bg-[#E7E5E4] dark:bg-[#2E2C4A]'}`}>
                 {tab.count}
               </span>
             )}
@@ -119,11 +119,11 @@ export default function NotificationsPage() {
         <AnimatePresence>
           {filtered.length === 0 ? (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-16">
-              <div className="w-20 h-20 rounded-full bg-[#F1F3F5] dark:bg-[#21262D] flex items-center justify-center mx-auto mb-4">
-                <Bell className="w-8 h-8 text-[#6C757D]" />
+              <div className="w-20 h-20 rounded-full bg-[#F5F5F4] dark:bg-[#242244] flex items-center justify-center mx-auto mb-4">
+                <Bell className="w-8 h-8 text-[#78716C]" />
               </div>
               <p className="font-semibold">{l('No notifications', 'Hakuna arifa')}</p>
-              <p className="text-sm text-[#6C757D] mt-1">{l('You\'re all caught up!', 'Umekwisha soma zote!')}</p>
+              <p className="text-sm text-[#78716C] mt-1">{l('You\'re all caught up!', 'Umekwisha soma zote!')}</p>
             </motion.div>
           ) : (
             filtered.map((notif, i) => (
@@ -134,32 +134,32 @@ export default function NotificationsPage() {
                 exit={{ opacity: 0, x: 12, height: 0 }}
                 transition={{ delay: i * 0.03 }}
                 onClick={() => markAsRead(notif.id)}
-                className={`kcard p-3.5 cursor-pointer transition-all hover:shadow-md active:scale-[0.98] ${getBgColor(notif.type, notif.read)} ${!notif.read ? 'border-l-4 border-l-[#0A4D3C]' : ''}`}
+                className={`kcard p-3.5 cursor-pointer transition-all hover:shadow-md active:scale-[0.98] ${getBgColor(notif.type, notif.read)} ${!notif.read ? 'border-l-4 border-l-[#312E81]' : ''}`}
               >
                 <div className="flex items-start gap-3">
                   <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
-                    notif.type === 'session' ? 'bg-[#E8F5EE]' :
+                    notif.type === 'session' ? 'bg-[#E0E7FF]' :
                     notif.type === 'payment' ? 'bg-[#FEF3C7]' :
-                    notif.type === 'success' ? 'bg-[#E8F5EE]' :
+                    notif.type === 'success' ? 'bg-[#E0E7FF]' :
                     notif.type === 'warning' ? 'bg-[#FEF3C7]' :
-                    'bg-[#F1F3F5] dark:bg-[#21262D]'
+                    'bg-[#F5F5F4] dark:bg-[#242244]'
                   }`}>
                     {getIcon(notif.type)}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <p className={`text-sm font-medium ${!notif.read ? 'font-semibold' : ''}`}>{notif.title}</p>
-                      {!notif.read && <div className="w-2 h-2 rounded-full bg-[#0A4D3C] dark:bg-[#2EA77A] shrink-0" />}
+                      {!notif.read && <div className="w-2 h-2 rounded-full bg-[#312E81] dark:bg-[#818CF8] shrink-0" />}
                     </div>
-                    <p className="text-xs text-[#6C757D] mt-0.5 line-clamp-2">{notif.message}</p>
+                    <p className="text-xs text-[#78716C] mt-0.5 line-clamp-2">{notif.message}</p>
                     <div className="flex items-center gap-2 mt-1.5">
-                      <Clock className="w-3 h-3 text-[#6C757D]" />
-                      <span className="text-[10px] text-[#6C757D]">{formatTime(notif.createdAt)}</span>
+                      <Clock className="w-3 h-3 text-[#78716C]" />
+                      <span className="text-[10px] text-[#78716C]">{formatTime(notif.createdAt)}</span>
                     </div>
                   </div>
                   <button
                     onClick={(e) => { e.stopPropagation(); removeNotification(notif.id); }}
-                    className="w-7 h-7 rounded-lg flex items-center justify-center text-[#6C757D] hover:bg-[#F1F3F5] dark:hover:bg-[#21262D] shrink-0"
+                    className="w-7 h-7 rounded-lg flex items-center justify-center text-[#78716C] hover:bg-[#F5F5F4] dark:hover:bg-[#242244] shrink-0"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
