@@ -49,6 +49,8 @@ interface AuthState {
   language: Language;
   currentView: string;
   isLoading: boolean;
+  walletBalance: number;
+  subscriptionTier: string; // starter, pro, elite
 
   // Actions
   login: (phone: string, role?: string, name?: string) => Promise<void>;
@@ -60,6 +62,9 @@ interface AuthState {
   setLanguage: (lang: Language) => void;
   setView: (view: string) => void;
   setLoading: (loading: boolean) => void;
+  updateProfile: (updates: Partial<Pick<User, 'name' | 'email' | 'phone' | 'avatarUrl'>>) => void;
+  setWalletBalance: (balance: number) => void;
+  setSubscriptionTier: (tier: string) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -72,6 +77,8 @@ export const useAuthStore = create<AuthState>()(
       language: 'sw',
       currentView: 'home',
       isLoading: false,
+      walletBalance: 47500,
+      subscriptionTier: 'starter',
 
       login: async (phone: string, role?: string, name?: string) => {
         set({ isLoading: true });
@@ -138,6 +145,8 @@ export const useAuthStore = create<AuthState>()(
           badges: [],
           isAuthenticated: false,
           currentView: 'auth',
+          walletBalance: 0,
+          subscriptionTier: 'starter',
         });
       },
 
@@ -157,6 +166,15 @@ export const useAuthStore = create<AuthState>()(
       setView: (view) => set({ currentView: view }),
 
       setLoading: (loading) => set({ isLoading: loading }),
+
+      updateProfile: (updates) =>
+        set((state) => ({
+          user: state.user ? { ...state.user, ...updates, updatedAt: new Date().toISOString() } : state.user,
+        })),
+
+      setWalletBalance: (balance) => set({ walletBalance: balance }),
+
+      setSubscriptionTier: (tier) => set({ subscriptionTier: tier }),
     }),
     {
       name: 'kariako-auth',
@@ -167,6 +185,8 @@ export const useAuthStore = create<AuthState>()(
         isAuthenticated: state.isAuthenticated,
         language: state.language,
         currentView: state.currentView,
+        walletBalance: state.walletBalance,
+        subscriptionTier: state.subscriptionTier,
       }),
     }
   )

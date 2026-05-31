@@ -5,7 +5,7 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
+  provider  = "sqlite"
   url       = env("DATABASE_URL")
 }
 
@@ -352,6 +352,77 @@ model ShoppingList {
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+// ── Feature: Digital Wallet ──
+model Wallet {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  balance   Float    @default(0)
+  currency  String   @default("TZS")
+  pinHash   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  transactions Transaction[]
+}
+
+// ── Feature: Transactions ──
+model Transaction {
+  id          String   @id @default(cuid())
+  walletId    String
+  type        String   // deposit, withdrawal, payment, refund, subscription, payout
+  amount      Float
+  status      String   @default("pending") // pending, completed, failed
+  description String   @default("")
+  reference   String   @default("")
+  createdAt   DateTime @default(now())
+
+  wallet Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+}
+
+// ── Feature: Notifications ──
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String   @default("info") // info, success, warning, error, session, payment, system
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  actionUrl String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+// ── Feature: User Security ──
+model UserSecurity {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  twoFactorEnabled Boolean  @default(false)
+  twoFactorSecret  String?
+  pinEnabled       Boolean  @default(false)
+  pinHash          String?
+  loginAttempts    Int      @default(0)
+  lockedUntil      DateTime?
+  lastLoginAt      DateTime?
+  lastLoginIp      String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+// ── Feature: Reviews ──
+model Review {
+  id        String   @id @default(cuid())
+  sessionId String
+  reviewerId String
+  revieweeId String
+  rating    Float
+  comment   String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([revieweeId])
 }
 
 // ── Feature: Calendar Reminders ──
