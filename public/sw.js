@@ -7,7 +7,10 @@ const CACHE_NAME = 'kariako-guide-v1';
 const PRECACHE_URLS = [
   '/',
   '/manifest.json',
-  '/logo.svg',
+  '/favicon.ico',
+  '/icon-192.png',
+  '/logo-mark.png',
+  '/logo-header.png',
   '/robots.txt',
 ];
 

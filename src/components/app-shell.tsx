@@ -236,12 +236,24 @@ function TopHeader() {
     <header className="knav sticky top-0 z-50">
       <div className="flex items-center justify-between px-4 h-14 max-w-4xl mx-auto">
         <Link href="/" prefetch={true} className="flex items-center gap-2.5 group">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#065F46] to-[#34D399] flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
-            <Compass className="w-4.5 h-4.5 text-white" strokeWidth={2.5} />
+          <div className="w-9 h-9 rounded-xl overflow-hidden shadow-sm group-hover:shadow-md transition-shadow ring-2 ring-[#065F46]/10 dark:ring-[#34D399]/10">
+            <Image
+              src="/logo-mark.png"
+              alt="Kariako Guide"
+              width={36}
+              height={36}
+              className="w-full h-full object-cover"
+              priority
+            />
           </div>
-          <span className="text-sm font-bold gradient-text-green hidden sm:block">
-            Kariako<span className="text-[#F59E0B]">Guide</span>
-          </span>
+          <Image
+            src="/logo-header.png"
+            alt="Kariako Guide"
+            width={120}
+            height={41}
+            className="h-8 w-auto hidden sm:block"
+            priority
+          />
         </Link>
 
         <div className="flex items-center gap-1">
@@ -375,13 +387,24 @@ function AdminTopHeader() {
       <div className="flex items-center justify-between px-4 h-14 max-w-[1600px] mx-auto">
         <div className="flex items-center gap-3">
           {/* Mobile menu is handled by AdminSidebar */}
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-600 to-emerald-400 flex items-center justify-center shadow-sm lg:hidden">
-            <Compass className="w-4.5 h-4.5 text-white" strokeWidth={2.5} />
+          <div className="w-9 h-9 rounded-xl overflow-hidden shadow-sm lg:hidden">
+            <Image
+              src="/logo-mark.png"
+              alt="Kariako Guide"
+              width={36}
+              height={36}
+              className="w-full h-full object-cover"
+              priority
+            />
           </div>
-          <span className="text-sm font-bold text-white hidden lg:block">
-            Kariako<span className="text-[#34D399]">Guide</span>{' '}
-            <span className="text-white/30 font-normal">Admin</span>
-          </span>
+          <Image
+            src="/logo-header.png"
+            alt="Kariako Guide Admin"
+            width={140}
+            height={48}
+            className="h-7 w-auto hidden lg:block brightness-0 invert"
+            priority
+          />
         </div>
         <div className="flex items-center gap-2">
           <button

@@ -27,6 +27,9 @@ model User {
   guideSessions  Session[]      @relation("GuideSessions")
   seekerSessions Session[]      @relation("SeekerSessions")
   sentMessages   Message[]      @relation("SentMessages")
+  chatSentMessages ChatMessage[] @relation("ChatSentMessages")
+  conversationParticipants ConversationParticipant[]
+  notifications  Notification[]
   badges         Badge[]
   payouts        Payout[]
 }
@@ -378,23 +381,32 @@ model Transaction {
   status      String   @default("pending") // pending, completed, failed
   description String   @default("")
   reference   String   @default("")
+  provider    String?  // pesapal, stripe, paypal
   createdAt   DateTime @default(now())
 
   wallet Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  @@index([walletId, createdAt])
+  @@index([status])
 }
 
 // ── Feature: Notifications ──
 model Notification {
-  id        String   @id @default(cuid())
-  userId    String
-  type      String   @default("info") // info, success, warning, error, session, payment, system
-  title     String
-  message   String
-  read      Boolean  @default(false)
-  actionUrl String?
-  createdAt DateTime @default(now())
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type       String   @default("info") // info, success, warning, error, session, payment, system, booking, message, review, alert
+  title      String
+  titleSw    String?
+  message    String
+  bodySw     String?
+  read       Boolean  @default(false)
+  actionUrl  String?
+  imageUrl   String?
+  createdAt  DateTime @default(now())
 
-  @@index([userId])
+  @@index([userId, read])
+  @@index([userId, createdAt])
 }
 
 // ── Feature: User Security ──
@@ -410,8 +422,34 @@ model UserSecurity {
   lockedUntil      DateTime?
   lastLoginAt      DateTime?
   lastLoginIp      String?
+  sessionTimeout   Int      @default(30) // minutes
+  profileVisible   Boolean  @default(true)
+  showPhone        Boolean  @default(false)
+  showEmail        Boolean  @default(false)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+
+  authSessions UserAuthSession[]
+}
+
+// ── Feature: User Auth Sessions (for device/session tracking) ──
+model UserAuthSession {
+  id          String   @id @default(cuid())
+  userId      String
+  deviceName  String   @default("Unknown Device")
+  deviceType  String   @default("other") // mobile, desktop, tablet, other
+  browser     String   @default("")
+  os          String   @default("")
+  location    String   @default("")
+  ipAddress   String   @default("")
+  isCurrent   Boolean  @default(false)
+  lastActive  DateTime @default(now())
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+
+  user UserSecurity @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 // ── Feature: Reviews ──
@@ -464,6 +502,7 @@ model ConversationParticipant {
   createdAt      DateTime @default(now())
 
   conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([conversationId, userId])
   @@index([userId])
@@ -483,6 +522,7 @@ model ChatMessage {
   createdAt        DateTime @default(now())
 
   conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User        @relation("ChatSentMessages", fields: [senderId], references: [id])
 
   @@index([conversationId])
   @@index([createdAt])

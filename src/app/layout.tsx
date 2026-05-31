@@ -12,7 +12,7 @@ const inter = Inter({
 });
 
 export const viewport: Viewport = {
-  themeColor: "#3730A3",
+  themeColor: "#065F46",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -25,8 +25,14 @@ export const metadata: Metadata = {
   authors: [{ name: "Kariako Guide" }],
   manifest: "/manifest.json",
   icons: {
-    icon: "/logo.svg",
-    apple: "/logo.svg",
+    icon: [
+      { url: "/favicon.ico", sizes: "48x48" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
   },
   appleWebApp: {
     capable: true,
@@ -49,10 +55,11 @@ export default function RootLayout({
     <html lang="sw" suppressHydrationWarning>
       <head>
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#3730A3" />
-        <link rel="apple-touch-icon" href="/logo.svg" />
-        <link rel="apple-touch-icon" sizes="192x192" href="/logo.svg" />
-        <link rel="apple-touch-icon" sizes="512x512" href="/logo.svg" />
+        <meta name="theme-color" content="#065F46" />
+        <link rel="icon" href="/favicon.ico" sizes="48x48" />
+        <link rel="icon" href="/icon-192.png" sizes="192x192" type="image/png" />
+        <link rel="icon" href="/icon-512.png" sizes="512x512" type="image/png" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" type="image/png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Kariako Guide" />

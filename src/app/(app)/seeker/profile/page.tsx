@@ -1,13 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import Image from 'next/image';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import {
   User, Phone, MapPin, Star, Settings, Bell, Shield, HelpCircle, LogOut,
-  Camera, Edit, Save, Wallet, ChevronRight, Clock, ShoppingBag, Check, X, Mail
+  Camera, Edit, Save, Wallet, ChevronRight, Clock, ShoppingBag, Check, X, Mail,
+  Loader2
 } from 'lucide-react';
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 
 export default function SeekerProfilePage() {
   const { user, language, logout, updateProfile, walletBalance } = useAuthStore();
@@ -20,6 +25,10 @@ export default function SeekerProfilePage() {
   const [email, setEmail] = useState(user?.email || '');
   const [phone, setPhone] = useState(user?.phone || '');
   const [saved, setSaved] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSave = () => {
     updateProfile({ name, email, phone });
@@ -30,21 +39,113 @@ export default function SeekerProfilePage() {
 
   const handleLogout = async () => { logout(); router.replace('/auth'); };
 
+  const handleCameraClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Client-side validation: MIME type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error(l('Invalid file type. Please use JPEG, PNG, or WebP.', 'Aina ya faili si sahihi. Tafadhali tumia JPEG, PNG, au WebP.'));
+      e.target.value = '';
+      return;
+    }
+
+    // Client-side validation: file size
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error(l('File too large. Maximum size is 5MB.', 'Faili kubwa sana. Ukubwa wa juu ni 5MB.'));
+      e.target.value = '';
+      return;
+    }
+
+    // Create preview
+    const blobUrl = URL.createObjectURL(file);
+    setPreviewUrl(blobUrl);
+
+    // Upload
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const res = await fetch('/api/users/avatar', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || 'Upload failed');
+      }
+
+      const data = await res.json();
+      updateProfile({ avatarUrl: data.avatarUrl });
+      toast.success(l('Avatar updated!', 'Picha ya wasifu imesasishwa!'));
+    } catch (err) {
+      toast.error(l('Failed to upload avatar. Please try again.', 'Imeshindwa kupakia picha ya wasifu. Jaribu tena.'));
+      setPreviewUrl(null);
+    } finally {
+      setUploading(false);
+      e.target.value = '';
+    }
+  };
+
   const memberSince = user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'May 2026';
+
+  const displayAvatarUrl = previewUrl || (user?.avatarUrl || null);
 
   return (
     <div className="px-4 py-4 space-y-5">
       {/* Profile Header */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="kcard p-5 text-center relative">
         <div className="relative inline-block">
-          <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-[#065F46] to-[#34D399] flex items-center justify-center text-white font-bold text-3xl mx-auto shadow-lg shadow-[#065F46]/20">
-            {user?.name?.split(' ').map(n => n[0]).join('') || 'U'}
-          </div>
+          {displayAvatarUrl ? (
+            <div className="w-24 h-24 rounded-2xl mx-auto shadow-lg shadow-[#065F46]/20 overflow-hidden relative">
+              <Image
+                src={displayAvatarUrl}
+                alt={user?.name || 'User avatar'}
+                fill
+                className="object-cover"
+                sizes="96px"
+                priority
+              />
+              {uploading && (
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-2xl">
+                  <Loader2 className="w-8 h-8 text-white animate-spin" />
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-[#065F46] to-[#34D399] flex items-center justify-center text-white font-bold text-3xl mx-auto shadow-lg shadow-[#065F46]/20 relative">
+              {user?.name?.split(' ').map(n => n[0]).join('') || 'U'}
+              {uploading && (
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-2xl">
+                  <Loader2 className="w-8 h-8 text-white animate-spin" />
+                </div>
+              )}
+            </div>
+          )}
           {editing && (
-            <button className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-[#F59E0B] flex items-center justify-center shadow-md">
-              <Camera className="w-4 h-4 text-[#065F46]" />
+            <button
+              onClick={handleCameraClick}
+              disabled={uploading}
+              className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-[#F59E0B] flex items-center justify-center shadow-md hover:bg-[#D97706] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {uploading ? <Loader2 className="w-4 h-4 text-[#065F46] animate-spin" /> : <Camera className="w-4 h-4 text-[#065F46]" />}
             </button>
           )}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            onChange={handleFileChange}
+            className="hidden"
+            aria-label={l('Upload avatar', 'Pakia picha ya wasifu')}
+          />
         </div>
         {editing ? (
           <div className="mt-3 space-y-2">

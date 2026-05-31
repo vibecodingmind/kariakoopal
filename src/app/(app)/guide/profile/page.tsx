@@ -1,14 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import Image from 'next/image';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import {
   User, MapPin, Globe, Edit, Camera, ShieldCheck, Award, Star, Save,
   Crown, Zap, Wallet, ChevronRight, Bell, Settings, Shield, LogOut,
-  Clock, Check, X, ToggleLeft, ToggleRight
+  Clock, Check, X, ToggleLeft, ToggleRight, Loader2
 } from 'lucide-react';
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 
 export default function GuideProfilePage() {
   const { user, language, logout, updateProfile, walletBalance, subscriptionTier, setSubscriptionTier, guideProfile } = useAuthStore();
@@ -24,6 +28,10 @@ export default function GuideProfilePage() {
   const [email, setEmail] = useState(user?.email || '');
   const [saved, setSaved] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
+  const [uploading, setUploading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const allZones = ['Electronics Zone', 'Fabrics Zone', 'Wholesale Zone', 'Spices Zone', 'Kitchenware Zone', 'Artisanal Zone'];
   const allLanguages = ['Swahili', 'English', 'Arabic', 'Hindi', 'French', 'German'];
@@ -37,6 +45,61 @@ export default function GuideProfilePage() {
 
   const handleLogout = async () => { logout(); router.replace('/auth'); };
 
+  const handleCameraClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Client-side validation: MIME type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error(l('Invalid file type. Please use JPEG, PNG, or WebP.', 'Aina ya faili si sahihi. Tafadhali tumia JPEG, PNG, au WebP.'));
+      e.target.value = '';
+      return;
+    }
+
+    // Client-side validation: file size
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error(l('File too large. Maximum size is 5MB.', 'Faili kubwa sana. Ukubwa wa juu ni 5MB.'));
+      e.target.value = '';
+      return;
+    }
+
+    // Create preview
+    const blobUrl = URL.createObjectURL(file);
+    setPreviewUrl(blobUrl);
+
+    // Upload
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const res = await fetch('/api/users/avatar', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || 'Upload failed');
+      }
+
+      const data = await res.json();
+      updateProfile({ avatarUrl: data.avatarUrl });
+      toast.success(l('Avatar updated!', 'Picha ya wasifu imesasishwa!'));
+    } catch (err) {
+      toast.error(l('Failed to upload avatar. Please try again.', 'Imeshindwa kupakia picha ya wasifu. Jaribu tena.'));
+      setPreviewUrl(null);
+    } finally {
+      setUploading(false);
+      e.target.value = '';
+    }
+  };
+
   const tierConfig: Record<string, { icon: typeof Crown; color: string; bg: string }> = {
     starter: { icon: Shield, color: 'from-slate-400 to-slate-500', bg: 'bg-[#F1F5F9] dark:bg-[#334155]' },
     pro: { icon: Zap, color: 'from-amber-500 to-orange-500', bg: 'bg-[#FEF3C7] dark:bg-[#3D2E0A]' },
@@ -45,6 +108,8 @@ export default function GuideProfilePage() {
 
   const currentTier = tierConfig[subscriptionTier] || tierConfig.starter;
   const TierIcon = currentTier.icon;
+
+  const displayAvatarUrl = previewUrl || (user?.avatarUrl || null);
 
   return (
     <div className="px-4 py-4 space-y-5">
@@ -72,14 +137,49 @@ export default function GuideProfilePage() {
       {/* Avatar Section */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="kcard p-5 text-center">
         <div className="relative inline-block">
-          <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-[#065F46] to-[#34D399] flex items-center justify-center text-white font-bold text-3xl mx-auto shadow-lg shadow-[#065F46]/20 ring-4 ring-[#10B981]/20">
-            {user?.name?.split(' ').map(n => n[0]).join('') || 'G'}
-          </div>
+          {displayAvatarUrl ? (
+            <div className="w-24 h-24 rounded-2xl mx-auto shadow-lg shadow-[#065F46]/20 overflow-hidden relative ring-4 ring-[#10B981]/20">
+              <Image
+                src={displayAvatarUrl}
+                alt={user?.name || 'Guide avatar'}
+                fill
+                className="object-cover"
+                sizes="96px"
+                priority
+              />
+              {uploading && (
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-2xl">
+                  <Loader2 className="w-8 h-8 text-white animate-spin" />
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-[#065F46] to-[#34D399] flex items-center justify-center text-white font-bold text-3xl mx-auto shadow-lg shadow-[#065F46]/20 ring-4 ring-[#10B981]/20 relative">
+              {user?.name?.split(' ').map(n => n[0]).join('') || 'G'}
+              {uploading && (
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-2xl">
+                  <Loader2 className="w-8 h-8 text-white animate-spin" />
+                </div>
+              )}
+            </div>
+          )}
           {editing && (
-            <button className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-[#F59E0B] flex items-center justify-center shadow-md">
-              <Camera className="w-4 h-4 text-[#065F46]" />
+            <button
+              onClick={handleCameraClick}
+              disabled={uploading}
+              className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-[#F59E0B] flex items-center justify-center shadow-md hover:bg-[#D97706] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {uploading ? <Loader2 className="w-4 h-4 text-[#065F46] animate-spin" /> : <Camera className="w-4 h-4 text-[#065F46]" />}
             </button>
           )}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            onChange={handleFileChange}
+            className="hidden"
+            aria-label={l('Upload avatar', 'Pakia picha ya wasifu')}
+          />
           {/* Online indicator */}
           {isOnline && (
             <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[#10B981] border-2 border-white dark:border-[#1E293B]" />

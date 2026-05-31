@@ -7,6 +7,7 @@ import { useAppStore } from '@/lib/stores/app-store';
 import { t } from '@/lib/i18n';
 import { LanguageToggle } from '@/components/language-toggle';
 import { Input } from '@/components/ui/input';
+import Image from 'next/image';
 import { Mail, Lock, Eye, EyeOff, Shield, Compass, MapPin, Loader2, ArrowRight } from 'lucide-react';
 import { signIn, useSession } from 'next-auth/react';
 import { toast } from 'sonner';
@@ -135,8 +136,15 @@ function AuthContent() {
 
         <div className="w-full max-w-sm">
           <div className="text-center mb-8">
-            <div className="w-16 h-16 rounded-2xl bg-[#0B5D3A] mx-auto flex items-center justify-center mb-4 shadow-lg shadow-[#0B5D3A]/20">
-              <Compass className="w-8 h-8 text-white" strokeWidth={2.5} />
+            <div className="w-16 h-16 rounded-2xl mx-auto mb-4 shadow-lg shadow-[#0B5D3A]/20 overflow-hidden">
+              <Image
+                src="/logo-mark.png"
+                alt="Kariako Guide"
+                width={64}
+                height={64}
+                className="w-full h-full object-cover"
+                priority
+              />
             </div>
             <h1 className="text-2xl font-black gradient-text-green tracking-tight">{t('app_name', language)}</h1>
             <p className="text-[#6C757D] dark:text-[#8B949E] mt-2 text-sm">{t('auth_subtitle', language)}</p>

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -88,8 +89,15 @@ function SidebarContent({ collapsed, pathname }: { collapsed: boolean; pathname:
     <div className="flex flex-col h-full">
       {/* Logo */}
       <div className="flex items-center gap-3 px-4 py-5 border-b border-white/10">
-        <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/20 shrink-0">
-          <span className="text-white font-black text-sm tracking-tight">KG</span>
+        <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg shadow-emerald-500/20 shrink-0">
+          <Image
+            src="/logo-mark.png"
+            alt="Kariako Guide"
+            width={40}
+            height={40}
+            className="w-full h-full object-cover"
+            priority
+          />
         </div>
         <AnimatePresence>
           {!collapsed && (

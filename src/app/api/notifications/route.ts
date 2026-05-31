@@ -1,6 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { db } from '@/lib/db';
 
-// ── Demo notifications with enhanced types ──
+// ── Auth helper: extract user ID from auth_token cookie ──
+function getUserIdFromToken(token: string): string | null {
+  if (token.startsWith('demo_token_')) {
+    const parts = token.split('_');
+    return parts.length >= 4 ? parts[2] : null;
+  }
+  if (token.startsWith('token_')) {
+    const parts = token.split('_');
+    return parts.length >= 3 ? parts[1] : null;
+  }
+  if (token.startsWith('temp_token_')) {
+    return null;
+  }
+  return null;
+}
+
+// ── Demo notifications (fallback) ──
 const demoNotifications = [
   { id: 'n1', userId: 'demo', type: 'booking_new', title: 'New Booking Request', message: 'Amina Hassan wants a guide for the Fabrics Zone tomorrow at 10:00 AM.', read: false, actionUrl: '/guide/sessions', createdAt: new Date(Date.now() - 1000 * 60 * 5).toISOString() },
   { id: 'n2', userId: 'demo', type: 'booking_confirmed', title: 'Booking Confirmed', message: 'Your booking with Mwanaildi Juma for Electronics Zone has been confirmed.', read: false, actionUrl: '/seeker/bookings', createdAt: new Date(Date.now() - 1000 * 60 * 15).toISOString() },
@@ -23,32 +40,84 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const cursor = searchParams.get('cursor');
     const limit = parseInt(searchParams.get('limit') || '20');
-    const userId = searchParams.get('userId') || 'demo';
+    const userIdParam = searchParams.get('userId');
 
-    // Filter by userId (in demo mode, show all)
-    let notifications = demoNotifications;
+    // Extract user ID from auth cookie or query param
+    const authToken = request.cookies.get('auth_token')?.value;
+    const userId = (authToken ? getUserIdFromToken(authToken) : null) || userIdParam || 'demo';
 
-    // Cursor-based pagination
-    if (cursor) {
-      const cursorIdx = notifications.findIndex(n => n.id === cursor);
-      if (cursorIdx > 0) {
-        notifications = notifications.slice(0, cursorIdx);
+    try {
+      // Build the query with cursor-based pagination
+      const whereClause: Record<string, unknown> = { userId };
+
+      const notifications = await db.notification.findMany({
+        where: whereClause,
+        orderBy: { createdAt: 'desc' },
+        take: limit + 1, // take one extra to determine hasMore
+        ...(cursor
+          ? {
+              cursor: { id: cursor },
+              skip: 1,
+            }
+          : {}),
+      });
+
+      const hasMore = notifications.length > limit;
+      const limited = hasMore ? notifications.slice(0, limit) : notifications;
+
+      // Get unread count
+      const unreadCount = await db.notification.count({
+        where: { userId, read: false },
+      });
+
+      return NextResponse.json({
+        notifications: limited.map(n => ({
+          id: n.id,
+          userId: n.userId,
+          type: n.type,
+          title: n.title,
+          titleSw: n.titleSw,
+          message: n.message,
+          bodySw: n.bodySw,
+          read: n.read,
+          actionUrl: n.actionUrl,
+          imageUrl: n.imageUrl,
+          createdAt: n.createdAt.toISOString(),
+        })),
+        unreadCount,
+        pagination: {
+          hasMore,
+          nextCursor: hasMore ? limited[limited.length - 1]?.id : null,
+          limit,
+        },
+      });
+    } catch (dbError) {
+      console.error('DB query failed, falling back to demo data:', dbError);
+
+      // Demo fallback
+      let notifications = demoNotifications;
+
+      if (cursor) {
+        const cursorIdx = notifications.findIndex(n => n.id === cursor);
+        if (cursorIdx > 0) {
+          notifications = notifications.slice(0, cursorIdx);
+        }
       }
+
+      const limited = notifications.slice(0, limit);
+      const hasMore = notifications.length > limit;
+      const nextCursor = hasMore ? limited[limited.length - 1]?.id : null;
+
+      return NextResponse.json({
+        notifications: limited,
+        unreadCount: demoNotifications.filter(n => !n.read).length,
+        pagination: {
+          hasMore,
+          nextCursor,
+          limit,
+        },
+      });
     }
-
-    const limited = notifications.slice(0, limit);
-    const hasMore = notifications.length > limit;
-    const nextCursor = hasMore ? limited[limited.length - 1]?.id : null;
-
-    return NextResponse.json({
-      notifications: limited,
-      unreadCount: demoNotifications.filter(n => !n.read).length,
-      pagination: {
-        hasMore,
-        nextCursor,
-        limit,
-      },
-    });
   } catch (error) {
     console.error('Get notifications error:', error);
     return NextResponse.json({ error: 'Failed to fetch notifications' }, { status: 500 });
@@ -62,25 +131,67 @@ export async function PATCH(request: NextRequest) {
     const { notificationId, markAll } = body;
 
     if (markAll) {
-      // Mark all as read
-      demoNotifications.forEach(n => { n.read = true; });
-      return NextResponse.json({
-        success: true,
-        message: 'All notifications marked as read',
-        unreadCount: 0,
-      });
+      try {
+        // Extract user ID from auth cookie
+        const authToken = request.cookies.get('auth_token')?.value;
+        const userId = authToken ? getUserIdFromToken(authToken) : null;
+
+        if (userId) {
+          await db.notification.updateMany({
+            where: { userId, read: false },
+            data: { read: true },
+          });
+        } else {
+          // Demo fallback
+          demoNotifications.forEach(n => { n.read = true; });
+        }
+
+        return NextResponse.json({
+          success: true,
+          message: 'All notifications marked as read',
+          unreadCount: 0,
+        });
+      } catch (dbError) {
+        console.error('DB update failed, falling back to demo data:', dbError);
+        demoNotifications.forEach(n => { n.read = true; });
+        return NextResponse.json({
+          success: true,
+          message: 'All notifications marked as read',
+          unreadCount: 0,
+        });
+      }
     }
 
     if (notificationId) {
-      const notification = demoNotifications.find(n => n.id === notificationId);
-      if (notification) {
-        notification.read = true;
+      try {
+        await db.notification.update({
+          where: { id: notificationId },
+          data: { read: true },
+        });
+
+        // Get updated unread count for the user
+        const notification = await db.notification.findUnique({ where: { id: notificationId } });
+        const unreadCount = notification
+          ? await db.notification.count({ where: { userId: notification.userId, read: false } })
+          : 0;
+
+        return NextResponse.json({
+          success: true,
+          message: 'Notification marked as read',
+          unreadCount,
+        });
+      } catch (dbError) {
+        console.error('DB update failed, falling back to demo data:', dbError);
+        const notification = demoNotifications.find(n => n.id === notificationId);
+        if (notification) {
+          notification.read = true;
+        }
+        return NextResponse.json({
+          success: true,
+          message: 'Notification marked as read',
+          unreadCount: demoNotifications.filter(n => !n.read).length,
+        });
       }
-      return NextResponse.json({
-        success: true,
-        message: 'Notification marked as read',
-        unreadCount: demoNotifications.filter(n => !n.read).length,
-      });
     }
 
     return NextResponse.json({ error: 'Invalid request. Provide notificationId or markAll.' }, { status: 400 });
@@ -90,33 +201,121 @@ export async function PATCH(request: NextRequest) {
   }
 }
 
-// PUT /api/notifications - Mark notification(s) as read (legacy support)
+// PUT /api/notifications - Mark notification(s) as read (batch / legacy support)
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
     const { ids, markAll } = body;
 
     if (markAll) {
-      demoNotifications.forEach(n => { n.read = true; });
-      return NextResponse.json({
-        success: true,
-        message: 'All notifications marked as read',
-      });
+      try {
+        const authToken = request.cookies.get('auth_token')?.value;
+        const userId = authToken ? getUserIdFromToken(authToken) : null;
+
+        if (userId) {
+          await db.notification.updateMany({
+            where: { userId, read: false },
+            data: { read: true },
+          });
+        } else {
+          demoNotifications.forEach(n => { n.read = true; });
+        }
+
+        return NextResponse.json({
+          success: true,
+          message: 'All notifications marked as read',
+        });
+      } catch (dbError) {
+        console.error('DB update failed, falling back to demo data:', dbError);
+        demoNotifications.forEach(n => { n.read = true; });
+        return NextResponse.json({
+          success: true,
+          message: 'All notifications marked as read',
+        });
+      }
     }
 
     if (ids && Array.isArray(ids)) {
-      ids.forEach((id: string) => {
-        const notification = demoNotifications.find(n => n.id === id);
-        if (notification) notification.read = true;
-      });
-      return NextResponse.json({
-        success: true,
-        message: `${ids.length} notification(s) marked as read`,
-      });
+      try {
+        await db.notification.updateMany({
+          where: { id: { in: ids as string[] } },
+          data: { read: true },
+        });
+
+        return NextResponse.json({
+          success: true,
+          message: `${ids.length} notification(s) marked as read`,
+        });
+      } catch (dbError) {
+        console.error('DB update failed, falling back to demo data:', dbError);
+        (ids as string[]).forEach((id: string) => {
+          const notification = demoNotifications.find(n => n.id === id);
+          if (notification) notification.read = true;
+        });
+        return NextResponse.json({
+          success: true,
+          message: `${ids.length} notification(s) marked as read`,
+        });
+      }
     }
 
     return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
   } catch {
+    return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+  }
+}
+
+// POST /api/notifications - Create a new notification (for internal use by other APIs)
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { userId, type, title, titleSw, message, bodySw, actionUrl, imageUrl } = body;
+
+    if (!userId || !type || !title || !message) {
+      return NextResponse.json(
+        { error: 'userId, type, title, and message are required' },
+        { status: 400 }
+      );
+    }
+
+    try {
+      const notification = await db.notification.create({
+        data: {
+          userId,
+          type,
+          title,
+          titleSw: titleSw || null,
+          message,
+          bodySw: bodySw || null,
+          actionUrl: actionUrl || null,
+          imageUrl: imageUrl || null,
+        },
+      });
+
+      return NextResponse.json({
+        notification: {
+          id: notification.id,
+          userId: notification.userId,
+          type: notification.type,
+          title: notification.title,
+          titleSw: notification.titleSw,
+          message: notification.message,
+          bodySw: notification.bodySw,
+          read: notification.read,
+          actionUrl: notification.actionUrl,
+          imageUrl: notification.imageUrl,
+          createdAt: notification.createdAt.toISOString(),
+        },
+      }, { status: 201 });
+    } catch (dbError) {
+      console.error('DB create failed for notification:', dbError);
+      return NextResponse.json(
+        { error: 'Failed to create notification' },
+        { status: 500 }
+      );
+    }
+  } catch (error) {
+    console.error('Create notification error:', error);
     return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
   }
 }
