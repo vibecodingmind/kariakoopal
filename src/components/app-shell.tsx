@@ -4,6 +4,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { useAppStore } from '@/lib/stores/app-store';
+import { useNotificationStore } from '@/lib/stores/notification-store';
 import {
   Compass,
   Store,
@@ -15,9 +16,12 @@ import {
   DollarSign,
   Shield,
   Users,
+  Bell,
+  Wallet,
+  Settings,
 } from 'lucide-react';
 import { LanguageToggle } from '@/components/language-toggle';
-import { Moon, Sun, LogOut, ChevronDown } from 'lucide-react';
+import { Moon, Sun, LogOut, ChevronDown, ChevronRight } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { signOut, useSession } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -165,7 +169,8 @@ function BottomNav() {
 
 // ── Top Header ──
 function TopHeader() {
-  const { user, language, logout, isAuthenticated } = useAuthStore();
+  const { user, language, logout, isAuthenticated, walletBalance } = useAuthStore();
+  const unreadCount = useNotificationStore(s => s.unreadCount);
   const { darkMode, setDarkMode } = useAppStore();
   const router = useRouter();
   const [showMenu, setShowMenu] = useState(false);
@@ -193,6 +198,8 @@ function TopHeader() {
 
   const sw = language === 'sw';
 
+  const profileHref = user?.role === 'guide' ? '/guide/profile' : user?.role === 'admin' ? '/admin' : '/seeker/profile';
+
   return (
     <header className="knav sticky top-0 z-50">
       <div className="flex items-center justify-between px-4 h-14 max-w-4xl mx-auto">
@@ -205,7 +212,7 @@ function TopHeader() {
           </span>
         </Link>
 
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1">
           <LanguageToggle className="border border-[#E9ECEF] dark:border-[#30363D] rounded-full" />
           <button
             onClick={() => setDarkMode(!darkMode)}
@@ -215,36 +222,90 @@ function TopHeader() {
           </button>
 
           {isAuthenticated && user ? (
-            <div className="relative" ref={menuRef}>
-              <button onClick={() => setShowMenu(!showMenu)} className="flex items-center gap-1.5 group active:scale-95 transition-transform">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#0A4D3C] to-[#2EA77A] flex items-center justify-center text-white text-xs font-bold group-hover:shadow-md group-hover:ring-2 group-hover:ring-[#0A4D3C]/20 transition-all">
-                  {user.name?.charAt(0) || 'U'}
-                </div>
-                <ChevronDown className="w-3 h-3 text-[#6C757D] hidden sm:block" />
+            <>
+              {/* Wallet Badge */}
+              <button
+                onClick={() => router.push('/wallet')}
+                className="h-8 px-2.5 rounded-xl flex items-center gap-1.5 bg-[#E8F5EE] dark:bg-[#0D2818] border border-[#0A4D3C]/10 dark:border-[#2EA77A]/20 hover:shadow-sm transition-all active:scale-95"
+              >
+                <Wallet className="w-3.5 h-3.5 text-[#0A4D3C] dark:text-[#2EA77A]" />
+                <span className="text-[10px] font-bold text-[#0A4D3C] dark:text-[#2EA77A]">{(walletBalance / 1000).toFixed(0)}K</span>
               </button>
-              <AnimatePresence>
-                {showMenu && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -8, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -8, scale: 0.95 }}
-                    transition={{ duration: 0.15 }}
-                    className="absolute right-0 top-full mt-2 w-56 kcard-glass p-0 overflow-hidden z-50"
-                  >
-                    <div className="p-4 border-b border-[#E9ECEF] dark:border-[#30363D]">
-                      <p className="font-semibold text-sm">{user.name}</p>
-                      <p className="text-xs text-[#6C757D] dark:text-[#8B949E] mt-0.5">{user.phone || user.email}</p>
-                      <span className="inline-block mt-2 text-xs font-semibold text-[#0A4D3C] dark:text-[#2EA77A] capitalize px-2 py-0.5 rounded-md bg-[#E8F5EE] dark:bg-[#0D2818]">{user.role}</span>
-                    </div>
-                    <div className="p-2">
-                      <button onClick={handleLogout} className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-[#E63946] hover:bg-[#FEE2E2] dark:hover:bg-[#3D1F1F] rounded-xl transition-colors active:scale-95">
-                        <LogOut className="w-4 h-4" />{sw ? 'Toka' : 'Logout'}
-                      </button>
-                    </div>
-                  </motion.div>
+
+              {/* Notification Bell */}
+              <button
+                onClick={() => router.push('/notifications')}
+                className="w-9 h-9 rounded-xl flex items-center justify-center border border-[#E9ECEF] dark:border-[#30363D] hover:bg-[#F1F3F5] dark:hover:bg-[#21262D] transition-all active:scale-90 relative"
+              >
+                <Bell className="w-4 h-4" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4.5 h-4.5 rounded-full bg-[#E63946] text-white text-[8px] font-bold flex items-center justify-center animate-scale-in">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
                 )}
-              </AnimatePresence>
-            </div>
+              </button>
+
+              {/* User Menu */}
+              <div className="relative" ref={menuRef}>
+                <button onClick={() => setShowMenu(!showMenu)} className="flex items-center gap-1.5 group active:scale-95 transition-transform">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#0A4D3C] to-[#2EA77A] flex items-center justify-center text-white text-xs font-bold group-hover:shadow-md group-hover:ring-2 group-hover:ring-[#0A4D3C]/20 transition-all">
+                    {user.name?.charAt(0) || 'U'}
+                  </div>
+                  <ChevronDown className="w-3 h-3 text-[#6C757D] hidden sm:block" />
+                </button>
+                <AnimatePresence>
+                  {showMenu && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -8, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -8, scale: 0.95 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute right-0 top-full mt-2 w-60 kcard-glass p-0 overflow-hidden z-50"
+                    >
+                      <div className="p-4 border-b border-[#E9ECEF] dark:border-[#30363D]">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#0A4D3C] to-[#2EA77A] flex items-center justify-center text-white text-sm font-bold">
+                            {user.name?.charAt(0) || 'U'}
+                          </div>
+                          <div>
+                            <p className="font-semibold text-sm">{user.name}</p>
+                            <p className="text-xs text-[#6C757D]">{user.phone || user.email}</p>
+                          </div>
+                        </div>
+                        <span className="inline-block mt-2 text-xs font-semibold text-[#0A4D3C] dark:text-[#2EA77A] capitalize px-2 py-0.5 rounded-md bg-[#E8F5EE] dark:bg-[#0D2818]">{user.role}</span>
+                      </div>
+                      <div className="p-1.5">
+                        {[
+                          { icon: User, label: sw ? 'Wasifu Wangu' : 'My Profile', href: profileHref },
+                          { icon: Wallet, label: sw ? 'Mkoba' : 'Wallet', href: '/wallet' },
+                          { icon: Bell, label: sw ? 'Arifa' : 'Notifications', href: '/notifications', badge: unreadCount },
+                          { icon: Settings, label: sw ? 'Mipangilio' : 'Settings', href: '/settings' },
+                          { icon: Shield, label: sw ? 'Usalama' : 'Security', href: '/settings/security' },
+                        ].map((item, i) => (
+                          <button
+                            key={i}
+                            onClick={() => { router.push(item.href); setShowMenu(false); }}
+                            className="w-full flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-[#F1F3F5] dark:hover:bg-[#21262D] rounded-lg transition-colors"
+                          >
+                            <item.icon className="w-4 h-4 text-[#6C757D]" />
+                            <span className="flex-1 text-left">{item.label}</span>
+                            {item.badge && item.badge > 0 && (
+                              <span className="w-4.5 h-4.5 rounded-full bg-[#E63946] text-white text-[8px] font-bold flex items-center justify-center">{item.badge}</span>
+                            )}
+                            <ChevronRight className="w-3 h-3 text-[#6C757D]" />
+                          </button>
+                        ))}
+                      </div>
+                      <div className="p-1.5 border-t border-[#E9ECEF] dark:border-[#30363D]">
+                        <button onClick={handleLogout} className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-[#E63946] hover:bg-[#FEE2E2] dark:hover:bg-[#3D1F1F] rounded-xl transition-colors active:scale-95">
+                          <LogOut className="w-4 h-4" />{sw ? 'Toka' : 'Logout'}
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </>
           ) : (
             <Link
               href="/auth"

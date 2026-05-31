@@ -10,3 +10,6 @@ export type { MarketRequest, Earnings } from './guide-store';
 
 export { useAppStore } from './app-store';
 export type { AppToast } from './app-store';
+
+export { useNotificationStore } from './notification-store';
+export type { Notification } from './notification-store';

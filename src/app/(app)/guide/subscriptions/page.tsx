@@ -2,359 +2,338 @@
 
 import { useState } from 'react';
 import { useAuthStore } from '@/lib/stores/auth-store';
+import { useNotificationStore } from '@/lib/stores/notification-store';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Zap, Star, Crown, Check, X, ChevronRight, Phone, Loader2,
-  ShieldCheck, Clock, Award, Eye, MessageSquare, BarChart3
+  Crown, Zap, Shield, Check, Star, BarChart3, MapPin, Trophy,
+  Clock, CreditCard, Smartphone, Sparkles, ChevronRight, X, ArrowRight
 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 
-// ── Animation variants ──
-const fadeUp = {
-  initial: { opacity: 0, y: 16 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -8 },
-};
-
-// ── Tier definitions ──
-const tiers = [
+const TIERS = [
   {
-    id: 'starter',
+    id: 'starter' as const,
     name: 'Starter',
-    nameSw: 'Kuanza',
     price: 0,
-    priceLabel: 'Free',
-    priceLabelSw: 'Bure',
-    icon: Zap,
-    color: '#6C757D',
-    bgClass: 'bg-[#F1F3F5] dark:bg-[#21262D]',
-    borderClass: 'border-[#6C757D]/20',
-    textClass: 'text-[#6C757D]',
+    icon: Shield,
+    color: 'from-slate-400 to-slate-500',
+    bgColor: 'bg-[#F1F3F5] dark:bg-[#21262D]',
     features: [
-      { name: 'Basic profile', nameSw: 'Wasifu wa kawaida', included: true },
-      { name: 'Up to 2 zones', nameSw: 'Maeneo hadi 2', included: true },
-      { name: 'Standard matching', nameSw: 'Ulinganisho wa kawaida', included: true },
-      { name: 'In-app messaging', nameSw: 'Ujumbe ndani ya app', included: true },
-      { name: 'Session recordings', nameSw: 'Kurekodi vipindi', included: false },
-      { name: 'Priority matching', nameSw: 'Ulinganisho wa kipaumbele', included: false },
-      { name: 'Featured listing', nameSw: 'Orodha iliyoangaziwa', included: false },
-      { name: 'Analytics dashboard', nameSw: 'Dashibodi ya uchambuzi', included: false },
-      { name: 'Mentorship access', nameSw: 'Ufikiaji wa ushauri', included: false },
-      { name: 'Custom packages', nameSw: 'Pakiti za kawaida', included: false },
+      { text: 'Basic matching', included: true },
+      { text: '3 sessions/day', included: true },
+      { text: 'Standard support', included: true },
+      { text: 'Unlimited sessions', included: false },
+      { text: 'Priority matching', included: false },
+      { text: 'Analytics dashboard', included: false },
+      { text: 'Featured on homepage', included: false },
+      { text: 'Exclusive zones access', included: false },
     ],
   },
   {
-    id: 'pro',
+    id: 'pro' as const,
     name: 'Pro',
-    nameSw: 'Pro',
     price: 15000,
-    priceLabel: 'TZS 15,000/mo',
-    priceLabelSw: 'TZS 15,000/mwezi',
-    icon: Star,
-    color: '#0A4D3C',
-    bgClass: 'bg-[#E8F5EE] dark:bg-[#0D2818]',
-    borderClass: 'border-[#0A4D3C]/20',
-    textClass: 'text-[#0A4D3C] dark:text-[#2EA77A]',
+    icon: Zap,
+    color: 'from-amber-500 to-orange-500',
+    bgColor: 'bg-[#FEF3C7] dark:bg-[#3D2E0A]',
     popular: true,
     features: [
-      { name: 'Enhanced profile', nameSw: 'Wasifu ulioboreshwa', included: true },
-      { name: 'Up to 5 zones', nameSw: 'Maeneo hadi 5', included: true },
-      { name: 'Priority matching', nameSw: 'Ulinganisho wa kipaumbele', included: true },
-      { name: 'In-app messaging', nameSw: 'Ujumbe ndani ya app', included: true },
-      { name: 'Session recordings', nameSw: 'Kurekodi vipindi', included: true },
-      { name: 'Featured in search', nameSw: 'Angaziwa katika utafutaji', included: true },
-      { name: 'Analytics dashboard', nameSw: 'Dashibodi ya uchambuzi', included: true },
-      { name: 'Custom packages', nameSw: 'Pakiti za kawaida', included: true },
-      { name: 'Mentorship access', nameSw: 'Ufikiaji wa ushauri', included: false },
-      { name: 'VIP support', nameSw: 'Msaada wa VIP', included: false },
+      { text: 'Basic matching', included: true },
+      { text: '3 sessions/day', included: true },
+      { text: 'Priority support', included: true },
+      { text: 'Unlimited sessions', included: true },
+      { text: 'Priority matching', included: true },
+      { text: 'Analytics dashboard', included: true },
+      { text: 'Featured on homepage', included: false },
+      { text: 'Exclusive zones access', included: false },
     ],
   },
   {
-    id: 'elite',
+    id: 'elite' as const,
     name: 'Elite',
-    nameSw: 'Bora',
     price: 35000,
-    priceLabel: 'TZS 35,000/mo',
-    priceLabelSw: 'TZS 35,000/mwezi',
     icon: Crown,
-    color: '#FFD23F',
-    bgClass: 'bg-[#FEF3C7] dark:bg-[#3D2E0A]',
-    borderClass: 'border-[#FFD23F]/30',
-    textClass: 'text-[#B8860B] dark:text-[#FFD23F]',
+    color: 'from-[#0A4D3C] to-[#2EA77A]',
+    bgColor: 'bg-[#E8F5EE] dark:bg-[#0D2818]',
     features: [
-      { name: 'Premium profile', nameSw: 'Wasifu bora', included: true },
-      { name: 'All zones', nameSw: 'Maeneo yote', included: true },
-      { name: 'Top priority matching', nameSw: 'Ulinganisho wa juu', included: true },
-      { name: 'In-app messaging', nameSw: 'Ujumbe ndani ya app', included: true },
-      { name: 'Session recordings', nameSw: 'Kurekodi vipindi', included: true },
-      { name: 'Top featured listing', nameSw: 'Orodha ya juu', included: true },
-      { name: 'Advanced analytics', nameSw: 'Uchambuzi wa juu', included: true },
-      { name: 'Unlimited packages', nameSw: 'Pakiti bila kikomo', included: true },
-      { name: 'Mentorship access', nameSw: 'Ufikiaji wa ushauri', included: true },
-      { name: 'VIP 24/7 support', nameSw: 'Msaada wa VIP 24/7', included: true },
+      { text: 'Basic matching', included: true },
+      { text: 'Unlimited sessions', included: true },
+      { text: 'VIP support', included: true },
+      { text: 'Unlimited sessions', included: true },
+      { text: 'Priority matching', included: true },
+      { text: 'Full analytics suite', included: true },
+      { text: 'Featured on homepage', included: true },
+      { text: 'Exclusive zones access', included: true },
     ],
   },
 ];
 
+const BILLING_HISTORY = [
+  { id: 'b1', tier: 'Pro', amount: 15000, date: 'May 22, 2026', status: 'completed', method: 'M-Pesa' },
+  { id: 'b2', tier: 'Pro', amount: 15000, date: 'Apr 22, 2026', status: 'completed', method: 'M-Pesa' },
+  { id: 'b3', tier: 'Starter', amount: 0, date: 'Mar 22, 2026', status: 'completed', method: 'Free' },
+];
+
 export default function SubscriptionsPage() {
-  const { language, subscriptionTier, setSubscriptionTier, walletBalance } = useAuthStore();
-  const router = useRouter();
+  const { language, subscriptionTier, setSubscriptionTier } = useAuthStore();
+  const { addNotification } = useNotificationStore();
   const sw = language === 'sw';
   const l = (en: string, swText: string) => (sw ? swText : en);
-  const currentTier = subscriptionTier || 'pro';
-  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [upgrading, setUpgrading] = useState<string | null>(null);
+  const [showPayment, setShowPayment] = useState(false);
   const [selectedTier, setSelectedTier] = useState<string | null>(null);
   const [mpesaPhone, setMpesaPhone] = useState('');
   const [processing, setProcessing] = useState(false);
-  const [showComparison, setShowComparison] = useState(false);
-
-  const daysRemaining = 16;
-  const renewalDate = 'Mar 15, 2026';
+  const [success, setSuccess] = useState(false);
+  const [autoRenew, setAutoRenew] = useState(true);
 
   const handleUpgrade = (tierId: string) => {
-    if (tierId === currentTier) return;
+    if (tierId === subscriptionTier) return;
+    setSelectedTier(tierId);
     if (tierId === 'starter') {
       setSubscriptionTier('starter');
+      addNotification({
+        userId: '',
+        type: 'success',
+        title: l('Subscription Downgraded', 'Usajili Umepunguzwa'),
+        message: l('You are now on the Starter plan', 'Sasa uko kwenye mpango wa Starter'),
+        read: false,
+        actionUrl: '/guide/subscriptions',
+      });
       return;
     }
-    setSelectedTier(tierId);
-    setShowUpgradeModal(true);
+    setShowPayment(true);
   };
 
-  const handleConfirmPayment = async () => {
+  const handlePayment = () => {
     setProcessing(true);
-    // Simulate payment processing
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    setProcessing(false);
-    setShowUpgradeModal(false);
-    setSubscriptionTier(selectedTier || 'pro');
+    setTimeout(() => {
+      setProcessing(false);
+      setSuccess(true);
+      setSubscriptionTier(selectedTier as 'starter' | 'pro' | 'elite');
+      addNotification({
+        userId: '',
+        type: 'success',
+        title: l('Subscription Updated!', 'Usajili Umehuishwa!'),
+        message: l(`You are now on the ${selectedTier} plan`, `Sasa uko kwenye mpango wa ${selectedTier}`),
+        read: false,
+        actionUrl: '/guide/subscriptions',
+      });
+      setTimeout(() => {
+        setSuccess(false);
+        setShowPayment(false);
+        setSelectedTier(null);
+      }, 2000);
+    }, 2500);
   };
 
-  const billingHistory = [
-    { id: 'b1', tier: 'Pro', amount: 'TZS 15,000', date: 'Feb 15, 2026', status: 'paid' },
-    { id: 'b2', tier: 'Starter', amount: 'Free', date: 'Jan 15, 2026', status: 'paid' },
-    { id: 'b3', tier: 'Starter', amount: 'Free', date: 'Dec 15, 2025', status: 'paid' },
-  ];
+  const currentTierData = TIERS.find(t => t.id === subscriptionTier) || TIERS[0];
+  const daysRemaining = 18;
 
   return (
     <div className="px-4 py-4 space-y-5">
-      {/* ── Header ── */}
-      <motion.div {...fadeUp} className="flex items-center gap-3">
-        <button onClick={() => router.back()} className="w-9 h-9 rounded-xl bg-[#F1F3F5] dark:bg-[#21262D] flex items-center justify-center">
-          <X className="w-4 h-4" />
-        </button>
-        <h1 className="text-xl font-bold text-[#0A4D3C] dark:text-[#2EA77A]">{l('Subscriptions', 'Usajili')}</h1>
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+        <h1 className="text-2xl font-bold text-[#0A4D3C] dark:text-[#2EA77A]">{l('Subscription', 'Usajili')}</h1>
+        <p className="text-sm text-[#6C757D] mt-1">{l('Manage your guide subscription plan', 'Simamia mpango wako wa usajili')}</p>
       </motion.div>
 
-      {/* ── Current Plan Card ── */}
-      <motion.div {...fadeUp} transition={{ delay: 0.05 }} className="kcard-green p-5 relative overflow-hidden">
-        <div className="relative z-10">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-white/70">{l('Current Plan', 'Mpango wa Sasa')}</span>
-            <span className={`kbadge ${currentTier === 'elite' ? 'kbadge-gold' : 'bg-white/20 text-white'}`}>
-              {tiers.find(t => t.id === currentTier)?.name || 'Starter'}
-            </span>
+      {/* Current Plan Card */}
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className={`kcard p-5 ${subscriptionTier !== 'starter' ? 'border-2 border-[#FFD23F]' : ''}`}>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2.5">
+            <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${currentTierData.color} flex items-center justify-center`}>
+              {(() => { const Icon = currentTierData.icon; return <Icon className="w-5 h-5 text-white" />; })()}
+            </div>
+            <div>
+              <p className="font-bold">{currentTierData.name} {l('Plan', 'Mpango')}</p>
+              <p className="text-xs text-[#6C757D]">
+                {currentTierData.price === 0 ? l('Free forever', 'Bure milele') : `TZS ${currentTierData.price.toLocaleString()}/${l('month', 'mwezi')}`}
+              </p>
+            </div>
           </div>
-          <p className="text-2xl font-bold text-white">
-            {tiers.find(t => t.id === currentTier)?.priceLabel || 'Free'}
-          </p>
-          <div className="flex items-center gap-4 mt-2 text-white/70 text-xs">
-            <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{daysRemaining} {l('days remaining', 'siku zimesalia')}</span>
-            <span>{l('Renews', 'Inajirudi')} {renewalDate}</span>
-          </div>
+          {subscriptionTier !== 'starter' && (
+            <span className="kbadge kbadge-gold">{l('Active', 'Hai')}</span>
+          )}
         </div>
+
+        {subscriptionTier !== 'starter' && (
+          <div className="grid grid-cols-2 gap-3 mt-3">
+            <div className="p-2.5 rounded-lg bg-[#F1F3F5] dark:bg-[#21262D]">
+              <p className="text-[10px] text-[#6C757D]">{l('Renews In', 'Inajiriwa Baada ya')}</p>
+              <p className="text-sm font-bold">{daysRemaining} {l('days', 'siku')}</p>
+            </div>
+            <div className="p-2.5 rounded-lg bg-[#F1F3F5] dark:bg-[#21262D]">
+              <p className="text-[10px] text-[#6C757D]">{l('Auto-Renew', 'Kujiriwa Kiotomatiki')}</p>
+              <button onClick={() => setAutoRenew(!autoRenew)} className="flex items-center gap-1.5 mt-0.5">
+                <div className={`w-8 h-4.5 rounded-full transition-colors ${autoRenew ? 'bg-[#0A4D3C]' : 'bg-[#E9ECEF]'} relative`}>
+                  <div className={`w-3.5 h-3.5 rounded-full bg-white absolute top-0.5 transition-all ${autoRenew ? 'right-0.5' : 'left-0.5'}`} />
+                </div>
+                <span className="text-[10px] font-medium">{autoRenew ? l('On', 'Imewashwa') : l('Off', 'Imezimwa')}</span>
+              </button>
+            </div>
+          </div>
+        )}
       </motion.div>
 
-      {/* ── Plan Selection ── */}
-      <div className="space-y-3">
-        {tiers.map((tier, i) => {
-          const isActive = tier.id === currentTier;
-          const TierIcon = tier.icon;
-          return (
-            <motion.div
-              key={tier.id}
-              {...fadeUp}
-              transition={{ delay: 0.1 + i * 0.05 }}
-              className={`kcard p-4 relative overflow-hidden ${isActive ? 'ring-2 ring-[#0A4D3C] dark:ring-[#2EA77A]' : ''}`}
-            >
-              {tier.popular && (
-                <div className="absolute top-0 right-0 bg-[#FFD23F] text-[#0A4D3C] text-[10px] font-bold px-3 py-0.5 rounded-bl-lg">
-                  {l('POPULAR', 'MAARUFU')}
+      {/* Tier Comparison */}
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+        <h2 className="text-lg font-bold mb-3">{l('Choose Your Plan', 'Chagua Mpango Wako')}</h2>
+        <div className="space-y-3">
+          {TIERS.map((tier, i) => {
+            const Icon = tier.icon;
+            const isCurrent = subscriptionTier === tier.id;
+            const isUpgrade = tier.price > 0 && !isCurrent;
+
+            return (
+              <motion.div
+                key={tier.id}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 + i * 0.05 }}
+                className={`kcard p-4 ${isCurrent ? 'border-2 border-[#0A4D3C] dark:border-[#2EA77A]' : ''} ${tier.popular && !isCurrent ? 'border-2 border-[#FFD23F]' : ''}`}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${tier.color} flex items-center justify-center`}>
+                      <Icon className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="font-bold text-sm">{tier.name}</p>
+                        {tier.popular && <span className="kbadge kbadge-gold text-[8px]"><Sparkles className="w-2.5 h-2.5" />{l('Popular', 'Maarufu')}</span>}
+                      </div>
+                      <p className="text-xs text-[#6C757D]">
+                        {tier.price === 0 ? l('Free', 'Bure') : `TZS ${tier.price.toLocaleString()}/${l('mo', 'mwezi')}`}
+                      </p>
+                    </div>
+                  </div>
+                  {isCurrent ? (
+                    <span className="kbadge kbadge-verified flex items-center gap-1"><Check className="w-3 h-3" />{l('Current', 'Ya Sasa')}</span>
+                  ) : (
+                    <button
+                      onClick={() => handleUpgrade(tier.id)}
+                      disabled={upgrading === tier.id}
+                      className="kbtn text-xs py-1.5 px-3"
+                    >
+                      {tier.price > 0 ? l('Upgrade', 'Boresha') : l('Downgrade', 'Punguza')} <ArrowRight className="w-3 h-3" />
+                    </button>
+                  )}
                 </div>
-              )}
-              <div className="flex items-center gap-3">
-                <div className={`w-12 h-12 rounded-xl ${tier.bgClass} flex items-center justify-center border ${tier.borderClass}`}>
-                  <TierIcon className={`w-6 h-6 ${tier.textClass}`} />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-bold">{l(tier.name, tier.nameSw)}</h3>
-                  <p className="text-sm text-[#0A4D3C] dark:text-[#2EA77A] font-semibold">{l(tier.priceLabel, tier.priceLabelSw)}</p>
-                </div>
-                {isActive ? (
-                  <span className="kbadge kbadge-verified">{l('Active', 'Hai')}</span>
-                ) : (
-                  <button
-                    onClick={() => handleUpgrade(tier.id)}
-                    className={tier.price === 0 ? 'kbtn-outline text-xs py-2 px-3' : 'kbtn text-xs py-2 px-3'}
-                  >
-                    {l('Select', 'Chagua')}
-                  </button>
-                )}
-              </div>
-              <div className="mt-3 pt-3 border-t border-[#E9ECEF] dark:border-[#30363D]">
+
                 <div className="grid grid-cols-2 gap-1.5">
-                  {tier.features.filter(f => f.included).map((f, fi) => (
-                    <div key={fi} className="flex items-center gap-1 text-xs">
-                      <Check className="w-3 h-3 text-[#10B981] flex-shrink-0" />
-                      <span className="text-[#6C757D] dark:text-[#8B949E]">{l(f.name, f.nameSw)}</span>
+                  {tier.features.slice(0, 6).map((feat, fi) => (
+                    <div key={fi} className={`flex items-center gap-1.5 text-xs ${feat.included ? '' : 'opacity-40 line-through'}`}>
+                      <Check className={`w-3 h-3 shrink-0 ${feat.included ? 'text-[#10B981]' : 'text-[#6C757D]'}`} />
+                      {feat.text}
                     </div>
                   ))}
                 </div>
-              </div>
-            </motion.div>
-          );
-        })}
-      </div>
-
-      {/* ── Feature Comparison Table ── */}
-      <motion.div {...fadeUp} transition={{ delay: 0.3 }}>
-        <button
-          onClick={() => setShowComparison(!showComparison)}
-          className="w-full kcard p-4 flex items-center justify-between"
-        >
-          <span className="font-semibold text-sm">{l('Compare All Features', 'Linganisha Vipengele Vyote')}</span>
-          <ChevronRight className={`w-4 h-4 transition-transform ${showComparison ? 'rotate-90' : ''}`} />
-        </button>
-        <AnimatePresence>
-          {showComparison && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden"
-            >
-              <div className="kcard p-4 mt-2 overflow-x-auto">
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr className="border-b border-[#E9ECEF] dark:border-[#30363D]">
-                      <th className="text-left py-2 pr-2 font-medium text-[#6C757D]">{l('Feature', 'Kipengele')}</th>
-                      {tiers.map(t => (
-                        <th key={t.id} className="text-center py-2 px-1 font-semibold">{t.name}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {tiers[0].features.map((feature, fi) => (
-                      <tr key={fi} className="border-b border-[#E9ECEF]/50 dark:border-[#30363D]/50">
-                        <td className="py-2 pr-2 text-[#6C757D] dark:text-[#8B949E]">{l(feature.name, feature.nameSw)}</td>
-                        {tiers.map(t => (
-                          <td key={t.id} className="text-center py-2 px-1">
-                            {t.features[fi].included ? (
-                              <Check className="w-4 h-4 text-[#10B981] mx-auto" />
-                            ) : (
-                              <X className="w-4 h-4 text-[#6C757D] mx-auto opacity-30" />
-                            )}
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                    <tr>
-                      <td className="py-2 pr-2 font-semibold">{l('Price', 'Bei')}</td>
-                      {tiers.map(t => (
-                        <td key={t.id} className="text-center py-2 px-1 font-bold">{l(t.priceLabel, t.priceLabelSw)}</td>
-                      ))}
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              </motion.div>
+            );
+          })}
+        </div>
       </motion.div>
 
-      {/* ── Billing History ── */}
-      <motion.div {...fadeUp} transition={{ delay: 0.35 }}>
-        <h2 className="text-lg font-bold mb-3">{l('Billing History', 'Historia ya Malipo')}</h2>
-        <div className="kcard p-0 overflow-hidden">
-          {billingHistory.map((bill, i) => (
-            <div key={bill.id} className="flex items-center justify-between px-4 py-3.5 border-b border-[#E9ECEF] dark:border-[#30363D] last:border-0">
+      {/* Feature Highlights */}
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }} className="kcard p-4">
+        <h3 className="font-semibold text-sm mb-3">{l('Premium Features', 'Vipengele maalum')}</h3>
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            { icon: BarChart3, label: l('Analytics', 'Uchambuzi'), desc: l('Track your performance', 'Fuata matokeo yako') },
+            { icon: MapPin, label: l('Exclusive Zones', 'Maeneo Maalum'), desc: l('Access premium areas', 'Fikia maeneo bora') },
+            { icon: Zap, label: l('Priority Match', 'Kipaumbele'), desc: l('Get matched first', 'Patanishwa kwanza') },
+            { icon: Trophy, label: l('Guide of Week', 'Mwongozo wa Wiki'), desc: l('Featured placement', 'Nafasi ya kuonekana') },
+          ].map((feat, i) => (
+            <div key={i} className="flex items-start gap-2">
+              <feat.icon className="w-5 h-5 text-[#FFD23F] shrink-0 mt-0.5" />
               <div>
-                <p className="text-sm font-medium">{bill.tier} {l('Plan', 'Mpango')}</p>
-                <p className="text-xs text-[#6C757D] dark:text-[#8B949E]">{bill.date}</p>
-              </div>
-              <div className="text-right">
-                <p className="text-sm font-semibold">{bill.amount}</p>
-                <span className="kbadge kbadge-verified text-[9px]">{l('Paid', 'Lipwa')}</span>
+                <p className="text-xs font-semibold">{feat.label}</p>
+                <p className="text-[10px] text-[#6C757D]">{feat.desc}</p>
               </div>
             </div>
           ))}
         </div>
       </motion.div>
 
-      {/* ── Upgrade Modal ── */}
+      {/* Billing History */}
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+        <h2 className="text-lg font-bold mb-3">{l('Billing History', 'Historia ya Malipo')}</h2>
+        <div className="space-y-2">
+          {BILLING_HISTORY.map((bill, i) => (
+            <div key={bill.id} className="kcard p-3 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-[#E8F5EE] flex items-center justify-center">
+                  <CreditCard className="w-4 h-4 text-[#0B5D3A]" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium">{bill.tier} {l('Plan', 'Mpango')}</p>
+                  <p className="text-[10px] text-[#6C757D]">{bill.date} · {bill.method}</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-sm font-bold">{bill.amount === 0 ? l('Free', 'Bure') : `TZS ${bill.amount.toLocaleString()}`}</p>
+                <span className="kbadge kbadge-verified text-[8px]">{l('Paid', 'Imelipwa')}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </motion.div>
+
+      {/* Payment Modal */}
       <AnimatePresence>
-        {showUpgradeModal && selectedTier && (
+        {showPayment && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] bg-black/50 flex items-end sm:items-center justify-center p-0 sm:p-4"
-            onClick={() => !processing && setShowUpgradeModal(false)}
+            className="fixed inset-0 z-50 bg-black/50 flex items-end justify-center"
+            onClick={() => !processing && setShowPayment(false)}
           >
             <motion.div
-              initial={{ y: 100, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 100, opacity: 0 }}
+              initial={{ y: 300 }}
+              animate={{ y: 0 }}
+              exit={{ y: 300 }}
               transition={{ type: 'spring', damping: 25 }}
-              className="bg-white dark:bg-[#161B22] w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl p-6"
+              className="w-full max-w-lg bg-white dark:bg-[#161B22] rounded-t-3xl p-6 space-y-4"
               onClick={(e) => e.stopPropagation()}
             >
-              <h2 className="text-lg font-bold mb-1">
-                {l('Upgrade to', 'Panda hadi')} {tiers.find(t => t.id === selectedTier)?.name}
-              </h2>
-              <p className="text-sm text-[#6C757D] dark:text-[#8B949E] mb-4">
-                {tiers.find(t => t.id === selectedTier)?.priceLabel}/ {l('month', 'mwezi')}
-              </p>
-
-              <div className="space-y-3 mb-5">
-                {tiers.find(t => t.id === selectedTier)?.features.filter(f => f.included).map((f, i) => (
-                  <div key={i} className="flex items-center gap-2 text-sm">
-                    <Check className="w-4 h-4 text-[#10B981]" />
-                    <span>{l(f.name, f.nameSw)}</span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mb-4">
-                <label className="text-sm font-medium mb-1 block">{l('M-Pesa Phone Number', 'Nambari ya M-Pesa')}</label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6C757D]" />
-                  <input
-                    type="tel"
-                    value={mpesaPhone}
-                    onChange={(e) => setMpesaPhone(e.target.value)}
-                    className="kinput w-full pl-10"
-                    placeholder="255 XXX XXX XXX"
-                    disabled={processing}
-                  />
+              {success ? (
+                <div className="text-center py-8">
+                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-16 h-16 rounded-full bg-[#E8F5EE] flex items-center justify-center mx-auto mb-3">
+                    <Check className="w-8 h-8 text-[#10B981]" />
+                  </motion.div>
+                  <p className="font-bold text-lg">{l('Subscription Updated!', 'Usajili Umehuishwa!')}</p>
+                  <p className="text-sm text-[#6C757D]">{l(`You are now on the ${selectedTier} plan`, `Sasa uko kwenye mpango wa ${selectedTier}`)}</p>
                 </div>
-              </div>
-
-              <div className="flex gap-3">
-                <button onClick={() => setShowUpgradeModal(false)} disabled={processing} className="kbtn-outline flex-1 text-sm py-3">
-                  {l('Cancel', 'Ghairi')}
-                </button>
-                <button onClick={handleConfirmPayment} disabled={processing} className="kbtn flex-1 text-sm py-3 flex items-center justify-center gap-2">
-                  {processing ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      {l('Processing...', 'Inachakata...')}
-                    </>
-                  ) : (
-                    l('Confirm & Pay', 'Thibitisha na Lipa')
-                  )}
-                </button>
-              </div>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-bold">{l('Confirm Upgrade', 'Thibitisha Boresha')}</h3>
+                    <button onClick={() => !processing && setShowPayment(false)} className="w-8 h-8 rounded-full bg-[#F1F3F5] dark:bg-[#21262D] flex items-center justify-center">
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="kcard p-4 flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${TIERS.find(t => t.id === selectedTier)?.color} flex items-center justify-center`}>
+                      {(() => { const TierIcon = TIERS.find(t => t.id === selectedTier)?.icon || Shield; return <TierIcon className="w-5 h-5 text-white" />; })()}
+                    </div>
+                    <div>
+                      <p className="font-bold">{selectedTier} {l('Plan', 'Mpango')}</p>
+                      <p className="text-sm text-[#6C757D]">TZS {TIERS.find(t => t.id === selectedTier)?.price.toLocaleString()}/{l('month', 'mwezi')}</p>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">{l('M-Pesa Phone Number', 'Namba ya Simu ya M-Pesa')}</label>
+                    <input value={mpesaPhone} onChange={e => setMpesaPhone(e.target.value)} className="kinput w-full" placeholder="0712 345 678" />
+                  </div>
+                  <button onClick={handlePayment} disabled={processing} className="kbtn w-full text-sm h-11 disabled:opacity-50">
+                    {processing ? (
+                      <span className="flex items-center gap-2"><Clock className="w-4 h-4 animate-spin" />{l('Processing...', 'Inachakata...')}</span>
+                    ) : (
+                      l('Confirm Payment', 'Thibitisha Malipo')
+                    )}
+                  </button>
+                </>
+              )}
             </motion.div>
           </motion.div>
         )}
