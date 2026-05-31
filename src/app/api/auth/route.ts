@@ -7,6 +7,10 @@ import { rateLimit, getClientIp } from '@/lib/rate-limit';
 
 // ── Demo accounts with known passwords (for quick demo access) ──
 const DEMO_EMAIL_ACCOUNTS: Record<string, { password: string; id: string; name: string; role: string; phone: string; email: string }> = {
+  'seeker@kariako.com': { password: 'demo1234', id: 'demo-seeker-1', name: 'Sarah Johnson', role: 'seeker', phone: '+14155550001', email: 'seeker@kariako.com' },
+  'guide@kariako.com': { password: 'demo1234', id: 'demo-guide-1', name: 'Hamisi Juma', role: 'guide', phone: '+255712000001', email: 'guide@kariako.com' },
+  'admin@kariako.com': { password: 'demo1234', id: 'demo-admin-1', name: 'Admin User', role: 'admin', phone: '+255700000001', email: 'admin@kariako.com' },
+  // Also support @demo.com variants
   'seeker@demo.com': { password: 'demo123', id: 'demo-seeker-1', name: 'Sarah Johnson', role: 'seeker', phone: '+14155550001', email: 'seeker@demo.com' },
   'guide@demo.com': { password: 'demo123', id: 'demo-guide-1', name: 'Hamisi Juma', role: 'guide', phone: '+255712000001', email: 'guide@demo.com' },
   'admin@demo.com': { password: 'demo123', id: 'demo-admin-1', name: 'Admin User', role: 'admin', phone: '+255700000001', email: 'admin@demo.com' },

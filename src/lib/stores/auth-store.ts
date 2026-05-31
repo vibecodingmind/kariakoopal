@@ -53,7 +53,7 @@ interface AuthState {
   subscriptionTier: string; // starter, pro, elite
 
   // Actions
-  login: (phone: string, role?: string, name?: string) => Promise<void>;
+  login: (identifier: string, role?: string, name?: string, password?: string) => Promise<void>;
   loginWithEmail: (email: string, password: string, name?: string, role?: string) => Promise<void>;
   socialLogin: (provider: string, providerId: string, email: string, name: string, avatarUrl?: string) => Promise<void>;
   logout: () => void;
@@ -81,13 +81,22 @@ export const useAuthStore = create<AuthState>()(
       walletBalance: 47500,
       subscriptionTier: 'starter',
 
-      login: async (phone: string, role?: string, name?: string) => {
+      login: async (identifier: string, role?: string, name?: string, password?: string) => {
         set({ isLoading: true });
         try {
+          // Determine if identifier is email or phone
+          const isEmail = identifier.includes('@');
+          const body: Record<string, string | undefined> = { role, name, password };
+          if (isEmail) {
+            body.email = identifier;
+          } else {
+            body.phone = identifier;
+          }
+
           const res = await fetch('/api/auth', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ phone, role, name }),
+            body: JSON.stringify(body),
           });
 
           if (!res.ok) {
