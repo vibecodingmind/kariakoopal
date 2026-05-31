@@ -89,18 +89,8 @@ function SidebarContent({ collapsed, pathname }: { collapsed: boolean; pathname:
     <div className="flex flex-col h-full">
       {/* Logo */}
       <div className="flex items-center gap-3 px-4 py-5 border-b border-white/10">
-        <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg shadow-emerald-500/20 shrink-0">
-          <Image
-            src="/logo-mark.png"
-            alt="Chimbo Direct"
-            width={40}
-            height={40}
-            className="w-full h-full object-cover"
-            priority
-          />
-        </div>
         <AnimatePresence>
-          {!collapsed && (
+          {!collapsed ? (
             <motion.div
               initial={{ opacity: 0, width: 0 }}
               animate={{ opacity: 1, width: 'auto' }}
@@ -108,8 +98,31 @@ function SidebarContent({ collapsed, pathname }: { collapsed: boolean; pathname:
               transition={{ duration: 0.2 }}
               className="overflow-hidden whitespace-nowrap"
             >
-              <p className="text-white font-bold text-sm">ChimboDirect</p>
-              <p className="text-white/40 text-[10px] font-medium">Admin Panel</p>
+              <Image
+                src="/logo-header.png"
+                alt="Chimbo Direct"
+                width={130}
+                height={45}
+                className="h-8 w-auto brightness-0 invert"
+                priority
+              />
+              <p className="text-white/40 text-[10px] font-medium mt-0.5">Admin Panel</p>
+            </motion.div>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <Image
+                src="/logo-header.png"
+                alt="Chimbo Direct"
+                width={40}
+                height={14}
+                className="h-5 w-auto brightness-0 invert"
+                priority
+              />
             </motion.div>
           )}
         </AnimatePresence>

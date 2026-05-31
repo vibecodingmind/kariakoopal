@@ -235,23 +235,13 @@ function TopHeader() {
   return (
     <header className="knav sticky top-0 z-50">
       <div className="flex items-center justify-between px-4 h-14 max-w-4xl mx-auto">
-        <Link href="/" prefetch={true} className="flex items-center gap-2.5 group">
-          <div className="w-9 h-9 rounded-xl overflow-hidden shadow-sm group-hover:shadow-md transition-shadow ring-2 ring-[#065F46]/10 dark:ring-[#34D399]/10">
-            <Image
-              src="/logo-mark.png"
-              alt="Chimbo Direct"
-              width={36}
-              height={36}
-              className="w-full h-full object-cover"
-              priority
-            />
-          </div>
+        <Link href="/" prefetch={true} className="flex items-center group">
           <Image
             src="/logo-header.png"
             alt="Chimbo Direct"
-            width={120}
-            height={41}
-            className="h-8 w-auto hidden sm:block"
+            width={140}
+            height={49}
+            className="h-9 w-auto"
             priority
           />
         </Link>
@@ -386,23 +376,13 @@ function AdminTopHeader() {
     <header className="sticky top-0 z-50 bg-[#0F172A] border-b border-[#334155]/50">
       <div className="flex items-center justify-between px-4 h-14 max-w-[1600px] mx-auto">
         <div className="flex items-center gap-3">
-          {/* Mobile menu is handled by AdminSidebar */}
-          <div className="w-9 h-9 rounded-xl overflow-hidden shadow-sm lg:hidden">
-            <Image
-              src="/logo-mark.png"
-              alt="Chimbo Direct"
-              width={36}
-              height={36}
-              className="w-full h-full object-cover"
-              priority
-            />
-          </div>
+          {/* Full logo for admin header */}
           <Image
             src="/logo-header.png"
             alt="Chimbo Direct Admin"
             width={140}
-            height={48}
-            className="h-7 w-auto hidden lg:block brightness-0 invert"
+            height={49}
+            className="h-8 w-auto brightness-0 invert"
             priority
           />
         </div>

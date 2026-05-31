@@ -136,17 +136,16 @@ function AuthContent() {
 
         <div className="w-full max-w-sm">
           <div className="text-center mb-8">
-            <div className="w-16 h-16 rounded-2xl mx-auto mb-4 shadow-lg shadow-[#0B5D3A]/20 overflow-hidden">
+            <div className="mx-auto mb-4">
               <Image
-                src="/logo-mark.png"
+                src="/logo-header.png"
                 alt="Chimbo Direct"
-                width={64}
-                height={64}
-                className="w-full h-full object-cover"
+                width={180}
+                height={62}
+                className="h-14 w-auto mx-auto"
                 priority
               />
             </div>
-            <h1 className="text-2xl font-black gradient-text-green tracking-tight">{t('app_name', language)}</h1>
             <p className="text-[#6C757D] dark:text-[#8B949E] mt-2 text-sm">{t('auth_subtitle', language)}</p>
           </div>
 
