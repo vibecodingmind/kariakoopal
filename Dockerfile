@@ -42,4 +42,5 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-CMD ["sh", "-c", "npx prisma db push --accept-data-loss 2>/dev/null; npx tsx prisma/seed.ts 2>/dev/null; node server.js"]
+# Run prisma db push to create tables, then seed, then start server
+CMD ["sh", "-c", "npx prisma db push --accept-data-loss 2>&1 && npx tsx prisma/seed.ts 2>&1; node server.js"]
