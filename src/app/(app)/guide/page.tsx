@@ -148,12 +148,18 @@ export default function GuideDashboard() {
         <h2 className="text-lg font-bold mb-3">{l('Pending Requests', 'Maombi Yanayosubiri')}</h2>
         <div className="space-y-3">
           {[
-            { name: 'Tourist from Kenya', need: 'Wholesale bulk buy', zone: 'Wholesale Zone', budget: 50000, aiMatch: 92 },
-            { name: 'Business buyer', need: '50 kanga sets', zone: 'Fabrics Zone', budget: 25000, aiMatch: 85 },
+            { name: 'Tourist from Kenya', need: 'Wholesale bulk buy', zone: 'Wholesale Zone', budget: 50000, aiMatch: 92, avatar: '/avatars/seeker-female-1.png' },
+            { name: 'Business buyer', need: '50 kanga sets', zone: 'Fabrics Zone', budget: 25000, aiMatch: 85, avatar: '/avatars/seeker-male-1.png' },
           ].map((req, i) => (
             <div key={i} className="kcard p-4">
               <div className="flex items-center justify-between mb-2">
-                <h4 className="font-semibold text-sm">{req.name}</h4>
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full overflow-hidden ring-1 ring-[#E2E8F0] dark:ring-[#334155]">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={req.avatar} alt={req.name} className="w-full h-full object-cover" />
+                  </div>
+                  <h4 className="font-semibold text-sm">{req.name}</h4>
+                </div>
                 <div className="flex items-center gap-2">
                   <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#065F46]/10 dark:bg-[#34D399]/10 text-[10px] font-bold text-[#065F46] dark:text-[#34D399]">
                     <Sparkles className="w-3 h-3" /> {req.aiMatch}% match

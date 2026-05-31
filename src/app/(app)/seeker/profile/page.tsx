@@ -96,39 +96,33 @@ export default function SeekerProfilePage() {
 
   const memberSince = user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'May 2026';
 
-  const displayAvatarUrl = previewUrl || (user?.avatarUrl || null);
+  // Default avatar based on user name
+  const defaultAvatarUrl = user?.name
+    ? `/avatars/seeker-${(user.name.split('').reduce((a, c) => a + c.charCodeAt(0), 0) % 2 === 0) ? 'female' : 'male'}-1.png`
+    : '/avatars/seeker-female-1.png';
+
+  const displayAvatarUrl = previewUrl || (user?.avatarUrl || defaultAvatarUrl);
 
   return (
     <div className="px-4 py-4 space-y-5">
       {/* Profile Header */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="kcard p-5 text-center relative">
         <div className="relative inline-block">
-          {displayAvatarUrl ? (
-            <div className="w-24 h-24 rounded-2xl mx-auto shadow-lg shadow-[#065F46]/20 overflow-hidden relative">
-              <Image
-                src={displayAvatarUrl}
-                alt={user?.name || 'User avatar'}
-                fill
-                className="object-cover"
-                sizes="96px"
-                priority
-              />
-              {uploading && (
-                <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-2xl">
-                  <Loader2 className="w-8 h-8 text-white animate-spin" />
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-[#065F46] to-[#34D399] flex items-center justify-center text-white font-bold text-3xl mx-auto shadow-lg shadow-[#065F46]/20 relative">
-              {user?.name?.split(' ').map(n => n[0]).join('') || 'U'}
-              {uploading && (
-                <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-2xl">
-                  <Loader2 className="w-8 h-8 text-white animate-spin" />
-                </div>
-              )}
-            </div>
-          )}
+          <div className="w-24 h-24 rounded-2xl mx-auto shadow-lg shadow-[#065F46]/20 overflow-hidden relative">
+            <Image
+              src={displayAvatarUrl}
+              alt={user?.name || 'User avatar'}
+              fill
+              className="object-cover"
+              sizes="96px"
+              priority
+            />
+            {uploading && (
+              <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-2xl">
+                <Loader2 className="w-8 h-8 text-white animate-spin" />
+              </div>
+            )}
+          </div>
           {editing && (
             <button
               onClick={handleCameraClick}

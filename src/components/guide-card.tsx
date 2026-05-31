@@ -58,6 +58,19 @@ function getInitials(name: string): string {
     .slice(0, 2);
 }
 
+// Default real-person avatars for guides
+const defaultGuideAvatars = [
+  '/avatars/guide-male-1.png',
+  '/avatars/guide-female-1.png',
+  '/avatars/guide-male-2.png',
+  '/avatars/guide-female-2.png',
+];
+
+function getDefaultGuideAvatar(name: string): string {
+  const hash = name.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
+  return defaultGuideAvatars[hash % defaultGuideAvatars.length];
+}
+
 const avatarColors = [
   'bg-emerald-600',
   'bg-sky-600',
@@ -110,14 +123,11 @@ export function GuideCard({
                 className="size-12 rounded-full object-cover"
               />
             ) : (
-              <div
-                className={cn(
-                  'size-12 rounded-full flex items-center justify-center text-white font-bold text-sm',
-                  getAvatarColor(guide.id)
-                )}
-              >
-                {getInitials(guide.name)}
-              </div>
+              <img
+                src={getDefaultGuideAvatar(guide.name)}
+                alt={guide.name}
+                className="size-12 rounded-full object-cover"
+              />
             )}
           </div>
 

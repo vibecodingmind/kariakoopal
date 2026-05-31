@@ -109,7 +109,7 @@ export default function GuideProfilePage() {
   const currentTier = tierConfig[subscriptionTier] || tierConfig.starter;
   const TierIcon = currentTier.icon;
 
-  const displayAvatarUrl = previewUrl || (user?.avatarUrl || null);
+  const displayAvatarUrl = previewUrl || (user?.avatarUrl || '/avatars/guide-male-1.png');
 
   return (
     <div className="px-4 py-4 space-y-5">
@@ -137,32 +137,21 @@ export default function GuideProfilePage() {
       {/* Avatar Section */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="kcard p-5 text-center">
         <div className="relative inline-block">
-          {displayAvatarUrl ? (
-            <div className="w-24 h-24 rounded-2xl mx-auto shadow-lg shadow-[#065F46]/20 overflow-hidden relative ring-4 ring-[#10B981]/20">
-              <Image
-                src={displayAvatarUrl}
-                alt={user?.name || 'Guide avatar'}
-                fill
-                className="object-cover"
-                sizes="96px"
-                priority
-              />
-              {uploading && (
-                <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-2xl">
-                  <Loader2 className="w-8 h-8 text-white animate-spin" />
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-[#065F46] to-[#34D399] flex items-center justify-center text-white font-bold text-3xl mx-auto shadow-lg shadow-[#065F46]/20 ring-4 ring-[#10B981]/20 relative">
-              {user?.name?.split(' ').map(n => n[0]).join('') || 'G'}
-              {uploading && (
-                <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-2xl">
-                  <Loader2 className="w-8 h-8 text-white animate-spin" />
-                </div>
-              )}
-            </div>
-          )}
+          <div className="w-24 h-24 rounded-2xl mx-auto shadow-lg shadow-[#065F46]/20 overflow-hidden relative ring-4 ring-[#10B981]/20">
+            <Image
+              src={displayAvatarUrl}
+              alt={user?.name || 'Guide avatar'}
+              fill
+              className="object-cover"
+              sizes="96px"
+              priority
+            />
+            {uploading && (
+              <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-2xl">
+                <Loader2 className="w-8 h-8 text-white animate-spin" />
+              </div>
+            )}
+          </div>
           {editing && (
             <button
               onClick={handleCameraClick}

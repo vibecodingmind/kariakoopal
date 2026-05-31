@@ -68,9 +68,10 @@ function AuthContent() {
     try {
       let emailAddr = '';
       let userName = '';
-      if (role === 'seeker') { emailAddr = 'seeker@chimbo.direct'; userName = 'Demo Seeker'; }
-      else if (role === 'guide') { emailAddr = 'guide@chimbo.direct'; userName = 'Demo Guide'; }
-      else if (role === 'admin') { emailAddr = 'admin@chimbo.direct'; userName = 'Admin'; }
+      let avatarUrl = '';
+      if (role === 'seeker') { emailAddr = 'seeker@chimbo.direct'; userName = 'Demo Seeker'; avatarUrl = '/avatars/seeker-female-1.png'; }
+      else if (role === 'guide') { emailAddr = 'guide@chimbo.direct'; userName = 'Demo Guide'; avatarUrl = '/avatars/guide-male-1.png'; }
+      else if (role === 'admin') { emailAddr = 'admin@chimbo.direct'; userName = 'Admin'; avatarUrl = '/avatars/admin-male-1.png'; }
       await login(emailAddr, role, userName, 'demo1234');
     } catch { setError(language === 'sw' ? 'Hitilafu katika kuingia' : 'Login failed'); }
   };
@@ -377,13 +378,13 @@ function AuthContent() {
             <p className="text-xs text-center text-[#6C757D] dark:text-[#8B949E] mb-3">{t('demo_mode', language)}:</p>
             <div className="flex gap-2">
               <button onClick={() => quickLogin('seeker')} disabled={isLoading} className="flex-1 py-2 px-3 rounded-lg text-xs font-medium border border-[#E9ECEF] dark:border-[#30363D] hover:bg-[#F1F3F5] dark:hover:bg-[#21262D] transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5">
-                {isLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <><MapPin className="w-3 h-3 text-[#0B5D3A]" /> Seeker</>}
+                {isLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <><img src="/avatars/seeker-female-1.png" alt="" className="w-5 h-5 rounded-full object-cover" /> Seeker</>}
               </button>
               <button onClick={() => quickLogin('guide')} disabled={isLoading} className="flex-1 py-2 px-3 rounded-lg text-xs font-medium border border-[#E9ECEF] dark:border-[#30363D] hover:bg-[#F1F3F5] dark:hover:bg-[#21262D] transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5">
-                {isLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <><Compass className="w-3 h-3 text-[#0B5D3A]" /> Guide</>}
+                {isLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <><img src="/avatars/guide-male-1.png" alt="" className="w-5 h-5 rounded-full object-cover" /> Guide</>}
               </button>
               <button onClick={() => quickLogin('admin')} disabled={isLoading} className="flex-1 py-2 px-3 rounded-lg text-xs font-medium border border-[#E9ECEF] dark:border-[#30363D] hover:bg-[#F1F3F5] dark:hover:bg-[#21262D] transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5">
-                {isLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <><Shield className="w-3 h-3 text-[#8A2BE2]" /> Admin</>}
+                {isLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <><img src="/avatars/admin-male-1.png" alt="" className="w-5 h-5 rounded-full object-cover" /> Admin</>}
               </button>
             </div>
           </div>

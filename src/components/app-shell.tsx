@@ -101,17 +101,45 @@ function NavProgress() {
   );
 }
 
+// ── Default avatar mapping ──
+const DEFAULT_AVATARS: Record<string, string> = {
+  'seeker-male-1': '/avatars/seeker-male-1.png',
+  'seeker-female-1': '/avatars/seeker-female-1.png',
+  'seeker-male-2': '/avatars/seeker-male-2.png',
+  'seeker-female-2': '/avatars/seeker-female-2.png',
+  'guide-male-1': '/avatars/guide-male-1.png',
+  'guide-female-1': '/avatars/guide-female-1.png',
+  'guide-male-2': '/avatars/guide-male-2.png',
+  'guide-female-2': '/avatars/guide-female-2.png',
+  'admin-male-1': '/avatars/admin-male-1.png',
+};
+
+function getDefaultAvatar(name: string, role?: string): string | null {
+  // Assign a consistent default avatar based on name hash
+  const hash = name.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
+  if (role === 'admin') return DEFAULT_AVATARS['admin-male-1'];
+  if (role === 'guide') {
+    const guides = ['guide-male-1', 'guide-female-1', 'guide-male-2', 'guide-female-2'];
+    return DEFAULT_AVATARS[guides[hash % guides.length]];
+  }
+  const seekers = ['seeker-male-1', 'seeker-female-1', 'seeker-male-2', 'seeker-female-2'];
+  return DEFAULT_AVATARS[seekers[hash % seekers.length]];
+}
+
 // ── User Avatar Component ──
 function UserAvatar({ user, size = 'md' }: { user: { name?: string; role?: string; avatarUrl?: string | null }; size?: 'sm' | 'md' | 'lg' }) {
   const sizeClasses = { sm: 'w-8 h-8 text-xs', md: 'w-9 h-9 text-sm', lg: 'w-12 h-12 text-base' };
   const roleClass = user.role === 'guide' ? 'avatar-guide' : user.role === 'admin' ? 'avatar-admin' : 'avatar-seeker';
   const initials = user.name?.split(' ').map(n => n[0]).join('').slice(0, 2) || 'U';
 
-  if (user.avatarUrl) {
+  // Use custom avatar, or default real-person avatar, or initials fallback
+  const avatarSrc = user.avatarUrl || (user.name ? getDefaultAvatar(user.name, user.role) : null);
+
+  if (avatarSrc) {
     return (
       <div className={`${sizeClasses[size]} rounded-xl overflow-hidden ring-2 ring-[#065F46]/10 dark:ring-[#34D399]/10 shadow-sm`}>
         <Image
-          src={user.avatarUrl}
+          src={avatarSrc}
           alt={user.name || 'User'}
           width={size === 'lg' ? 48 : size === 'md' ? 36 : 32}
           height={size === 'lg' ? 48 : size === 'md' ? 36 : 32}
@@ -423,30 +451,12 @@ function AdminTopHeader() {
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { user } = useAuthStore();
-  const [hydrated, setHydrated] = useState(false);
 
   useRealtime(); // Enable real-time notifications
-
-  // Wait for zustand persist to hydrate before rendering
-  // This prevents the flash of unauthenticated content on mobile
-  useEffect(() => {
-    setHydrated(true);
-  }, []);
 
   // Only hide shell on auth page
   const isAuth = pathname === '/auth';
   const isAdminRoute = pathname.startsWith('/admin');
-
-  if (isAuth) {
-    return <>{children}</>;
-  }
-
-  // Show a blank screen during hydration to prevent flicker
-  if (!hydrated) {
-    return (
-      <div className={`min-h-screen ${isAdminRoute ? 'bg-[#0F172A]' : 'bg-[#F8FAFC] dark:bg-[#0F172A]'}`} />
-    );
-  }
 
   const isSeeker = user?.role === 'seeker';
 

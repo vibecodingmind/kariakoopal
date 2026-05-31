@@ -128,7 +128,10 @@ export default function SeekerDashboard() {
             <span className="kbadge kbadge-live">{l('ACTIVE', 'INAYOENDA')}</span>
           </div>
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-full bg-[#F59E0B] flex items-center justify-center text-[#065F46] font-bold">MJ</div>
+            <div className="w-10 h-10 rounded-full overflow-hidden ring-2 ring-white/20">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/avatars/guide-male-1.png" alt="Mwanaildi Juma" className="w-full h-full object-cover" />
+            </div>
             <div>
               <p className="text-white font-semibold text-sm">Mwanaildi Juma</p>
               <p className="text-white/60 text-xs">{l('Fabrics & Village Guide', 'Mwongozo wa Vitenge na Kijiji')}</p>
@@ -151,13 +154,14 @@ export default function SeekerDashboard() {
         </div>
         <div className="space-y-3">
           {[
-            { name: 'Electronics Shopping', guide: 'Fatma Hassan', date: '2 days ago', rating: 5, amount: 'TZS 35,000' },
-            { name: 'Wholesale Bulk Buy', guide: 'Asha Mohamed', date: '1 week ago', rating: 5, amount: 'TZS 75,000' },
+            { name: 'Electronics Shopping', guide: 'Fatma Hassan', date: '2 days ago', rating: 5, amount: 'TZS 35,000', avatar: '/avatars/guide-female-1.png' },
+            { name: 'Wholesale Bulk Buy', guide: 'Asha Mohamed', date: '1 week ago', rating: 5, amount: 'TZS 75,000', avatar: '/avatars/guide-female-2.png' },
           ].map((session, i) => (
             <div key={i} className="kcard p-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-[#F1F5F9] dark:bg-[#334155] flex items-center justify-center">
-                  <Compass className="w-5 h-5 text-[#065F46]" />
+                <div className="w-10 h-10 rounded-full overflow-hidden ring-1 ring-[#E2E8F0] dark:ring-[#334155]">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={session.avatar} alt={session.guide} className="w-full h-full object-cover" />
                 </div>
                 <div>
                   <p className="text-sm font-medium">{session.name}</p>

@@ -2,6 +2,19 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { Language } from '@/lib/i18n';
 
+// ── Cookie helper for middleware sync ──
+function setRoleCookie(role: string) {
+  if (typeof document !== 'undefined') {
+    document.cookie = `user_role=${role}; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax`;
+  }
+}
+
+function clearRoleCookie() {
+  if (typeof document !== 'undefined') {
+    document.cookie = 'user_role=; path=/; max-age=0';
+  }
+}
+
 // ── TypeScript Interfaces (matching Prisma schema) ──
 
 export interface User {
@@ -114,6 +127,8 @@ export const useAuthStore = create<AuthState>()(
             currentView: data.user?.role === 'admin' ? 'admin' : 'home',
             isLoading: false,
           });
+          // Set cookie for middleware route protection
+          if (data.user?.role) setRoleCookie(data.user.role);
         } catch {
           set({ isLoading: false });
           throw new Error('Login failed');
@@ -145,6 +160,8 @@ export const useAuthStore = create<AuthState>()(
             currentView: data.user?.role === 'admin' ? 'admin' : 'home',
             isLoading: false,
           });
+          // Set cookie for middleware route protection
+          if (data.user?.role) setRoleCookie(data.user.role);
         } catch {
           set({ isLoading: false });
           throw new Error('Login failed');
@@ -173,6 +190,8 @@ export const useAuthStore = create<AuthState>()(
             currentView: data.user?.role === 'admin' ? 'admin' : 'home',
             isLoading: false,
           });
+          // Set cookie for middleware route protection
+          if (data.user?.role) setRoleCookie(data.user.role);
         } catch {
           set({ isLoading: false });
           throw new Error('Social login failed');
@@ -180,10 +199,7 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: () => {
-        // Clear the user_role cookie on logout
-        if (typeof document !== 'undefined') {
-          document.cookie = 'user_role=; path=/; max-age=0';
-        }
+        clearRoleCookie();
         set({
           user: null,
           guideProfile: null,
@@ -195,8 +211,10 @@ export const useAuthStore = create<AuthState>()(
         });
       },
 
-      setUser: (user) =>
-        set({ user, isAuthenticated: true, language: (user.languagePref as Language) || 'sw' }),
+      setUser: (user) => {
+        if (user.role) setRoleCookie(user.role);
+        set({ user, isAuthenticated: true, language: (user.languagePref as Language) || 'sw' });
+      },
 
       setGuideProfile: (profile) => set({ guideProfile: profile }),
 
@@ -233,6 +251,15 @@ export const useAuthStore = create<AuthState>()(
         walletBalance: state.walletBalance,
         subscriptionTier: state.subscriptionTier,
       }),
+      onRehydrateStorage: () => (state) => {
+        // Sync the role cookie when zustand rehydrates from localStorage
+        // This ensures middleware has the correct role on page refresh
+        if (state?.isAuthenticated && state.user?.role) {
+          setRoleCookie(state.user.role);
+        } else if (!state?.isAuthenticated) {
+          clearRoleCookie();
+        }
+      },
     }
   )
 );

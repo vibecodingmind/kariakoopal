@@ -136,11 +136,13 @@ export default function HomePage() {
   const { user, isAuthenticated } = useAuthStore();
   const router = useRouter();
 
+  // Client-side redirect for authenticated users (middleware also handles this server-side)
+  // Use router.push instead of router.replace to avoid back-button issues
   useEffect(() => {
     if (isAuthenticated && user) {
-      if (user.role === 'admin') router.replace('/admin');
-      else if (user.role === 'guide') router.replace('/guide');
-      else router.replace('/seeker');
+      if (user.role === 'admin') router.push('/admin');
+      else if (user.role === 'guide') router.push('/guide');
+      else router.push('/seeker');
     }
   }, [isAuthenticated, user, router]);
 

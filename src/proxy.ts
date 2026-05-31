@@ -170,6 +170,12 @@ export function proxy(request: NextRequest) {
 
   // Allow public routes
   if (PUBLIC_ROUTES.some(route => pathname === route || pathname.startsWith(`${route}/`))) {
+    // If authenticated user visits root, redirect to their dashboard
+    const roleFromCookie = request.cookies.get('user_role')?.value;
+    if (pathname === '/' && roleFromCookie) {
+      const dashboardPath = roleFromCookie === 'admin' ? '/admin' : roleFromCookie === 'guide' ? '/guide' : '/seeker';
+      return withSecurityHeaders(NextResponse.redirect(new URL(dashboardPath, request.url)));
+    }
     return withSecurityHeaders(NextResponse.next());
   }
 
@@ -185,16 +191,18 @@ export function proxy(request: NextRequest) {
   // Check for auth token cookie (thin proxy pattern — existence check only)
   const authToken = request.cookies.get('auth_token')?.value;
   const sessionToken = request.cookies.get('next-auth.session-token')?.value;
+  const roleFromCookie = request.cookies.get('user_role')?.value;
 
-  if (!authToken && !sessionToken) {
+  // If user has a role cookie, consider them authenticated (zustand persisted state sync)
+  const isAuthenticated = !!(authToken || sessionToken || roleFromCookie);
+
+  if (!isAuthenticated) {
     const loginUrl = new URL('/auth', request.url);
     loginUrl.searchParams.set('callbackUrl', pathname);
     return withSecurityHeaders(NextResponse.redirect(loginUrl));
   }
 
   // Role-specific route protection (redirect only — no DB calls)
-  const roleFromCookie = request.cookies.get('user_role')?.value;
-
   if (roleFromCookie) {
     if (pathname.startsWith('/guide') && roleFromCookie === 'seeker') {
       return withSecurityHeaders(NextResponse.redirect(new URL('/seeker', request.url)));
