@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import {
   Search, Store, Zap, Scissors, Package, ChefHat, Flower2, Paintbrush,
   MapPin, ChevronRight, Star, ShieldCheck, TrendingDown, TrendingUp,
-  Compass, Users, Clock, ArrowRight, Sparkles, Flame, Bell, Eye, BarChart3
+  Compass, Users, ArrowRight, Sparkles, Flame, Bell, BarChart3
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -51,7 +51,6 @@ const ZONE_COLORS: Record<string, string> = {
 // ── Component ──
 
 export default function HomePage() {
-  const router = useRouter();
   const { language, isAuthenticated } = useAuthStore();
   const sw = language === 'sw';
   const [search, setSearch] = useState('');
@@ -70,9 +69,9 @@ export default function HomePage() {
     <div className="px-4 py-3 space-y-6 pb-24">
       {/* ═══ HERO SEARCH ═══ */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+        transition={{ duration: 0.3 }}
         className="khero-search relative overflow-hidden"
       >
         {/* Decorative elements */}
@@ -96,7 +95,7 @@ export default function HomePage() {
                   animate={{ scale: 1, rotate: 0 }}
                   exit={{ scale: 0, rotate: 180 }}
                   transition={{ type: 'spring', stiffness: 200 }}
-                  onClick={() => { setShowNotification(false); router.push(isAuthenticated ? '/seeker/find' : '/auth'); }}
+                  onClick={() => setShowNotification(false)}
                   className="w-11 h-11 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center relative backdrop-blur-sm transition-colors"
                 >
                   <Bell className="w-5 h-5 text-white" />
@@ -107,7 +106,7 @@ export default function HomePage() {
           </div>
 
           {/* Search Input */}
-          <div className={`flex items-center gap-2.5 bg-white dark:bg-[#161B22] rounded-2xl px-4 py-3 transition-all duration-300 ${searchFocused ? 'shadow-xl ring-2 ring-[#FFD23F]/40' : 'shadow-lg'}`}>
+          <div className={`flex items-center gap-2.5 bg-white dark:bg-[#161B22] rounded-2xl px-4 py-3 transition-all duration-200 ${searchFocused ? 'shadow-xl ring-2 ring-[#FFD23F]/40' : 'shadow-lg'}`}>
             <Search className="w-4.5 h-4.5 text-[#6C757D] shrink-0" />
             <input
               type="text"
@@ -125,63 +124,47 @@ export default function HomePage() {
 
           {/* Quick Actions */}
           <div className="flex gap-2.5 mt-4">
-            <button onClick={() => router.push('/guides')} className="flex-1 flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 rounded-xl py-2.5 transition-all backdrop-blur-sm">
+            <Link href="/guides" prefetch={true} className="flex-1 flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 rounded-xl py-2.5 transition-all backdrop-blur-sm active:scale-95">
               <Compass className="w-4 h-4 text-[#FFD23F]" />
               <span className="text-xs font-bold text-white">{l('Find Guide', 'Tafuta Mwongozo')}</span>
-            </button>
-            <button onClick={() => router.push('/prices')} className="flex-1 flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 rounded-xl py-2.5 transition-all backdrop-blur-sm">
+            </Link>
+            <Link href="/prices" prefetch={true} className="flex-1 flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 rounded-xl py-2.5 transition-all backdrop-blur-sm active:scale-95">
               <BarChart3 className="w-4 h-4 text-[#FFD23F]" />
               <span className="text-xs font-bold text-white">{l('Price Radar', 'Rada ya Bei')}</span>
-            </button>
+            </Link>
           </div>
         </div>
       </motion.div>
 
       {/* ═══ LIVE MARKET STATS ═══ */}
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1, duration: 0.5 }}
-        className="grid grid-cols-3 gap-3"
-      >
+      <div className="grid grid-cols-3 gap-3">
         {[
           { value: '10K+', label: l('Stalls', 'Maduka'), color: '#0A4D3C', bg: '#E8F5EE' },
           { value: '6', label: l('Zones', 'Maeneo'), color: '#0077B6', bg: '#DBEAFE' },
           { value: '2.5K+', label: l('Guides', 'Miongozo'), color: '#14B8A6', bg: '#CCFBF1' },
         ].map((stat, i) => (
-          <motion.div
-            key={i}
-            whileHover={{ y: -3 }}
-            className="kcard-glass p-3.5 text-center"
-          >
+          <div key={i} className="kcard-glass p-3.5 text-center">
             <p className="text-xl font-black" style={{ color: stat.color }}>{stat.value}</p>
             <p className="text-[10px] font-bold text-[#6C757D] dark:text-[#8B949E] uppercase tracking-widest mt-0.5">{stat.label}</p>
-          </motion.div>
+          </div>
         ))}
-      </motion.div>
+      </div>
 
       {/* ═══ MARKET ZONES ═══ */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.15 }}
-      >
+      <div>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-black text-[#333] dark:text-[#F0F6FC]">{l('Market Zones', 'Maeneo ya Soko')}</h2>
-          <button onClick={() => router.push('/market')} className="text-xs font-bold text-[#0A4D3C] dark:text-[#2EA77A] flex items-center gap-0.5 hover:gap-1.5 transition-all">
+          <Link href="/market" prefetch={true} className="text-xs font-bold text-[#0A4D3C] dark:text-[#2EA77A] flex items-center gap-0.5 hover:gap-1.5 transition-all">
             {l('See All', 'Tazama Zote')} <ChevronRight className="w-3.5 h-3.5" />
-          </button>
+          </Link>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          {ZONES.map((zone, i) => (
-            <motion.div
+          {ZONES.map((zone) => (
+            <Link
               key={zone.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.05 * i, duration: 0.4 }}
-              whileHover={{ y: -4 }}
-              onClick={() => router.push(`/market/${zone.id}`)}
+              href={`/market/${zone.id}`}
+              prefetch={true}
               className="kcard p-4 cursor-pointer group"
             >
               <div className="flex items-start justify-between mb-3">
@@ -204,37 +187,30 @@ export default function HomePage() {
                 <span className="text-[11px] font-bold" style={{ color: zone.color }}>{zone.stalls}+ {l('stalls', 'maduka')}</span>
                 <ChevronRight className="w-3.5 h-3.5 text-[#6C757D] group-hover:text-[#0A4D3C] group-hover:translate-x-0.5 transition-all" />
               </div>
-            </motion.div>
+            </Link>
           ))}
         </div>
-      </motion.div>
+      </div>
 
       {/* ═══ HOT PRICES ═══ */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.25 }}
-      >
+      <div>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2.5">
             <h2 className="text-lg font-black text-[#333] dark:text-[#F0F6FC]">{l('Hot Prices', 'Bei Moto')}</h2>
             <span className="kbadge kbadge-live flex items-center gap-1"><span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse-dot" />{l('LIVE', 'MOJA KWA MOJA')}</span>
           </div>
-          <button onClick={() => router.push('/prices')} className="text-xs font-bold text-[#0A4D3C] dark:text-[#2EA77A] flex items-center gap-0.5 hover:gap-1.5 transition-all">
+          <Link href="/prices" prefetch={true} className="text-xs font-bold text-[#0A4D3C] dark:text-[#2EA77A] flex items-center gap-0.5 hover:gap-1.5 transition-all">
             {l('All Prices', 'Bei Zote')} <ChevronRight className="w-3.5 h-3.5" />
-          </button>
+          </Link>
         </div>
 
         <div className="space-y-2.5">
-          {HOT_PRICES.map((price, i) => (
-            <motion.div
+          {HOT_PRICES.map((price) => (
+            <Link
               key={price.item}
-              initial={{ opacity: 0, x: -16 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.06 * i, duration: 0.4 }}
-              whileHover={{ x: 4 }}
-              onClick={() => router.push('/prices')}
-              className="kcard p-3.5 cursor-pointer group"
+              href="/prices"
+              prefetch={true}
+              className="kcard p-3.5 cursor-pointer group block"
             >
               <div className="flex items-center justify-between">
                 <div className="flex-1 min-w-0">
@@ -257,33 +233,26 @@ export default function HomePage() {
                   </span>
                 </div>
               </div>
-            </motion.div>
+            </Link>
           ))}
         </div>
-      </motion.div>
+      </div>
 
       {/* ═══ FEATURED VENDORS ═══ */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.3 }}
-      >
+      <div>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-black text-[#333] dark:text-[#F0F6FC]">{l('Featured Vendors', 'Wauzaji Bora')}</h2>
-          <button onClick={() => router.push('/vendors')} className="text-xs font-bold text-[#0A4D3C] dark:text-[#2EA77A] flex items-center gap-0.5 hover:gap-1.5 transition-all">
+          <Link href="/vendors" prefetch={true} className="text-xs font-bold text-[#0A4D3C] dark:text-[#2EA77A] flex items-center gap-0.5 hover:gap-1.5 transition-all">
             {l('See All', 'Tazama Zote')} <ChevronRight className="w-3.5 h-3.5" />
-          </button>
+          </Link>
         </div>
 
         <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
-          {FEATURED_VENDORS.map((vendor, i) => (
-            <motion.div
+          {FEATURED_VENDORS.map((vendor) => (
+            <Link
               key={vendor.id}
-              initial={{ opacity: 0, x: 24 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.08 * i }}
-              whileHover={{ y: -4 }}
-              onClick={() => router.push(`/vendors/${vendor.id}`)}
+              href={`/vendors/${vendor.id}`}
+              prefetch={true}
               className="kcard p-4 min-w-[180px] cursor-pointer group"
             >
               <div className="flex items-center gap-2.5 mb-3">
@@ -303,37 +272,30 @@ export default function HomePage() {
                   {sw ? vendor.categorySw : vendor.category}
                 </span>
               </div>
-            </motion.div>
+            </Link>
           ))}
         </div>
-      </motion.div>
+      </div>
 
       {/* ═══ TOP GUIDES ═══ */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.35 }}
-      >
+      <div>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <h2 className="text-lg font-black text-[#333] dark:text-[#F0F6FC]">{l('Top Guides', 'Miongozo Bora')}</h2>
             <Sparkles className="w-4 h-4 text-[#FFD23F]" />
           </div>
-          <button onClick={() => router.push('/guides')} className="text-xs font-bold text-[#0A4D3C] dark:text-[#2EA77A] flex items-center gap-0.5 hover:gap-1.5 transition-all">
+          <Link href="/guides" prefetch={true} className="text-xs font-bold text-[#0A4D3C] dark:text-[#2EA77A] flex items-center gap-0.5 hover:gap-1.5 transition-all">
             {l('All Guides', 'Wote')} <ChevronRight className="w-3.5 h-3.5" />
-          </button>
+          </Link>
         </div>
 
         <div className="space-y-3">
-          {TOP_GUIDES.map((guide, i) => (
-            <motion.div
+          {TOP_GUIDES.map((guide) => (
+            <Link
               key={guide.id}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.08 * i, duration: 0.4 }}
-              whileHover={{ x: 4 }}
-              onClick={() => router.push(`/guides/${guide.id}`)}
-              className="kcard p-4 cursor-pointer group"
+              href={`/guides/${guide.id}`}
+              prefetch={true}
+              className="kcard p-4 cursor-pointer group block"
             >
               <div className="flex items-center gap-3.5">
                 <div className="relative">
@@ -367,18 +329,13 @@ export default function HomePage() {
                   <ChevronRight className="w-4 h-4 text-[#6C757D] mt-1.5 group-hover:text-[#0A4D3C] group-hover:translate-x-0.5 transition-all" />
                 </div>
               </div>
-            </motion.div>
+            </Link>
           ))}
         </div>
-      </motion.div>
+      </div>
 
       {/* ═══ CTA: FIND A GUIDE ═══ */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4, duration: 0.5 }}
-        className="kcard-green p-6 text-center"
-      >
+      <div className="kcard-green p-6 text-center">
         <div className="relative z-10">
           <Compass className="w-10 h-10 text-[#FFD23F] mx-auto mb-3" />
           <h3 className="font-black text-white text-xl">{l('Navigate Like a Local', 'Tembea Kama Mtaa')}</h3>
@@ -388,36 +345,33 @@ export default function HomePage() {
               'Pata mwongozo aliyethibitishwa kupata mikataba bora, kuepuka mitego na kujadili kama mtaalamu.'
             )}
           </p>
-          <button
-            onClick={() => router.push(isAuthenticated ? '/seeker/find' : '/auth')}
-            className="kbtn-yellow mt-5 w-full text-sm"
+          <Link
+            href={isAuthenticated ? '/seeker/find' : '/auth'}
+            prefetch={true}
+            className="kbtn-yellow mt-5 w-full text-sm inline-flex"
           >
             {l('Find My Guide', 'Pata Mwongozo Wangu')}
             <ArrowRight className="w-4 h-4" />
-          </button>
+          </Link>
         </div>
-      </motion.div>
+      </div>
 
       {/* ═══ CTA: JOIN AS GUIDE ═══ */}
       {!isAuthenticated && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.45, duration: 0.5 }}
-          className="kcard-premium p-6 text-center"
-        >
+        <div className="kcard-premium p-6 text-center">
           <Store className="w-10 h-10 text-[#0A4D3C] dark:text-[#2EA77A] mx-auto mb-3" />
           <h3 className="font-black text-[#0A4D3C] dark:text-[#2EA77A]">{l('Are You a Local Expert?', 'Wewe ni Mtaalamu wa Karibu?')}</h3>
           <p className="text-sm text-[#6C757D] dark:text-[#8B949E] mt-2">
             {l('Join as a guide and monetize your local knowledge.', 'Jiunge kama mwongozo na pata pato kutoka kwa ujuzi wako.')}
           </p>
-          <button
-            onClick={() => router.push('/auth?role=guide')}
-            className="kbtn-outline mt-4 text-sm"
+          <Link
+            href="/auth?role=guide"
+            prefetch={true}
+            className="kbtn-outline mt-4 text-sm inline-flex"
           >
             {l('Join as Guide', 'Jiunge kama Mwongozo')}
-          </button>
-        </motion.div>
+          </Link>
+        </div>
       )}
     </div>
   );

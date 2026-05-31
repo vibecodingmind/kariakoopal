@@ -1,6 +1,7 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { useAppStore } from '@/lib/stores/app-store';
 import {
@@ -56,10 +57,36 @@ function NextAuthSessionSync() {
   return null;
 }
 
-// ── Bottom Navigation ──
+// ── Navigation Progress Bar ──
+function NavProgress() {
+  const pathname = usePathname();
+  const [progress, setProgress] = useState(0);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    setVisible(true);
+    setProgress(30);
+    const t1 = setTimeout(() => setProgress(70), 50);
+    const t2 = setTimeout(() => setProgress(100), 150);
+    const t3 = setTimeout(() => setVisible(false), 400);
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
+  }, [pathname]);
+
+  if (!visible) return null;
+
+  return (
+    <div className="fixed top-0 left-0 right-0 z-[100] h-[3px]">
+      <div
+        className="h-full bg-gradient-to-r from-[#0A4D3C] via-[#2EA77A] to-[#FFD23F] transition-all duration-200 ease-out"
+        style={{ width: `${progress}%` }}
+      />
+    </div>
+  );
+}
+
+// ── Bottom Navigation (Link-based for instant prefetch) ──
 function BottomNav() {
   const pathname = usePathname();
-  const router = useRouter();
   const { user } = useAuthStore();
 
   const publicTabs = [
@@ -114,19 +141,21 @@ function BottomNav() {
       <div className="max-w-lg mx-auto flex items-center justify-around h-16 px-2">
         {tabs.map((tab) => {
           const active = isActive(tab.href);
+          const Icon = tab.icon;
           return (
-            <button
+            <Link
               key={tab.href + tab.label}
-              onClick={() => router.push(tab.href)}
+              href={tab.href}
+              prefetch={true}
               className={`bottom-nav-item ${active ? 'bottom-nav-item-active' : 'bottom-nav-item-inactive'}`}
             >
-              <div className={`relative flex items-center justify-center transition-all duration-300 ${active ? 'bottom-nav-icon-pill' : ''}`}>
-                <tab.icon className={`w-5 h-5 transition-all duration-300 ${active ? 'bottom-nav-icon-active stroke-[2.5]' : 'stroke-[1.5]'}`} />
+              <div className={`relative flex items-center justify-center transition-all duration-200 ${active ? 'bottom-nav-icon-pill' : ''}`}>
+                <Icon className={`w-5 h-5 transition-all duration-200 ${active ? 'bottom-nav-icon-active stroke-[2.5]' : 'stroke-[1.5]'}`} />
               </div>
-              <span className={`text-[10px] transition-all duration-300 ${active ? 'font-bold' : 'font-medium'}`}>
+              <span className={`text-[10px] transition-all duration-200 ${active ? 'font-bold' : 'font-medium'}`}>
                 {sw ? tab.labelSw : tab.label}
               </span>
-            </button>
+            </Link>
           );
         })}
       </div>
@@ -167,27 +196,27 @@ function TopHeader() {
   return (
     <header className="knav sticky top-0 z-50">
       <div className="flex items-center justify-between px-4 h-14 max-w-4xl mx-auto">
-        <button onClick={() => router.push('/')} className="flex items-center gap-2.5 group">
+        <Link href="/" prefetch={true} className="flex items-center gap-2.5 group">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#0A4D3C] to-[#2EA77A] flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
             <Compass className="w-4.5 h-4.5 text-white" strokeWidth={2.5} />
           </div>
           <span className="text-sm font-bold gradient-text-green hidden sm:block">
             Kariako<span className="text-[#FFD23F]">Guide</span>
           </span>
-        </button>
+        </Link>
 
         <div className="flex items-center gap-1.5">
           <LanguageToggle className="border border-[#E9ECEF] dark:border-[#30363D] rounded-full" />
           <button
             onClick={() => setDarkMode(!darkMode)}
-            className="w-9 h-9 rounded-xl flex items-center justify-center border border-[#E9ECEF] dark:border-[#30363D] hover:bg-[#F1F3F5] dark:hover:bg-[#21262D] transition-all"
+            className="w-9 h-9 rounded-xl flex items-center justify-center border border-[#E9ECEF] dark:border-[#30363D] hover:bg-[#F1F3F5] dark:hover:bg-[#21262D] transition-all active:scale-90"
           >
             {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
 
           {isAuthenticated && user ? (
             <div className="relative" ref={menuRef}>
-              <button onClick={() => setShowMenu(!showMenu)} className="flex items-center gap-1.5 group">
+              <button onClick={() => setShowMenu(!showMenu)} className="flex items-center gap-1.5 group active:scale-95 transition-transform">
                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#0A4D3C] to-[#2EA77A] flex items-center justify-center text-white text-xs font-bold group-hover:shadow-md group-hover:ring-2 group-hover:ring-[#0A4D3C]/20 transition-all">
                   {user.name?.charAt(0) || 'U'}
                 </div>
@@ -199,7 +228,7 @@ function TopHeader() {
                     initial={{ opacity: 0, y: -8, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: -8, scale: 0.95 }}
-                    transition={{ duration: 0.2 }}
+                    transition={{ duration: 0.15 }}
                     className="absolute right-0 top-full mt-2 w-56 kcard-glass p-0 overflow-hidden z-50"
                   >
                     <div className="p-4 border-b border-[#E9ECEF] dark:border-[#30363D]">
@@ -208,7 +237,7 @@ function TopHeader() {
                       <span className="inline-block mt-2 text-xs font-semibold text-[#0A4D3C] dark:text-[#2EA77A] capitalize px-2 py-0.5 rounded-md bg-[#E8F5EE] dark:bg-[#0D2818]">{user.role}</span>
                     </div>
                     <div className="p-2">
-                      <button onClick={handleLogout} className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-[#E63946] hover:bg-[#FEE2E2] dark:hover:bg-[#3D1F1F] rounded-xl transition-colors">
+                      <button onClick={handleLogout} className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-[#E63946] hover:bg-[#FEE2E2] dark:hover:bg-[#3D1F1F] rounded-xl transition-colors active:scale-95">
                         <LogOut className="w-4 h-4" />{sw ? 'Toka' : 'Logout'}
                       </button>
                     </div>
@@ -217,12 +246,13 @@ function TopHeader() {
               </AnimatePresence>
             </div>
           ) : (
-            <button
-              onClick={() => router.push('/auth')}
-              className="kbtn text-xs py-2 px-4"
+            <Link
+              href="/auth"
+              prefetch={true}
+              className="kbtn text-xs py-2 px-4 active:scale-95 transition-transform"
             >
               {sw ? 'Ingia' : 'Login'}
-            </button>
+            </Link>
           )}
         </div>
       </div>
@@ -244,6 +274,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <>
       <NextAuthSessionSync />
+      <NavProgress />
       <div className="min-h-screen flex flex-col bg-[#F8F9FA] dark:bg-[#0D1117]">
         <TopHeader />
         <main className="flex-1 pb-20 max-w-4xl mx-auto w-full">
