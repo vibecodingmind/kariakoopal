@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback, Suspense } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { useAppStore } from '@/lib/stores/app-store';
@@ -8,47 +8,11 @@ import { t } from '@/lib/i18n';
 import { LanguageToggle } from '@/components/language-toggle';
 import { Input } from '@/components/ui/input';
 import { Mail, Lock, Eye, EyeOff, Shield, Compass, MapPin, Loader2, ArrowRight } from 'lucide-react';
-import { signIn, useSession } from 'next-auth/react';
+import { signIn } from 'next-auth/react';
 import { toast } from 'sonner';
 
-function NextAuthSessionSync() {
-  const { data: session } = useSession();
-  const { setUser, setGuideProfile, isAuthenticated } = useAuthStore();
-  const syncedRef = useRef(false);
-
-  useEffect(() => {
-    if (!isAuthenticated) syncedRef.current = false;
-  }, [isAuthenticated]);
-
-  useEffect(() => {
-    if (session?.user && !isAuthenticated && !syncedRef.current) {
-      syncedRef.current = true;
-      const u = session.user;
-      const user = {
-        id: (u as Record<string, unknown>).dbId as string || u.id || '',
-        phone: (u as Record<string, unknown>).phone as string || '',
-        email: u.email || null,
-        name: u.name || '',
-        role: ((u as Record<string, unknown>).role as string || 'seeker') as 'seeker' | 'guide' | 'admin',
-        languagePref: ((u as Record<string, unknown>).languagePref as string || 'sw') as 'sw' | 'en',
-        avatarUrl: ((u as Record<string, unknown>).avatarUrl as string) || u.image || null,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      setUser(user);
-      if (user.role === 'guide' && user.id) {
-        fetch('/api/guides/' + user.id)
-          .then(res => res.ok ? res.json() : null)
-          .then(data => { if (data?.guideProfile) setGuideProfile(data.guideProfile); })
-          .catch(() => {});
-      }
-    }
-  }, [session, isAuthenticated, setUser, setGuideProfile]);
-  return null;
-}
-
 function AuthContent() {
-  const { login, language, isLoading, isAuthenticated } = useAuthStore();
+  const { login, language, isLoading, isAuthenticated, user } = useAuthStore();
   const { showOnboarding } = useAppStore();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -65,8 +29,12 @@ function AuthContent() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (isAuthenticated) router.replace('/dashboard');
-  }, [isAuthenticated, router, showOnboarding]);
+    if (isAuthenticated && user) {
+      if (user.role === 'admin') router.replace('/admin');
+      else if (user.role === 'guide') router.replace('/guide');
+      else router.replace('/seeker');
+    }
+  }, [isAuthenticated, user, router, showOnboarding]);
 
   const handleSignIn = async () => {
     if (!email.trim()) { setError(language === 'sw' ? 'Weka barua pepe yako' : 'Enter your email address'); return; }
@@ -110,7 +78,7 @@ function AuthContent() {
   const handleSocialLogin = useCallback((provider: string) => {
     const providerMap: Record<string, string> = { 'Google': 'google', 'google': 'google', 'Facebook': 'facebook', 'facebook': 'facebook' };
     const providerId = providerMap[provider];
-    if (providerId === 'google' || providerId === 'facebook') { signIn(providerId, { callbackUrl: '/dashboard' }); }
+    if (providerId === 'google' || providerId === 'facebook') { signIn(providerId, { callbackUrl: '/' }); }
     else { toast.info(provider + ' demo mode - Coming soon!'); }
   }, []);
 
@@ -123,9 +91,7 @@ function AuthContent() {
   };
 
   return (
-    <>
-      <NextAuthSessionSync />
-      <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-[#F8F9FA] dark:bg-[#0D1117]">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-[#F8F9FA] dark:bg-[#0D1117]">
         <div className="fixed top-4 right-4 z-10">
           <LanguageToggle className="border border-[#E9ECEF] dark:border-[#30363D] rounded-full" />
         </div>
@@ -428,7 +394,6 @@ function AuthContent() {
           </div>
         </div>
       </div>
-    </>
   );
 }
 

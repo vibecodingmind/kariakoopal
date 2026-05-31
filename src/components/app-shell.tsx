@@ -35,36 +35,44 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 // ── NextAuth Session Sync ──
 function NextAuthSessionSync() {
-  const { data: session } = useSession();
-  const { setUser, setGuideProfile, isAuthenticated } = useAuthStore();
+  const { data: session, status } = useSession();
+  const { setUser, setGuideProfile } = useAuthStore();
   const syncedRef = useRef(false);
 
-  useEffect(() => { if (!isAuthenticated) syncedRef.current = false; }, [isAuthenticated]);
-
   useEffect(() => {
-    if (session?.user && !isAuthenticated && !syncedRef.current) {
+    // Only sync when session is fully authenticated (not loading)
+    // Never reset syncedRef — once synced, we trust the zustand persisted state
+    if (status !== 'authenticated' || !session?.user || syncedRef.current) return;
+
+    // If the store already has the same user, skip re-sync
+    const storeUser = useAuthStore.getState().user;
+    const sessionUserId = (session.user as Record<string, unknown>).dbId as string || session.user.id || '';
+    if (storeUser?.id === sessionUserId) {
       syncedRef.current = true;
-      const u = session.user;
-      const user = {
-        id: (u as Record<string, unknown>).dbId as string || u.id || '',
-        phone: (u as Record<string, unknown>).phone as string || '',
-        email: u.email || null,
-        name: u.name || '',
-        role: ((u as Record<string, unknown>).role as string || 'seeker') as 'seeker' | 'guide' | 'admin',
-        languagePref: ((u as Record<string, unknown>).languagePref as string || 'sw') as 'sw' | 'en',
-        avatarUrl: ((u as Record<string, unknown>).avatarUrl as string) || u.image || null,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      setUser(user);
-      if (user.role === 'guide' && user.id) {
-        fetch(`/api/guides/${user.id}`)
-          .then(res => res.ok ? res.json() : null)
-          .then(data => { if (data?.guideProfile) setGuideProfile(data.guideProfile); })
-          .catch(() => {});
-      }
+      return;
     }
-  }, [session, isAuthenticated, setUser, setGuideProfile]);
+
+    syncedRef.current = true;
+    const u = session.user;
+    const user = {
+      id: (u as Record<string, unknown>).dbId as string || u.id || '',
+      phone: (u as Record<string, unknown>).phone as string || '',
+      email: u.email || null,
+      name: u.name || '',
+      role: ((u as Record<string, unknown>).role as string || 'seeker') as 'seeker' | 'guide' | 'admin',
+      languagePref: ((u as Record<string, unknown>).languagePref as string || 'sw') as 'sw' | 'en',
+      avatarUrl: ((u as Record<string, unknown>).avatarUrl as string) || u.image || null,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    setUser(user);
+    if (user.role === 'guide' && user.id) {
+      fetch(`/api/guides/${user.id}`)
+        .then(res => res.ok ? res.json() : null)
+        .then(data => { if (data?.guideProfile) setGuideProfile(data.guideProfile); })
+        .catch(() => {});
+    }
+  }, [session, status, setUser, setGuideProfile]);
   return null;
 }
 
@@ -415,8 +423,15 @@ function AdminTopHeader() {
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { user } = useAuthStore();
+  const [hydrated, setHydrated] = useState(false);
 
   useRealtime(); // Enable real-time notifications
+
+  // Wait for zustand persist to hydrate before rendering
+  // This prevents the flash of unauthenticated content on mobile
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
 
   // Only hide shell on auth page
   const isAuth = pathname === '/auth';
@@ -424,6 +439,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   if (isAuth) {
     return <>{children}</>;
+  }
+
+  // Show a blank screen during hydration to prevent flicker
+  if (!hydrated) {
+    return (
+      <div className={`min-h-screen ${isAdminRoute ? 'bg-[#0F172A]' : 'bg-[#F8FAFC] dark:bg-[#0F172A]'}`} />
+    );
   }
 
   const isSeeker = user?.role === 'seeker';
