@@ -216,3 +216,26 @@ Stage Summary:
 - Offline Mode management page provides cache controls, sync, PWA install, and USSD fallback info
 - Admin sidebar now links to all feature pages including Translations, Pricing, Featured, Corporate, Analytics 2.0
 - Build passes with zero errors
+
+---
+Task ID: 1
+Agent: Main Agent
+Task: Move SOS button from floating to bottom nav, replace Profile with Chat in bottom nav, add Profile to avatar menu
+
+Work Log:
+- Explored codebase to understand SOS button positioning (fixed bottom-24 right-4), bottom nav tabs, and avatar menu structure
+- Removed floating SOSButton from AppShell render
+- Added SOS as a center tab in seeker bottom nav with special raised red pill design with pulse animation
+- Replaced Profile tab with Chat tab (MessageCircle) in both seeker and guide bottom navs
+- Added Profile link as first item in avatar dropdown menu (routes dynamically based on role: /seeker/profile, /guide/profile, /admin)
+- Removed floating SOSButton from /seeker/sos/page.tsx (now redundant with bottom nav)
+- Cleaned up unused SOSButton import from sos page
+- Added sos-btn-pulse CSS animation in globals.css
+- Build verified successfully
+
+Stage Summary:
+- SOS is now a prominent raised red center button in the bottom nav for seekers (no more floating obstruction)
+- Chat replaces Profile in bottom nav for seekers & guides
+- Profile is accessible from the avatar dropdown menu (first item)
+- Floating SOSButton component removed from app shell and SOS page
+- All changes build cleanly

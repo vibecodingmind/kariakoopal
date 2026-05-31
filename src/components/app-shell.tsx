@@ -24,8 +24,8 @@ import {
   ShoppingBag,
   Clock,
   MessageCircle,
+  AlertTriangle,
 } from 'lucide-react';
-import SOSButton from '@/components/sos-button';
 import { useRealtime } from '@/hooks/use-realtime';
 import { LanguageToggle } from '@/components/language-toggle';
 import { Moon, Sun, LogOut, ChevronDown, ChevronRight } from 'lucide-react';
@@ -172,9 +172,9 @@ function BottomNav() {
   const seekerTabs = [
     { href: '/', icon: Home, label: 'Home', labelSw: 'Nyumbani' },
     { href: '/search', icon: Search, label: 'Search', labelSw: 'Tafuta' },
+    { href: '/seeker/sos', icon: AlertTriangle, label: 'SOS', labelSw: 'SOS', special: 'sos' as const },
     { href: '/seeker/bookings', icon: CalendarCheck, label: 'Bookings', labelSw: 'Uhifadhi' },
-    { href: '/wallet', icon: Wallet, label: 'Wallet', labelSw: 'Mkoba' },
-    { href: '/seeker/profile', icon: UserCircle2, label: 'Profile', labelSw: 'Wasifu' },
+    { href: '/chat', icon: MessageCircle, label: 'Chat', labelSw: 'Ujumbe' },
   ];
 
   const guideTabs = [
@@ -182,7 +182,7 @@ function BottomNav() {
     { href: '/guide/bookings', icon: CalendarCheck, label: 'Bookings', labelSw: 'Uhifadhi' },
     { href: '/guide/earnings', icon: TrendingUp, label: 'Earnings', labelSw: 'Mapato' },
     { href: '/guide/availability', icon: Clock, label: 'Schedule', labelSw: 'Ratiba' },
-    { href: '/guide/profile', icon: UserCircle2, label: 'Profile', labelSw: 'Wasifu' },
+    { href: '/chat', icon: MessageCircle, label: 'Chat', labelSw: 'Ujumbe' },
   ];
 
   const adminTabs = [
@@ -214,6 +214,29 @@ function BottomNav() {
         {tabs.map((tab) => {
           const active = isActive(tab.href);
           const Icon = tab.icon;
+          const isSOS = (tab as Record<string, unknown>).special === 'sos';
+
+          // Special SOS center button — raised red pill
+          if (isSOS) {
+            return (
+              <Link
+                key={tab.href + tab.label}
+                href={tab.href}
+                prefetch={true}
+                className="bottom-nav-item bottom-nav-item-inactive relative -mt-6"
+              >
+                <div className="flex flex-col items-center gap-0.5">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#DC2626] to-[#991B1B] shadow-lg shadow-red-500/30 flex items-center justify-center active:scale-90 transition-transform border-2 border-white dark:border-[#1E293B] sos-btn-pulse">
+                    <AlertTriangle className="w-6 h-6 text-white stroke-[2.5]" />
+                  </div>
+                  <span className="text-[10px] font-bold text-[#DC2626] dark:text-red-400">
+                    SOS
+                  </span>
+                </div>
+              </Link>
+            );
+          }
+
           return (
             <Link
               key={tab.href + tab.label}
@@ -346,6 +369,7 @@ function TopHeader() {
                       </div>
                       <div className="p-1.5">
                         {[
+                          { icon: UserCircle2, label: sw ? 'Wasifu' : 'Profile', href: user.role === 'guide' ? '/guide/profile' : user.role === 'admin' ? '/admin' : '/seeker/profile' },
                           { icon: MessageCircle, label: sw ? 'Ujumbe' : 'Messages', href: '/chat' },
                           { icon: Wallet, label: sw ? 'Mkoba' : 'Wallet', href: '/wallet' },
                           { icon: Bell, label: sw ? 'Arifa' : 'Notifications', href: '/notifications', badge: unreadCount },
@@ -458,8 +482,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const isAuth = pathname === '/auth';
   const isAdminRoute = pathname.startsWith('/admin');
 
-  const isSeeker = user?.role === 'seeker';
-
   return (
     <>
       <NextAuthSessionSync />
@@ -470,8 +492,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {children}
         </main>
         {!isAdminRoute && <BottomNav />}
-        {/* SOS floating button for seekers */}
-        {isSeeker && !isAuth && <SOSButton />}
       </div>
     </>
   );

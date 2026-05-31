@@ -6,7 +6,6 @@ import {
   ShieldAlert, Heart, Wallet, Eye, Navigation, Plus, ExternalLink
 } from 'lucide-react';
 import { useAuthStore } from '@/lib/stores/auth-store';
-import SOSButton from '@/components/sos-button';
 
 const SOS_TYPE_ICONS: Record<string, typeof ShieldAlert> = {
   panic: ShieldAlert,
@@ -331,9 +330,6 @@ export default function SOSPage() {
           </ul>
         </div>
       </div>
-
-      {/* Floating SOS Button */}
-      <SOSButton />
     </div>
   );
 }
