@@ -23,6 +23,7 @@ import {
   Settings,
   ShoppingBag,
 } from 'lucide-react';
+import { AIChatAssistant } from '@/components/ai-chat-assistant';
 import { LanguageToggle } from '@/components/language-toggle';
 import { Moon, Sun, LogOut, ChevronDown, ChevronRight } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -67,12 +68,10 @@ function NextAuthSessionSync() {
 // ── Navigation Progress Bar ──
 function NavProgress() {
   const pathname = usePathname();
-  const [progress, setProgress] = useState(0);
-  const [visible, setVisible] = useState(false);
+  const [progress, setProgress] = useState(30);
+  const [visible, setVisible] = useState(true);
 
   useEffect(() => {
-    setVisible(true);
-    setProgress(30);
     const t1 = setTimeout(() => setProgress(70), 50);
     const t2 = setTimeout(() => setProgress(100), 150);
     const t3 = setTimeout(() => setVisible(false), 400);
@@ -350,6 +349,7 @@ function TopHeader() {
 // ── Main App Shell ──
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { user } = useAuthStore();
 
   // Only hide shell on auth page
   const isAuth = pathname === '/auth';
@@ -369,6 +369,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </main>
         <BottomNav />
       </div>
+      <AIChatAssistant userRole={user?.role || 'seeker'} />
     </>
   );
 }

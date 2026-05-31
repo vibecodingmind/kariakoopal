@@ -8,7 +8,7 @@ const ROLE_ROUTES: Record<string, string[]> = {
   admin: ['/admin', '/wallet', '/notifications', '/settings'],
 };
 
-const PUBLIC_ROUTES = ['/', '/auth', '/guides', '/market', '/prices', '/events', '/vendors', '/stories'];
+const PUBLIC_ROUTES = ['/', '/auth', '/guides', '/market', '/prices', '/events', '/vendors', '/stories', '/seeker/ai-trip-planner'];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
