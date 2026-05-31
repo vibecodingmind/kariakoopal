@@ -9,7 +9,7 @@ import {
   LayoutDashboard, Brain, Users, UserCheck, Store, Gavel,
   DollarSign, Wallet, Shield, FileText, Megaphone, Bell,
   BarChart3, Settings, ChevronLeft, ChevronRight, ArrowLeft,
-  Menu, X,
+  Menu, X, Languages, Zap, Star, Building2, BarChart2, ScanFace,
 } from 'lucide-react';
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -44,6 +44,7 @@ const NAV_GROUPS: NavGroup[] = [
       { label: 'Users', href: '/admin/users', icon: Users },
       { label: 'Guides', href: '/admin/guides', icon: UserCheck },
       { label: 'Vendors', href: '/admin/vendors', icon: Store },
+      { label: 'KYC Verifications', href: '/admin/guides', icon: ScanFace },
       { label: 'Disputes', href: '/admin/disputes', icon: Gavel },
     ],
   },
@@ -52,6 +53,8 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { label: 'Revenue', href: '/admin/revenue', icon: DollarSign },
       { label: 'Payouts', href: '/admin/payouts', icon: Wallet },
+      { label: 'Featured Listings', href: '/admin/featured', icon: Star },
+      { label: 'Corporate Accounts', href: '/admin/corporate', icon: Building2 },
     ],
   },
   {
@@ -72,6 +75,9 @@ const NAV_GROUPS: NavGroup[] = [
     category: 'Platform',
     items: [
       { label: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
+      { label: 'Analytics 2.0', href: '/admin/analytics-2', icon: BarChart2 },
+      { label: 'Translations', href: '/admin/translations', icon: Languages },
+      { label: 'Dynamic Pricing', href: '/admin/pricing', icon: Zap },
       { label: 'Settings', href: '/admin/settings', icon: Settings },
     ],
   },

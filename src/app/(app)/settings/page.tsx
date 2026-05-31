@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 import {
   User, Phone, Mail, Globe, Bell, Shield, Eye, Camera,
   ChevronRight, Save, Check, HelpCircle, FileText, Info,
-  MessageSquare, ShieldCheck, CreditCard, LogOut, Trash2
+  MessageSquare, ShieldCheck, CreditCard, LogOut, Trash2, Wifi, Code
 } from 'lucide-react';
 
 export default function SettingsPage() {
@@ -199,7 +199,9 @@ export default function SettingsPage() {
         <div className="kcard p-0 overflow-hidden">
           {[
             { icon: Shield, label: l('Security Center', 'Kituo cha Usalama'), href: '/settings/security', badge: null },
+            { icon: Wifi, label: l('Offline Mode', 'Hali ya Nje ya Mtandao'), href: '/settings/offline', badge: l('PWA', 'PWA') },
             { icon: CreditCard, label: l('Wallet', 'Mkoba'), href: '/wallet', badge: null },
+            { icon: Code, label: l('Developer', 'Mwandishi wa Programu'), href: '/settings/developer', badge: null },
             ...(user?.role === 'guide' ? [{ icon: ShieldCheck, label: l('Subscription', 'Usajili'), href: '/guide/subscriptions', badge: subscriptionTier !== 'starter' ? subscriptionTier.toUpperCase() : null }] : []),
             { icon: HelpCircle, label: l('Help & Support', 'Msaada'), href: '#', badge: null },
             { icon: MessageSquare, label: l('Feedback', 'Maoni'), href: '#', badge: null },

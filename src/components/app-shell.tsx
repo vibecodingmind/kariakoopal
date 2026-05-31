@@ -25,6 +25,7 @@ import {
   Clock,
   MessageCircle,
 } from 'lucide-react';
+import SOSButton from '@/components/sos-button';
 import { useRealtime } from '@/hooks/use-realtime';
 import { LanguageToggle } from '@/components/language-toggle';
 import { Moon, Sun, LogOut, ChevronDown, ChevronRight } from 'lucide-react';
@@ -425,6 +426,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     return <>{children}</>;
   }
 
+  const isSeeker = user?.role === 'seeker';
+
   return (
     <>
       <NextAuthSessionSync />
@@ -435,6 +438,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {children}
         </main>
         {!isAdminRoute && <BottomNav />}
+        {/* SOS floating button for seekers */}
+        {isSeeker && !isAuth && <SOSButton />}
       </div>
     </>
   );
