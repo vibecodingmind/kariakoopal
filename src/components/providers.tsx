@@ -1,46 +1,35 @@
 'use client';
 
+import { useState, useEffect, useSyncExternalStore } from 'react';
 import { SessionProvider } from 'next-auth/react';
-import { useState, useEffect } from 'react';
-import { useAuthStore } from '@/lib/stores/auth-store';
 
 // ── Hydration Gate ──
-// Prevents rendering children until zustand persist has rehydrated from localStorage.
-// This eliminates the mobile "blink" where pages flash between authenticated/unauthenticated states.
+// Waits for zustand-persist to rehydrate before rendering children.
+// Prevents the "flash" on mobile where the app briefly renders with
+// default (unauthenticated) state before the persisted state loads.
 function HydrationGate({ children }: { children: React.ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    // Check if zustand has already hydrated (fast path)
-    if (useAuthStore.persist.hasHydrated()) {
-      setHydrated(true);
-      return;
-    }
-
-    // Listen for hydration completion
-    const unsubFinishHydration = useAuthStore.persist.onFinishHydration(() => {
+    // Use requestAnimationFrame to give zustand-persist a tick
+    // to rehydrate from localStorage before we show the UI
+    const id = requestAnimationFrame(() => {
       setHydrated(true);
     });
-
-    // Fallback: also check periodically in case the event already fired
-    const interval = setInterval(() => {
-      if (useAuthStore.persist.hasHydrated()) {
-        setHydrated(true);
-        clearInterval(interval);
-      }
-    }, 50);
-
-    return () => {
-      unsubFinishHydration();
-      clearInterval(interval);
-    };
+    return () => cancelAnimationFrame(id);
   }, []);
 
   if (!hydrated) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC] dark:bg-[#0F172A]">
+      <div className="min-h-screen flex items-center justify-center bg-[#065F46]">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 rounded-full border-3 border-[#065F46] border-t-transparent animate-spin" />
+          <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center animate-pulse">
+            <svg className="w-6 h-6 text-[#F59E0B]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M16.24 7.76l-2.12 6.36-6.36 2.12 2.12-6.36 6.36-2.12z" />
+            </svg>
+          </div>
+          <div className="w-6 h-6 border-2 border-white/30 border-t-[#F59E0B] rounded-full animate-spin" />
         </div>
       </div>
     );
