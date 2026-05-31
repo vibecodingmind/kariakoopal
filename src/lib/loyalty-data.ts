@@ -65,6 +65,22 @@ export const DEMO_LOYALTY_TRANSACTIONS = [
   { id: 'lt10',accountId: 'loyalty-demo-seeker-1', points: 30,  type: 'earn',    reason: 'shopping_list_completed', referenceId: 'sl1', metadata: '{}',                          createdAt: new Date(Date.now() - 86400000 * 11).toISOString() },
 ];
 
+export function getReasonLabel(reason: string, swahili: boolean = false): string {
+  const match = EARN_ACTIONS.find(a => a.reason === reason);
+  if (match) return swahili ? match.labelSw : match.label;
+  // Fallback for redeem/bonus reasons
+  const REASON_LABELS: Record<string, { en: string; sw: string }> = {
+    redeemed_discount: { en: 'Redeemed Discount', sw: 'Punguzo Lililotumika' },
+    streak_bonus_7day: { en: '7-Day Streak Bonus', sw: 'Zawadi ya Siku 7 mfululizo' },
+    streak_bonus_30day: { en: '30-Day Streak Bonus', sw: 'Zawadi ya Siku 30 mfululizo' },
+    signup_bonus: { en: 'Signup Bonus', sw: 'Zawadi ya Kujiunga' },
+    admin_adjustment: { en: 'Admin Adjustment', sw: 'Marekebisho ya Msimamizi' },
+  };
+  const label = REASON_LABELS[reason];
+  if (label) return swahili ? label.sw : label.en;
+  return reason.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
 export const DEMO_REWARDS = [
   { id: 'r1', name: '5% Session Discount',      nameSw: 'Punguzo la 5% la Kipindi',           description: 'Get 5% off your next guided session',         descriptionSw: 'Pata punguzo la 5% kwenye kipindi kinachofuata',   pointsCost: 500,  type: 'discount',       value: 5,    isActive: true, icon: 'Percent',   createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
   { id: 'r2', name: '10% Session Discount',     nameSw: 'Punguzo la 10% la Kipindi',          description: 'Get 10% off your next guided session',        descriptionSw: 'Pata punguzo la 10% kwenye kipindi kinachofuata',  pointsCost: 1000, type: 'discount',       value: 10,   isActive: true, icon: 'Percent',   createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
