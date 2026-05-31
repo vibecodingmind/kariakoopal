@@ -82,13 +82,60 @@ interface StatsData {
   pendingRequests: number;
 }
 
+// ─── Chat-specific Types ─────────────────────────────────────────────
+
+interface ChatMessagePayload {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  senderName?: string;
+  content: string;
+  messageType: 'text' | 'image' | 'location' | 'system' | 'file';
+  imageUrl?: string;
+  fileUrl?: string;
+  fileName?: string;
+  fileSize?: number;
+  latitude?: number;
+  longitude?: number;
+  translatedContent?: string | null;
+  createdAt: string;
+}
+
+interface TypingPayload {
+  conversationId: string;
+  userId: string;
+  userName: string;
+}
+
+interface ReactionPayload {
+  conversationId: string;
+  messageId: string;
+  userId: string;
+  emoji: string;
+  action: 'add' | 'remove';
+}
+
+interface ReadReceiptPayload {
+  conversationId: string;
+  userId: string;
+  messageIds: string[];
+}
+
 // ─── In-Memory State ─────────────────────────────────────────────────
 
 const onlineGuides = new Map<string, GuideInfo>(); // socketId -> GuideInfo
 const activeSessions = new Map<string, SessionInfo>(); // sessionId -> SessionInfo
 const pendingRequests = new Map<string, { data: RequestData; timeoutId: NodeJS.Timeout }>(); // requestId -> { data, timeoutId }
 const seekerSockets = new Map<string, string>(); // seekerId -> socketId
-const userSockets = new Map<string, { socketId: string; userId: string; role: string }>(); // socketId -> user info (for client-side events)
+const userSockets = new Map<string, { socketId: string; userId: string; role: string; userName?: string }>(); // socketId -> user info
+
+// ─── Chat-specific State ─────────────────────────────────────────────
+
+const conversationRooms = new Map<string, Set<string>>(); // conversationId -> Set of socketIds
+const userConversationMap = new Map<string, Set<string>>(); // userId -> Set of conversationIds
+const typingUsers = new Map<string, Map<string, { userName: string; timeoutId: NodeJS.Timeout }>>(); // conversationId -> (userId -> { userName, timeout })
+const messageReactions = new Map<string, Map<string, string>>(); // messageId -> (userId -> emoji)
+const onlineUserIds = new Set<string>(); // Set of currently online user IDs
 
 // ─── Helper Functions ────────────────────────────────────────────────
 
@@ -119,7 +166,6 @@ function broadcastStats() {
 function removeGuide(socketId: string) {
   const guide = onlineGuides.get(socketId);
   if (guide) {
-    // Leave all zone rooms
     guide.zones.forEach((zone) => {
       const socket = io.sockets.sockets.get(socketId);
       if (socket) socket.leave(`zone:${zone}`);
@@ -133,7 +179,6 @@ function removeGuide(socketId: string) {
 function handleRequestTimeout(requestId: string) {
   const request = pendingRequests.get(requestId);
   if (request) {
-    // Notify the seeker that no guide accepted
     const seekerSocketId = seekerSockets.get(request.data.seekerId);
     if (seekerSocketId) {
       io.to(seekerSocketId).emit('request:timeout', {
@@ -143,7 +188,6 @@ function handleRequestTimeout(requestId: string) {
       });
     }
 
-    // Auto-expand: broadcast to ALL online guides, not just zone-matched ones
     onlineGuides.forEach((guide) => {
       if (guide.status === 'online') {
         io.to(guide.socketId).emit('request:new', {
@@ -154,7 +198,6 @@ function handleRequestTimeout(requestId: string) {
       }
     });
 
-    // Set another timeout for final expiry (2 more minutes)
     const finalTimeoutId = setTimeout(() => {
       const stillPending = pendingRequests.get(requestId);
       if (stillPending) {
@@ -170,10 +213,40 @@ function handleRequestTimeout(requestId: string) {
       }
     }, 2 * 60 * 1000);
 
-    // Update the pending request with new timeout
     pendingRequests.set(requestId, { data: request.data, timeoutId: finalTimeoutId });
     broadcastStats();
   }
+}
+
+// ─── Chat Helper Functions ───────────────────────────────────────────
+
+function getUserIdBySocket(socketId: string): string | null {
+  return userSockets.get(socketId)?.userId || null;
+}
+
+function getSocketIdByUserId(userId: string): string | null {
+  for (const [socketId, info] of userSockets) {
+    if (info.userId === userId) return socketId;
+  }
+  return null;
+}
+
+function clearTypingForUser(conversationId: string, userId: string) {
+  const convTyping = typingUsers.get(conversationId);
+  if (convTyping) {
+    const entry = convTyping.get(userId);
+    if (entry) {
+      clearTimeout(entry.timeoutId);
+      convTyping.delete(userId);
+      if (convTyping.size === 0) {
+        typingUsers.delete(conversationId);
+      }
+    }
+  }
+}
+
+function broadcastOnlineStatus() {
+  io.emit('users:online', Array.from(onlineUserIds));
 }
 
 // ─── Connection Handler ──────────────────────────────────────────────
@@ -181,29 +254,261 @@ function handleRequestTimeout(requestId: string) {
 io.on('connection', (socket: Socket) => {
   console.log(`[Connection] User connected: ${socket.id}`);
 
-  // Store user info from auth data passed during connection
+  // Store user info from auth data or query params
   const auth = socket.handshake.auth as { userId?: string; role?: string };
-  if (auth?.userId) {
+  const query = socket.handshake.query as { userId?: string; userName?: string; role?: string };
+
+  const userId = auth?.userId || query?.userId || '';
+  const userName = auth?.role ? '' : (query?.userName || '');
+  const role = auth?.role || query?.role || 'seeker';
+
+  if (userId) {
     userSockets.set(socket.id, {
       socketId: socket.id,
-      userId: auth.userId,
-      role: auth.role || 'seeker',
+      userId,
+      role,
+      userName,
     });
-    console.log(`[Auth] User ${auth.userId} (role: ${auth.role || 'seeker'}) connected on socket ${socket.id}`);
+
+    // Track online user
+    onlineUserIds.add(userId);
+
+    // Rejoin any conversation rooms this user was part of
+    const prevConvIds = userConversationMap.get(userId);
+    if (prevConvIds) {
+      prevConvIds.forEach(convId => {
+        socket.join(`conv:${convId}`);
+        if (!conversationRooms.has(convId)) {
+          conversationRooms.set(convId, new Set());
+        }
+        conversationRooms.get(convId)!.add(socket.id);
+      });
+    }
+
+    // Broadcast user online status
+    io.emit('user_online', { userId, userName: userName || userId });
+    broadcastOnlineStatus();
+
+    console.log(`[Auth] User ${userId} (role: ${role}) connected on socket ${socket.id}`);
   }
 
-  // ─── Client-Side Event Aliases (matching socket.ts) ───────────────
-  // These handle events emitted by the client-side socket.ts library
+  // ─── Chat: Conversation Events ──────────────────────────────────
+
+  // join_conversation - join a conversation room for real-time updates
+  socket.on('join_conversation', (data: { conversationId: string }) => {
+    const userInfo = userSockets.get(socket.id);
+    if (!userInfo) return;
+
+    const convId = data.conversationId;
+    console.log(`[Chat:Join] User ${userInfo.userId} joining conversation ${convId}`);
+
+    socket.join(`conv:${convId}`);
+
+    // Track conversation membership
+    if (!conversationRooms.has(convId)) {
+      conversationRooms.set(convId, new Set());
+    }
+    conversationRooms.get(convId)!.add(socket.id);
+
+    if (!userConversationMap.has(userInfo.userId)) {
+      userConversationMap.set(userInfo.userId, new Set());
+    }
+    userConversationMap.get(userInfo.userId)!.add(convId);
+
+    // Notify others in the conversation
+    socket.to(`conv:${convId}`).emit('user_joined_conversation', {
+      conversationId: convId,
+      userId: userInfo.userId,
+      userName: userInfo.userName || userInfo.userId,
+    });
+  });
+
+  // leave_conversation - leave a conversation room
+  socket.on('leave_conversation', (data: { conversationId: string }) => {
+    const userInfo = userSockets.get(socket.id);
+    if (!userInfo) return;
+
+    const convId = data.conversationId;
+    console.log(`[Chat:Leave] User ${userInfo.userId} leaving conversation ${convId}`);
+
+    socket.leave(`conv:${convId}`);
+
+    // Clean up tracking
+    const convRoom = conversationRooms.get(convId);
+    if (convRoom) {
+      convRoom.delete(socket.id);
+      if (convRoom.size === 0) conversationRooms.delete(convId);
+    }
+
+    const userConvs = userConversationMap.get(userInfo.userId);
+    if (userConvs) {
+      userConvs.delete(convId);
+      if (userConvs.size === 0) userConversationMap.delete(userInfo.userId);
+    }
+
+    // Clear any typing indicators for this user
+    clearTypingForUser(convId, userInfo.userId);
+
+    socket.to(`conv:${convId}`).emit('user_left_conversation', {
+      conversationId: convId,
+      userId: userInfo.userId,
+    });
+  });
+
+  // send_message - send a chat message to a conversation
+  socket.on('send_message', (data: {
+    conversationId: string;
+    senderId: string;
+    content: string;
+    messageType?: 'text' | 'image' | 'location' | 'system' | 'file';
+    imageUrl?: string;
+    fileUrl?: string;
+    fileName?: string;
+    fileSize?: number;
+    latitude?: number;
+    longitude?: number;
+  }) => {
+    const userInfo = userSockets.get(socket.id);
+    if (!userInfo) {
+      console.warn(`[Chat:Send] Unauthenticated socket attempted to send message`);
+      return;
+    }
+
+    const senderId = userInfo.userId;
+    const msgType = data.messageType || 'text';
+
+    console.log(`[Chat:Send] User ${senderId} in conv ${data.conversationId}: ${data.content.substring(0, 50)}`);
+
+    const messagePayload: ChatMessagePayload = {
+      id: `msg_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
+      conversationId: data.conversationId,
+      senderId,
+      senderName: userInfo.userName || senderId,
+      content: data.content,
+      messageType: msgType,
+      imageUrl: data.imageUrl,
+      fileUrl: data.fileUrl,
+      fileName: data.fileName,
+      fileSize: data.fileSize,
+      latitude: data.latitude,
+      longitude: data.longitude,
+      translatedContent: null,
+      createdAt: new Date().toISOString(),
+    };
+
+    // Broadcast to everyone in the conversation room
+    io.to(`conv:${data.conversationId}`).emit('new_message', messagePayload);
+
+    // Also emit to users who may not be in the room but have this conversation
+    // (push notification fallback - handled by the Next.js API)
+
+    // Clear typing indicator for this sender since they just sent a message
+    clearTypingForUser(data.conversationId, senderId);
+    io.to(`conv:${data.conversationId}`).emit('typing_stop', {
+      conversationId: data.conversationId,
+      userId: senderId,
+    });
+  });
+
+  // typing_start - user started typing in a conversation
+  socket.on('typing_start', (data: TypingPayload) => {
+    const userInfo = userSockets.get(socket.id);
+    if (!userInfo) return;
+
+    const convId = data.conversationId;
+    const userId = userInfo.userId;
+
+    // Set or update typing indicator
+    if (!typingUsers.has(convId)) {
+      typingUsers.set(convId, new Map());
+    }
+    const convTyping = typingUsers.get(convId)!;
+
+    // Clear any existing timeout for this user
+    const existing = convTyping.get(userId);
+    if (existing) clearTimeout(existing.timeoutId);
+
+    // Set new timeout (auto-clear after 5 seconds)
+    const timeoutId = setTimeout(() => {
+      clearTypingForUser(convId, userId);
+      io.to(`conv:${convId}`).emit('typing_stop', {
+        conversationId: convId,
+        userId,
+      });
+    }, 5000);
+
+    convTyping.set(userId, { userName: data.userName || userInfo.userName || userId, timeoutId });
+
+    // Broadcast typing indicator to others in the conversation
+    socket.to(`conv:${convId}`).emit('typing', {
+      conversationId: convId,
+      userId,
+      userName: data.userName || userInfo.userName || userId,
+    });
+  });
+
+  // typing_stop - user stopped typing
+  socket.on('typing_stop', (data: { conversationId: string; userId: string }) => {
+    const userInfo = userSockets.get(socket.id);
+    if (!userInfo) return;
+
+    clearTypingForUser(data.conversationId, userInfo.userId);
+    socket.to(`conv:${data.conversationId}`).emit('typing_stop', {
+      conversationId: data.conversationId,
+      userId: userInfo.userId,
+    });
+  });
+
+  // mark_read - mark messages as read
+  socket.on('mark_read', (data: { conversationId: string; userId: string }) => {
+    const userInfo = userSockets.get(socket.id);
+    if (!userInfo) return;
+
+    console.log(`[Chat:Read] User ${userInfo.userId} marked messages as read in conv ${data.conversationId}`);
+
+    // Notify others in the conversation that this user has read messages
+    socket.to(`conv:${data.conversationId}`).emit('messages_read', {
+      conversationId: data.conversationId,
+      userId: userInfo.userId,
+    });
+  });
+
+  // message_reaction - add/remove a reaction to a message
+  socket.on('message_reaction', (data: ReactionPayload) => {
+    const userInfo = userSockets.get(socket.id);
+    if (!userInfo) return;
+
+    console.log(`[Chat:Reaction] User ${userInfo.userId} ${data.action} reaction ${data.emoji} on msg ${data.messageId}`);
+
+    // Track reaction in memory
+    if (!messageReactions.has(data.messageId)) {
+      messageReactions.set(data.messageId, new Map());
+    }
+    const msgReactions = messageReactions.get(data.messageId)!;
+
+    if (data.action === 'add') {
+      msgReactions.set(userInfo.userId, data.emoji);
+    } else {
+      msgReactions.delete(userInfo.userId);
+    }
+
+    // Broadcast reaction to conversation
+    io.to(`conv:${data.conversationId}`).emit('message_reaction', {
+      conversationId: data.conversationId,
+      messageId: data.messageId,
+      userId: userInfo.userId,
+      userName: userInfo.userName || userInfo.userId,
+      emoji: data.emoji,
+      action: data.action,
+    });
+  });
+
+  // ─── Location Events ────────────────────────────────────────────
 
   // location:update - broadcast location to session participants
   socket.on('location:update', (data: { lat: number; lng: number; accuracy?: number }) => {
     const userInfo = userSockets.get(socket.id);
-    if (!userInfo) {
-      console.warn(`[Location:Update] Unauthenticated socket ${socket.id} attempted location update`);
-      return;
-    }
-
-    console.log(`[Location:Update] User ${userInfo.userId} location: ${data.lat}, ${data.lng}`);
+    if (!userInfo) return;
 
     const locationPayload = {
       userId: userInfo.userId,
@@ -213,14 +518,12 @@ io.on('connection', (socket: Socket) => {
       timestamp: Date.now(),
     };
 
-    // Broadcast to all sessions this user is part of
     activeSessions.forEach((session) => {
       if (session.guideId === userInfo.userId || session.seekerId === userInfo.userId) {
         io.to(`session:${session.sessionId}`).emit('location:update', locationPayload);
       }
     });
 
-    // Also emit via the guide:location event for map display if user is a guide
     const guide = onlineGuides.get(socket.id);
     if (guide) {
       onlineGuides.set(socket.id, {
@@ -237,15 +540,10 @@ io.on('connection', (socket: Socket) => {
     }
   });
 
-  // chat:message - broadcast message to session participants
+  // chat:message - broadcast message to session participants (legacy)
   socket.on('chat:message', (data: { sessionId: string; content: string }) => {
     const userInfo = userSockets.get(socket.id);
-    if (!userInfo) {
-      console.warn(`[Chat:Message] Unauthenticated socket ${socket.id} attempted to send message`);
-      return;
-    }
-
-    console.log(`[Chat:Message] User ${userInfo.userId} in session ${data.sessionId}: ${data.content}`);
+    if (!userInfo) return;
 
     const messagePayload = {
       id: `msg_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
@@ -256,10 +554,7 @@ io.on('connection', (socket: Socket) => {
       timestamp: Date.now(),
     };
 
-    // Broadcast to the session room
     io.to(`session:${data.sessionId}`).emit('chat:message', messagePayload);
-
-    // Also emit via session:message for compatibility
     io.to(`session:${data.sessionId}`).emit('session:message', {
       sessionId: data.sessionId,
       senderId: userInfo.userId,
@@ -269,20 +564,15 @@ io.on('connection', (socket: Socket) => {
     });
   });
 
-  // session:join - join a socket.io room for the session
+  // ─── Session Events ─────────────────────────────────────────────
+
   socket.on('session:join', (data: { sessionId: string }) => {
     const userInfo = userSockets.get(socket.id);
-    console.log(`[Session:Join] Socket ${socket.id} joining session room: ${data.sessionId}`);
-
     socket.join(`session:${data.sessionId}`);
-
-    // Notify others in the session
     socket.to(`session:${data.sessionId}`).emit('session:userJoined', {
       userId: userInfo?.userId || 'unknown',
-      name: userInfo?.userId || 'unknown',
+      name: userInfo?.userName || userInfo?.userId || 'unknown',
     });
-
-    // Also emit session:update event
     io.to(`session:${data.sessionId}`).emit('session:update', {
       sessionId: data.sessionId,
       status: 'active',
@@ -290,35 +580,25 @@ io.on('connection', (socket: Socket) => {
     });
   });
 
-  // session:leave - leave a socket.io room
   socket.on('session:leave', (data: { sessionId: string }) => {
     const userInfo = userSockets.get(socket.id);
-    console.log(`[Session:Leave] Socket ${socket.id} leaving session room: ${data.sessionId}`);
-
     socket.leave(`session:${data.sessionId}`);
-
-    // Notify others in the session
     socket.to(`session:${data.sessionId}`).emit('session:userLeft', {
       userId: userInfo?.userId || 'unknown',
     });
   });
 
-  // guide:status - broadcast guide status change
+  // ─── Guide Events ───────────────────────────────────────────────
+
   socket.on('guide:status', (data: { status: 'online' | 'offline' | 'busy' }) => {
     const userInfo = userSockets.get(socket.id);
-    if (!userInfo) {
-      console.warn(`[Guide:Status] Unauthenticated socket ${socket.id} attempted status change`);
-      return;
-    }
-
-    console.log(`[Guide:Status] Guide ${userInfo.userId} status changed to: ${data.status}`);
+    if (!userInfo) return;
 
     const guide = onlineGuides.get(socket.id);
     if (guide) {
       onlineGuides.set(socket.id, { ...guide, status: data.status, lastSeen: new Date() });
       io.emit('guides:updated', getOnlineGuideCount());
     } else if (data.status === 'online') {
-      // Guide not registered yet but marking online — register them
       const guideInfo: GuideInfo = {
         userId: userInfo.userId,
         socketId: socket.id,
@@ -331,7 +611,6 @@ io.on('connection', (socket: Socket) => {
       io.emit('guides:updated', getOnlineGuideCount());
     }
 
-    // Broadcast the status change
     io.emit('guide:status', {
       userId: userInfo.userId,
       status: data.status,
@@ -341,15 +620,51 @@ io.on('connection', (socket: Socket) => {
     broadcastStats();
   });
 
-  // request:new - notify relevant guides of new requests (client-side alias)
+  socket.on('guide:online', (data: { userId: string; zones: string[]; location?: { lat: number; lng: number } }) => {
+    const guideInfo: GuideInfo = {
+      userId: data.userId,
+      socketId: socket.id,
+      zones: data.zones || [],
+      status: 'online',
+      location: data.location,
+      lastSeen: new Date(),
+    };
+
+    onlineGuides.set(socket.id, guideInfo);
+    userSockets.set(socket.id, {
+      socketId: socket.id,
+      userId: data.userId,
+      role: 'guide',
+    });
+
+    data.zones.forEach((zone: string) => {
+      socket.join(`zone:${zone}`);
+    });
+    socket.join(`guide:${data.userId}`);
+
+    io.emit('guides:updated', getOnlineGuideCount());
+    broadcastStats();
+  });
+
+  socket.on('guide:location', (data: { userId: string; lat: number; lng: number }) => {
+    const guide = onlineGuides.get(socket.id);
+    if (guide) {
+      onlineGuides.set(socket.id, { ...guide, location: { lat: data.lat, lng: data.lng }, lastSeen: new Date() });
+      io.emit('guide:location', {
+        userId: data.userId,
+        lat: data.lat,
+        lng: data.lng,
+        timestamp: new Date(),
+      });
+    }
+  });
+
+  // ─── Request Events ─────────────────────────────────────────────
+
   socket.on('request:new', (data: { requestId: string; seekerId: string; seekerName?: string; description?: string; zoneIds?: string[]; budget?: number | null }) => {
     const userInfo = userSockets.get(socket.id);
-    console.log(`[Request:New] Seeker ${data.seekerId || userInfo?.userId} created request ${data.requestId}`);
-
     const seekerId = data.seekerId || userInfo?.userId || '';
-    const zoneIds = data.zoneIds || [];
 
-    // Track seeker socket
     seekerSockets.set(seekerId, socket.id);
     socket.join(`seeker:${seekerId}`);
 
@@ -357,13 +672,13 @@ io.on('connection', (socket: Socket) => {
       requestId: data.requestId,
       seekerId,
       seekerName: data.seekerName,
-      zoneIds,
+      zoneIds: data.zoneIds || [],
       description: data.description,
       budget: data.budget,
       createdAt: new Date(),
     };
 
-    // Broadcast to all online guides in matching zones
+    const zoneIds = data.zoneIds || [];
     zoneIds.forEach((zoneId: string) => {
       io.to(`zone:${zoneId}`).emit('request:new', {
         ...requestData,
@@ -371,7 +686,6 @@ io.on('connection', (socket: Socket) => {
       });
     });
 
-    // If no zone specified, broadcast to all online guides
     if (zoneIds.length === 0) {
       onlineGuides.forEach((guide) => {
         if (guide.status === 'online') {
@@ -383,123 +697,48 @@ io.on('connection', (socket: Socket) => {
       });
     }
 
-    // Set up 5-minute timeout for auto-expansion
     const timeoutId = setTimeout(() => {
       handleRequestTimeout(data.requestId);
     }, 5 * 60 * 1000);
 
     pendingRequests.set(data.requestId, { data: requestData, timeoutId });
-
     broadcastStats();
   });
-
-  // ─── Guide Events (Original) ─────────────────────────────────────
-
-  socket.on('guide:online', (data: { userId: string; zones: string[]; location?: { lat: number; lng: number } }) => {
-    console.log(`[Guide:Online] Guide ${data.userId} is online in zones: ${data.zones.join(', ')}`);
-
-    const guideInfo: GuideInfo = {
-      userId: data.userId,
-      socketId: socket.id,
-      zones: data.zones || [],
-      status: 'online',
-      location: data.location,
-      lastSeen: new Date(),
-    };
-
-    onlineGuides.set(socket.id, guideInfo);
-
-    // Update user socket mapping
-    userSockets.set(socket.id, {
-      socketId: socket.id,
-      userId: data.userId,
-      role: 'guide',
-    });
-
-    // Join zone rooms
-    data.zones.forEach((zone: string) => {
-      socket.join(`zone:${zone}`);
-    });
-
-    // Join guide room
-    socket.join(`guide:${data.userId}`);
-
-    io.emit('guides:updated', getOnlineGuideCount());
-    broadcastStats();
-  });
-
-  socket.on('guide:location', (data: { userId: string; lat: number; lng: number }) => {
-    console.log(`[Guide:Location] Guide ${data.userId} location updated: ${data.lat}, ${data.lng}`);
-
-    const guide = onlineGuides.get(socket.id);
-    if (guide) {
-      onlineGuides.set(socket.id, { ...guide, location: { lat: data.lat, lng: data.lng }, lastSeen: new Date() });
-      // Broadcast guide location for map display
-      io.emit('guide:location', {
-        userId: data.userId,
-        lat: data.lat,
-        lng: data.lng,
-        timestamp: new Date(),
-      });
-    }
-  });
-
-  // ─── Request Events (Original) ────────────────────────────────────
 
   socket.on('request:create', (data: RequestData) => {
-    console.log(`[Request:Create] Seeker ${data.seekerId} created request ${data.requestId} in zones: ${data.zoneIds.join(', ')}`);
-
-    // Track seeker socket
     seekerSockets.set(data.seekerId, socket.id);
     socket.join(`seeker:${data.seekerId}`);
 
-    const requestData: RequestData = {
-      ...data,
-      createdAt: data.createdAt || new Date(),
-    };
-
-    // Broadcast to all online guides in matching zones
     data.zoneIds.forEach((zoneId: string) => {
-      io.to(`zone:${zoneId}`).emit('request:new', requestData);
+      io.to(`zone:${zoneId}`).emit('request:new', data);
     });
 
-    // Set up 5-minute timeout for auto-expansion
     const timeoutId = setTimeout(() => {
       handleRequestTimeout(data.requestId);
     }, 5 * 60 * 1000);
 
-    pendingRequests.set(data.requestId, { data: requestData, timeoutId });
-
+    pendingRequests.set(data.requestId, { data, timeoutId });
     broadcastStats();
   });
 
   socket.on('request:cancel', (data: { requestId: string; seekerId: string }) => {
-    console.log(`[Request:Cancel] Seeker ${data.seekerId} cancelled request ${data.requestId}`);
-
     const request = pendingRequests.get(data.requestId);
     if (request) {
-      // Clear the timeout
       clearTimeout(request.timeoutId);
       pendingRequests.delete(data.requestId);
-
-      // Notify all guides in the zones that the request was cancelled
       request.data.zoneIds.forEach((zoneId: string) => {
         io.to(`zone:${zoneId}`).emit('request:cancelled', {
           requestId: data.requestId,
           seekerId: data.seekerId,
         });
       });
-
       broadcastStats();
     }
   });
 
   socket.on('request:accept', (data: { requestId: string; guideId: string; seekerId: string; sessionId: string }) => {
-    console.log(`[Request:Accept] Guide ${data.guideId} accepted request ${data.requestId} - Session ${data.sessionId}`);
-
     const request = pendingRequests.get(data.requestId);
     if (!request) {
-      // Request no longer available (might have been cancelled or expired)
       socket.emit('request:unavailable', {
         requestId: data.requestId,
         message: 'This request is no longer available.',
@@ -507,11 +746,9 @@ io.on('connection', (socket: Socket) => {
       return;
     }
 
-    // Clear the timeout since the request was accepted
     clearTimeout(request.timeoutId);
     pendingRequests.delete(data.requestId);
 
-    // Notify the seeker that their request was accepted
     const seekerSocketId = seekerSockets.get(data.seekerId);
     if (seekerSocketId) {
       io.to(seekerSocketId).emit('request:accepted', {
@@ -522,7 +759,6 @@ io.on('connection', (socket: Socket) => {
       });
     }
 
-    // Update guide status to busy
     const guide = onlineGuides.get(socket.id);
     if (guide) {
       onlineGuides.set(socket.id, { ...guide, status: 'busy', lastSeen: new Date() });
@@ -533,16 +769,12 @@ io.on('connection', (socket: Socket) => {
   });
 
   socket.on('request:timeout', (data: { requestId: string }) => {
-    console.log(`[Request:Timeout] Request ${data.requestId} timed out`);
-    // Client-side timeout trigger - also handle server-side
     handleRequestTimeout(data.requestId);
   });
 
-  // ─── Session Events (Original) ────────────────────────────────────
+  // ─── Session Lifecycle Events ──────────────────────────────────
 
   socket.on('session:start', (data: { sessionId: string; guideId: string; seekerId: string }) => {
-    console.log(`[Session:Start] Session ${data.sessionId} started between guide ${data.guideId} and seeker ${data.seekerId}`);
-
     const sessionInfo: SessionInfo = {
       sessionId: data.sessionId,
       guideId: data.guideId,
@@ -553,19 +785,14 @@ io.on('connection', (socket: Socket) => {
     };
 
     activeSessions.set(data.sessionId, sessionInfo);
-
-    // Both guide and seeker join the session room
     socket.join(`session:${data.sessionId}`);
 
     const seekerSocketId = seekerSockets.get(data.seekerId);
     if (seekerSocketId) {
       const seekerSocket = io.sockets.sockets.get(seekerSocketId);
-      if (seekerSocket) {
-        seekerSocket.join(`session:${data.sessionId}`);
-      }
+      if (seekerSocket) seekerSocket.join(`session:${data.sessionId}`);
     }
 
-    // Notify both parties that the session has started
     io.to(`session:${data.sessionId}`).emit('session:started', {
       sessionId: data.sessionId,
       guideId: data.guideId,
@@ -577,43 +804,29 @@ io.on('connection', (socket: Socket) => {
   });
 
   socket.on('session:message', (data: MessageData) => {
-    console.log(`[Session:Message] ${data.senderType} ${data.senderId} in session ${data.sessionId}: ${data.content}`);
-
-    const messageWithTimestamp: MessageData = {
+    io.to(`session:${data.sessionId}`).emit('session:message', {
       ...data,
       timestamp: data.timestamp || new Date(),
-    };
-
-    io.to(`session:${data.sessionId}`).emit('session:message', messageWithTimestamp);
+    });
   });
 
   socket.on('session:location', (data: LocationData) => {
-    console.log(`[Session:Location] ${data.senderId} shared location in session ${data.sessionId}: ${data.lat}, ${data.lng}`);
-
-    const locationWithTimestamp: LocationData = {
+    io.to(`session:${data.sessionId}`).emit('session:location', {
       ...data,
       timestamp: data.timestamp || new Date(),
-    };
-
-    io.to(`session:${data.sessionId}`).emit('session:location', locationWithTimestamp);
+    });
   });
 
   socket.on('session:complete', (data: { sessionId: string; completedBy: string; completedByType: 'guide' | 'seeker'; rating?: number; review?: string }) => {
-    console.log(`[Session:Complete] Session ${data.sessionId} completed by ${data.completedByType} ${data.completedBy}`);
-
     const session = activeSessions.get(data.sessionId);
     if (session) {
-      const completedSession = { ...session, completedAt: new Date() };
-
-      // Update guide status back to online
-      const guideSocketId = completedSession.guideSocketId;
+      const guideSocketId = session.guideSocketId;
       const guide = onlineGuides.get(guideSocketId);
       if (guide) {
         onlineGuides.set(guideSocketId, { ...guide, status: 'online', lastSeen: new Date() });
         io.emit('guides:updated', getOnlineGuideCount());
       }
 
-      // Notify both parties
       io.to(`session:${data.sessionId}`).emit('session:completed', {
         sessionId: data.sessionId,
         completedBy: data.completedBy,
@@ -623,71 +836,73 @@ io.on('connection', (socket: Socket) => {
         timestamp: new Date(),
       });
 
-      // Remove session from active sessions
       activeSessions.delete(data.sessionId);
-
       broadcastStats();
     }
   });
 
   socket.on('session:emergency', (data: EmergencyData) => {
-    console.log(`[EMERGENCY] ${data.senderType} ${data.senderId} in session ${data.sessionId}: ${data.message}`);
-
-    const emergencyWithTimestamp: EmergencyData = {
-      ...data,
-      timestamp: data.timestamp || new Date(),
-    };
-
-    // Notify everyone in the session
+    const emergencyWithTimestamp = { ...data, timestamp: data.timestamp || new Date() };
     io.to(`session:${data.sessionId}`).emit('session:emergency', emergencyWithTimestamp);
-
-    // Notify admin room
     io.to('admin:room').emit('admin:emergency', emergencyWithTimestamp);
-
-    // Also notify all other admins via broadcast
     io.emit('admin:emergency', emergencyWithTimestamp);
   });
 
-  // ─── Admin Events ──────────────────────────────────────────────────
+  // ─── Admin Events ──────────────────────────────────────────────
 
   socket.on('admin:join', (data: { adminId: string }) => {
-    console.log(`[Admin:Join] Admin ${data.adminId} joined admin room`);
-
     socket.join('admin:room');
     socket.join(`admin:${data.adminId}`);
-
-    // Send current stats immediately
     socket.emit('admin:stats', getStats());
   });
 
   socket.on('admin:stats', () => {
-    // Request for current stats
     socket.emit('admin:stats', getStats());
   });
 
-  // ─── Health Check ─────────────────────────────────────────────────
+  // ─── Health Check ──────────────────────────────────────────────
 
   socket.on('ping', () => {
     socket.emit('pong', {
       status: 'ok',
       timestamp: Date.now(),
       stats: getStats(),
+      onlineUsers: onlineUserIds.size,
     });
   });
 
-  // ─── Disconnect ────────────────────────────────────────────────────
+  // ─── Disconnect ────────────────────────────────────────────────
 
   socket.on('disconnect', (reason) => {
     console.log(`[Disconnect] User disconnected: ${socket.id} (${reason})`);
 
     const userInfo = userSockets.get(socket.id);
 
+    // Clean up online status
+    if (userInfo) {
+      onlineUserIds.delete(userInfo.userId);
+      io.emit('user_offline', { userId: userInfo.userId });
+      broadcastOnlineStatus();
+
+      // Clean up conversation rooms
+      const userConvs = userConversationMap.get(userInfo.userId);
+      if (userConvs) {
+        userConvs.forEach(convId => {
+          const convRoom = conversationRooms.get(convId);
+          if (convRoom) {
+            convRoom.delete(socket.id);
+            if (convRoom.size === 0) conversationRooms.delete(convId);
+          }
+          // Clear typing for this user in all conversations
+          clearTypingForUser(convId, userInfo.userId);
+        });
+        userConversationMap.delete(userInfo.userId);
+      }
+    }
+
     // Check if this was a guide
     const guide = onlineGuides.get(socket.id);
     if (guide) {
-      console.log(`[Disconnect] Guide ${guide.userId} went offline`);
-
-      // If guide was in an active session, notify the seeker
       activeSessions.forEach((session) => {
         if (session.guideSocketId === socket.id) {
           const seekerSocketId = seekerSockets.get(session.seekerId);
@@ -698,7 +913,6 @@ io.on('connection', (socket: Socket) => {
               guideId: session.guideId,
             });
           }
-          // Also notify admins
           io.to('admin:room').emit('admin:disruption', {
             sessionId: session.sessionId,
             type: 'guide_disconnected',
@@ -706,17 +920,13 @@ io.on('connection', (socket: Socket) => {
           });
         }
       });
-
       removeGuide(socket.id);
     }
 
-    // Check if this was a seeker - clean up seeker socket mapping
+    // Check if this was a seeker
     seekerSockets.forEach((socketId, seekerId) => {
       if (socketId === socket.id) {
         seekerSockets.delete(seekerId);
-        console.log(`[Disconnect] Seeker ${seekerId} disconnected`);
-
-        // If seeker was in an active session, notify the guide
         activeSessions.forEach((session) => {
           if (session.seekerId === seekerId) {
             io.to(session.guideSocketId).emit('session:disrupted', {
@@ -724,7 +934,6 @@ io.on('connection', (socket: Socket) => {
               message: 'The seeker has disconnected. Waiting for reconnection...',
               seekerId: session.seekerId,
             });
-            // Also notify admins
             io.to('admin:room').emit('admin:disruption', {
               sessionId: session.sessionId,
               type: 'seeker_disconnected',
@@ -735,9 +944,7 @@ io.on('connection', (socket: Socket) => {
       }
     });
 
-    // Clean up user socket mapping
     userSockets.delete(socket.id);
-
     broadcastStats();
   });
 
@@ -751,6 +958,7 @@ io.on('connection', (socket: Socket) => {
 httpServer.listen(PORT, () => {
   console.log(`[Realtime Service] Socket.io server running on port ${PORT}`);
   console.log(`[Realtime Service] Chimbo Direct platform - real-time events active`);
+  console.log(`[Realtime Service] Chat events: join_conversation, leave_conversation, send_message, typing_start, typing_stop, mark_read, message_reaction`);
   console.log(`[Realtime Service] Health check via Next.js API: /api/socketio?XTransformPort=${PORT}`);
 });
 

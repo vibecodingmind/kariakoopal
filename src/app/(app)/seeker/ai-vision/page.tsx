@@ -5,7 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Camera, Upload, Sparkles, Scan, X, Loader2, MapPin,
   DollarSign, Shield, MessageSquare, Info, ChevronRight,
-  Clock, Trash2, ArrowRight, Eye, Star, Lightbulb, CheckCircle2
+  Clock, Trash2, ArrowRight, Eye, Star, Lightbulb, CheckCircle2,
+  Barcode, AlertCircle, Share2
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -30,7 +31,7 @@ interface VisionResult {
   culturalNote?: string;
   alternatives?: string[];
   rawText?: string;
-  // New fields from enhanced API
+  // Enhanced fields
   identified_item?: string;
   english_name?: string;
   swahili_name?: string;
@@ -38,6 +39,22 @@ interface VisionResult {
   zone?: string;
   description?: string;
   haggling_tips?: string[];
+  authenticityCheck?: {
+    isLikelyAuthentic: boolean;
+    confidence: number;
+    indicators: string[];
+    warnings: string[];
+  };
+  priceComparison?: {
+    fairPrice: boolean;
+    percentBelowMarket: number;
+    percentAboveMarket: number;
+    recommendation: 'buy' | 'negotiate' | 'walk_away';
+  };
+  barcodeData?: {
+    likelyProduct: string;
+    estimatedRetailPrice: string;
+  };
 }
 
 interface ScanHistoryItem {
@@ -90,6 +107,8 @@ export default function AIVisionPage() {
   const [history, setHistory] = useState<ScanHistoryItem[]>([]);
   const [language, setLanguage] = useState('English');
   const [isDemo, setIsDemo] = useState(false);
+  const [scanType, setScanType] = useState<'general' | 'barcode' | 'price_check'>('general');
+  const [shareSuccess, setShareSuccess] = useState(false);
 
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -134,7 +153,7 @@ export default function AIVisionPage() {
       const res = await fetch('/api/ai/vision', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageBase64, language }),
+        body: JSON.stringify({ imageBase64, language, scanType }),
       });
 
       if (!res.ok) throw new Error('Failed to analyze image');
@@ -176,12 +195,29 @@ export default function AIVisionPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [imageBase64, language, imagePreview]);
+  }, [imageBase64, language, imagePreview, scanType]);
 
   // ── Remove history item ──
   const removeHistoryItem = useCallback((id: string) => {
     setHistory((prev) => prev.filter((item) => item.id !== id));
   }, []);
+
+  // ── Share result ──
+  const handleShareResult = useCallback(async () => {
+    if (!result) return;
+    const text = `ChimboDirect Scan: ${result.name || result.identified_item || 'Item'} - ${result.estimated_price_range || 'Price unknown'} - Quality: ${result.quality || 'Unknown'}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'ChimboDirect Scan Result', text });
+        setShareSuccess(true);
+        setTimeout(() => setShareSuccess(false), 2000);
+        return;
+      } catch { /* user cancelled */ }
+    }
+    await navigator.clipboard.writeText(text).catch(() => {});
+    setShareSuccess(true);
+    setTimeout(() => setShareSuccess(false), 2000);
+  }, [result]);
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0F172A]">
@@ -356,6 +392,28 @@ export default function AIVisionPage() {
               onChange={handleImageSelect}
               className="hidden"
             />
+
+            {/* Scan Type Selector */}
+            <div className="flex gap-2 mb-4">
+              {[
+                { type: 'general' as const, label: 'Identify', icon: Scan },
+                { type: 'barcode' as const, label: 'Barcode', icon: Barcode },
+                { type: 'price_check' as const, label: 'Price Check', icon: DollarSign },
+              ].map(st => (
+                <button
+                  key={st.type}
+                  onClick={() => setScanType(st.type)}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                    scanType === st.type
+                      ? 'bg-[#065F46] dark:bg-[#34D399] text-white dark:text-[#022C22] shadow-md'
+                      : 'bg-[#F1F5F9] dark:bg-[#334155] text-[#64748B] dark:text-[#94A3B8]'
+                  }`}
+                >
+                  <st.icon className="w-3.5 h-3.5" />
+                  {st.label}
+                </button>
+              ))}
+            </div>
 
             {/* Analyze Button */}
             {imagePreview && !result && (
@@ -642,6 +700,94 @@ export default function AIVisionPage() {
                 </motion.div>
               )}
 
+              {/* Authenticity Check */}
+              {result.authenticityCheck && (
+                <motion.div variants={itemVariants}>
+                  <div className={`p-5 sm:p-6 rounded-2xl border-2 ${
+                    result.authenticityCheck.isLikelyAuthentic
+                      ? 'border-[#065F46]/20 dark:border-[#34D399]/20 bg-[#ECFDF5]/50 dark:bg-[#064E3B]/30'
+                      : 'border-red-300 dark:border-red-700 bg-red-50/50 dark:bg-red-900/10'
+                  }`}>
+                    <div className="flex items-center gap-2 mb-3">
+                      <Shield className={`w-5 h-5 ${result.authenticityCheck.isLikelyAuthentic ? 'text-[#065F46] dark:text-[#34D399]' : 'text-red-500'}`} />
+                      <h3 className="text-base font-bold">
+                        Authenticity Check
+                      </h3>
+                      <Badge className={`ml-auto ${result.authenticityCheck.isLikelyAuthentic ? 'bg-[#ECFDF5] text-[#065F46] dark:bg-[#064E3B] dark:text-[#34D399]' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'} border-0 text-xs font-bold`}>
+                        {result.authenticityCheck.confidence}% confident
+                      </Badge>
+                    </div>
+                    {result.authenticityCheck.indicators.length > 0 && (
+                      <div className="mb-3">
+                        <p className="text-xs font-semibold text-[#065F46] dark:text-[#34D399] mb-1.5">What to check:</p>
+                        <ul className="space-y-1">
+                          {result.authenticityCheck.indicators.map((ind, i) => (
+                            <li key={i} className="flex items-start gap-2 text-sm text-[#64748B] dark:text-[#94A3B8]">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-[#065F46] dark:text-[#34D399] shrink-0 mt-0.5" />
+                              {ind}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {result.authenticityCheck.warnings.length > 0 && (
+                      <div>
+                        <p className="text-xs font-semibold text-red-600 dark:text-red-400 mb-1.5">⚠️ Warnings:</p>
+                        <ul className="space-y-1">
+                          {result.authenticityCheck.warnings.map((w, i) => (
+                            <li key={i} className="flex items-start gap-2 text-sm text-red-600/80 dark:text-red-400/80">
+                              <AlertCircle className="w-3.5 h-3.5 text-red-500 shrink-0 mt-0.5" />
+                              {w}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Price Comparison / "Is this a fair price?" */}
+              {result.priceComparison && (
+                <motion.div variants={itemVariants}>
+                  <div className={`p-5 sm:p-6 rounded-2xl border-2 ${
+                    result.priceComparison.recommendation === 'buy'
+                      ? 'border-[#065F46]/20 bg-[#ECFDF5]/50 dark:bg-[#064E3B]/30'
+                      : result.priceComparison.recommendation === 'negotiate'
+                      ? 'border-[#F59E0B]/20 bg-[#FEF3C7]/50 dark:bg-[#78350F]/10'
+                      : 'border-red-300 bg-red-50/50 dark:bg-red-900/10'
+                  }`}>
+                    <div className="flex items-center gap-2 mb-3">
+                      <DollarSign className="w-5 h-5 text-[#F59E0B]" />
+                      <h3 className="text-base font-bold">Is This a Fair Price?</h3>
+                      <Badge className={`ml-auto border-0 text-xs font-bold ${
+                        result.priceComparison.recommendation === 'buy'
+                          ? 'bg-[#ECFDF5] text-[#065F46] dark:bg-[#064E3B] dark:text-[#34D399]'
+                          : result.priceComparison.recommendation === 'negotiate'
+                          ? 'bg-[#FEF3C7] text-[#92400E] dark:bg-[#78350F] dark:text-[#FCD34D]'
+                          : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                      }`}>
+                        {result.priceComparison.recommendation === 'buy' ? '✅ Fair Price' : result.priceComparison.recommendation === 'negotiate' ? '🔄 Negotiate' : '🚶 Walk Away'}
+                      </Badge>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      {result.priceComparison.percentAboveMarket > 0 && (
+                        <div className="text-center p-3 rounded-xl bg-white/50 dark:bg-black/10">
+                          <p className="text-xs text-[#64748B]">Above Market</p>
+                          <p className="text-lg font-bold text-red-600">+{result.priceComparison.percentAboveMarket}%</p>
+                        </div>
+                      )}
+                      {result.priceComparison.percentBelowMarket > 0 && (
+                        <div className="text-center p-3 rounded-xl bg-white/50 dark:bg-black/10">
+                          <p className="text-xs text-[#64748B]">Below Market</p>
+                          <p className="text-lg font-bold text-[#065F46]">-{result.priceComparison.percentBelowMarket}%</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
               {/* Action Buttons */}
               <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-3">
                 <button
@@ -649,14 +795,21 @@ export default function AIVisionPage() {
                   className="flex-1 kbtn-outline flex items-center justify-center gap-2 py-3.5"
                 >
                   <Scan className="w-4 h-4" />
-                  Scan Another Item
+                  Scan Another
+                </button>
+                <button
+                  onClick={handleShareResult}
+                  className="flex-1 kbtn-yellow flex items-center justify-center gap-2 py-3.5"
+                >
+                  {shareSuccess ? <CheckCircle2 className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}
+                  {shareSuccess ? 'Shared!' : 'Share Result'}
                 </button>
                 <Link
                   href="/seeker/ai-haggle"
                   className="flex-1 kbtn flex items-center justify-center gap-2 py-3.5"
                 >
                   <MessageSquare className="w-4 h-4" />
-                  Negotiate This
+                  Haggle
                   <ArrowRight className="w-4 h-4" />
                 </Link>
               </motion.div>

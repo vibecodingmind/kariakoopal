@@ -43,7 +43,9 @@ model GuideProfile {
   zones          String   @default("[]") // JSON array of zone IDs
   languages      String   @default("[]") // JSON array of language codes
   avgRating      Float    @default(0)
+  reviewCount    Int      @default(0)
   totalSessions  Int      @default(0)
+  trendingRating Float    @default(0) // 30-day rolling average
   isOnline       Boolean  @default(false)
   currentStatus  String   @default("offline") // online, offline, busy
   createdAt      DateTime @default(now())
@@ -376,12 +378,12 @@ model Wallet {
 model Transaction {
   id          String   @id @default(cuid())
   walletId    String
-  type        String   // deposit, withdrawal, payment, refund, subscription, payout
+  type        String   // deposit, withdrawal, payment, refund, subscription, payout, escrow_hold, escrow_release, escrow_refund
   amount      Float
-  status      String   @default("pending") // pending, completed, failed
+  status      String   @default("pending") // pending, completed, failed, escrow, disputed
   description String   @default("")
   reference   String   @default("")
-  provider    String?  // pesapal, stripe, paypal
+  provider    String?  // pesapal, stripe, paypal, escrow
   createdAt   DateTime @default(now())
 
   wallet Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
@@ -541,4 +543,256 @@ model PaymentMethod {
   updatedAt  DateTime @updatedAt
 
   @@index([userId])
+}
+
+// ── Feature: Referral System (9) ──
+model Referral {
+  id          String    @id @default(cuid())
+  referrerId  String
+  refereeId   String?
+  code        String    @unique
+  status      String    @default("pending") // pending, converted, rewarded
+  reward      Float     @default(0)
+  createdAt   DateTime  @default(now())
+  convertedAt DateTime?
+
+  @@index([referrerId])
+  @@index([code])
+}
+
+// ── Feature: Dispute Resolution (10) ──
+model Dispute {
+  id          String    @id @default(cuid())
+  sessionId   String
+  filedBy     String
+  against     String
+  category    String    @default("other") // service_quality, no_show, overcharging, safety_concern, other
+  description String    @default("")
+  evidence    String    @default("[]") // JSON array of evidence URLs/descriptions
+  status      String    @default("open") // open, under_review, resolved
+  resolution  String?   // refund, partial_refund, no_action
+  resolvedBy  String?
+  createdAt   DateTime  @default(now())
+  resolvedAt  DateTime?
+
+  @@index([filedBy])
+  @@index([against])
+  @@index([status])
+}
+
+// ── Feature: Favorites & Bookmarks (8) ──
+model Favorite {
+  id         String   @id @default(cuid())
+  userId     String
+  targetId   String
+  targetType String   // guide, vendor, package, zone
+  collection String   @default("default") // folder/collection name
+  note       String   @default("")
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, targetId, targetType, collection])
+  @@index([userId])
+  @@index([targetId, targetType])
+  @@index([userId, collection])
+}
+
+// ── Feature: Guide Verification (5) ──
+model GuideVerification {
+  id               String    @id @default(cuid())
+  guideId          String    @unique
+  status           String    @default("not_submitted") // not_submitted, pending, under_review, approved, rejected
+  fullName         String    @default("")
+  idNumber         String    @default("")
+  address          String    @default("")
+  quizScore        Int       @default(0)
+  quizTotal        Int       @default(5)
+  selfieUrl        String?
+  documentFrontUrl String?
+  documentBackUrl  String?
+  addressProofUrl  String?
+  backgroundCheckStatus String @default("not_started") // not_started, in_progress, passed, failed
+  rejectionReason  String?
+  reviewedBy       String?
+  submittedAt      DateTime?
+  reviewedAt       DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([status])
+  @@index([guideId])
+}
+
+// ── Feature: Location History (6) ──
+model LocationHistory {
+  id        String   @id @default(cuid())
+  sessionId String
+  userId    String
+  lat       Float
+  lng       Float
+  accuracy  Float    @default(10)
+  timestamp DateTime @default(now())
+
+  @@index([sessionId])
+  @@index([userId, timestamp])
+}
+
+// ── Feature: Review Moderation (17) ──
+model ReviewModeration {
+  id               String    @id @default(cuid())
+  reviewId         String
+  status           String    @default("pending") // pending, approved, rejected
+  reason           String    @default("") // auto-flag reason or rejection reason
+  moderatedBy      String?
+  moderatedAt      DateTime?
+  officialResponse  String?
+  flaggedBy        String    @default("system") // system, user_id
+  flagReason       String    @default("") // profanity, short_review, extreme_rating, spam, inappropriate
+  aiConfidence     Float     @default(0)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([reviewId])
+  @@index([status])
+  @@index([moderatedBy])
+}
+
+// ── Feature: Review Reports (17) ──
+model ReviewReport {
+  id          String   @id @default(cuid())
+  reviewId    String
+  reporterId  String
+  reason      String   @default("") // inappropriate, spam, fake, offensive, other
+  details     String   @default("")
+  status      String   @default("pending") // pending, reviewed, dismissed
+  createdAt   DateTime @default(now())
+
+  @@index([reviewId])
+  @@index([reporterId])
+  @@index([status])
+}
+
+// ── Feature: Fraud Log (18) ──
+model FraudLog {
+  id          String   @id @default(cuid())
+  alertId     String?
+  entityType  String   @default("guide") // guide, seeker, vendor
+  entityId    String
+  action      String   // investigate, dismiss, suspend, ban, auto_suspend
+  reason      String   @default("")
+  performedBy String?  // admin user id or "system"
+  details     String   @default("{}") // JSON
+  createdAt   DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([alertId])
+  @@index([createdAt])
+}
+
+// ── Feature: Fraud Risk Score (18) ──
+model FraudRiskScore {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  riskScore   Int      @default(0) // 0-100
+  riskLevel   String   @default("low") // low, medium, high, critical
+  factors     String   @default("{}") // JSON: breakdown of risk factors
+  lastUpdated DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([riskLevel])
+  @@index([riskScore])
+}
+
+// ── Feature: Session Milestones (19) ──
+model SessionMilestone {
+  id          String   @id @default(cuid())
+  sessionId   String
+  type        String   // meetup, zone_change, vendor_visit, checkpoint, break, end
+  label       String   @default("")
+  lat         Float?
+  lng         Float?
+  zoneId      String?
+  vendorId    String?
+  metadata    String   @default("{}") // JSON: extra info
+  timestamp   DateTime @default(now())
+
+  @@index([sessionId])
+  @@index([timestamp])
+}
+
+// ── Feature: Session Notes (19) ──
+model SessionNote {
+  id          String   @id @default(cuid())
+  sessionId   String
+  guideId     String
+  content     String
+  isPrivate   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([sessionId])
+  @@index([guideId])
+}
+
+// ── Feature: Rating History (16) ──
+model RatingHistory {
+  id          String   @id @default(cuid())
+  guideId     String
+  rating      Float
+  reviewId    String?
+  avgRating   Float    // snapshot of avg at this point
+  reviewCount Int      // snapshot of total reviews at this point
+  createdAt   DateTime @default(now())
+
+  @@index([guideId])
+  @@index([createdAt])
+}
+
+// ── Feature: Badge Definitions (24) ──
+model BadgeDefinition {
+  id          String   @id @default(cuid())
+  key         String   @unique // first_booking, five_sessions, etc.
+  name        String
+  description String   @default("")
+  icon        String   @default("") // emoji or icon name
+  category    String   @default("seeker") // seeker, guide, both
+  threshold   Int      @default(1) // e.g. 5 sessions for five_sessions
+  tier        String   @default("bronze") // bronze, silver, gold
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ── Feature: Subscription Features (25) ──
+model SubscriptionFeature {
+  id          String   @id @default(cuid())
+  tier        String   // free, pro, elite
+  featureKey  String   // unlimited_sessions, advanced_analytics, etc.
+  featureName String
+  limit       Int      @default(-1) // -1 = unlimited
+  enabled     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([tier, featureKey])
+}
+
+// ── Feature: QR Check-In (21) ──
+model QRCheckIn {
+  id          String    @id @default(cuid())
+  sessionId   String
+  seekerId    String
+  guideId     String
+  qrCodeHash  String    @unique
+  checkedIn   Boolean   @default(false)
+  checkedOut  Boolean   @default(false)
+  checkedInAt DateTime?
+  checkedOutAt DateTime?
+  validDate   String    @default("") // ISO date string - QR only valid on this date
+  used        Boolean   @default(false) // one-time use
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([sessionId])
+  @@index([seekerId])
+  @@index([qrCodeHash])
 }

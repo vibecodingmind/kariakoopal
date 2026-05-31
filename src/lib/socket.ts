@@ -3,7 +3,6 @@
 
 import { io, Socket } from 'socket.io-client';
 
-const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || '';
 const SOCKET_PORT = process.env.NEXT_PUBLIC_SOCKET_PORT || '3003';
 
 let socket: Socket | null = null;
@@ -13,7 +12,7 @@ export function getSocket(): Socket | null {
 
   if (!socket) {
     try {
-      socket = io(SOCKET_URL, {
+      socket = io('/', {
         autoConnect: false,
         reconnection: true,
         reconnectionAttempts: 10,
@@ -46,12 +45,19 @@ export function getSocket(): Socket | null {
   return socket;
 }
 
-export function connectSocket(userId: string, role: string): Socket | null {
+export function connectSocket(userId: string, role: string, userName?: string): Socket | null {
   const s = getSocket();
   if (!s) return null;
 
   if (!s.connected) {
     s.auth = { userId, role };
+    s.io.opts.query = {
+      ...s.io.opts.query,
+      userId,
+      userName: userName || userId,
+      role,
+      XTransformPort: SOCKET_PORT,
+    };
     s.connect();
   }
 
@@ -74,13 +80,21 @@ export interface LiveLocation {
   timestamp: number;
 }
 
-export interface ChatMessage {
+export interface ChatMessageEvent {
   id: string;
-  sessionId: string;
+  conversationId: string;
   senderId: string;
+  senderName?: string;
   content: string;
-  translatedContent: string | null;
-  timestamp: number;
+  messageType: 'text' | 'image' | 'location' | 'system' | 'file';
+  imageUrl?: string;
+  fileUrl?: string;
+  fileName?: string;
+  fileSize?: number;
+  latitude?: number;
+  longitude?: number;
+  translatedContent?: string | null;
+  createdAt: string;
 }
 
 export interface GuideRequestEvent {
@@ -99,19 +113,94 @@ export interface SessionUpdate {
   timestamp: number;
 }
 
-// ── Event emitters ──
+export interface TypingEvent {
+  conversationId: string;
+  userId: string;
+  userName: string;
+}
+
+export interface ReadReceiptEvent {
+  conversationId: string;
+  userId: string;
+  messageIds?: string[];
+}
+
+export interface ReactionEvent {
+  conversationId: string;
+  messageId: string;
+  userId: string;
+  userName: string;
+  emoji: string;
+  action: 'add' | 'remove';
+}
+
+export interface OnlineStatusEvent {
+  userId: string;
+  userName?: string;
+}
+
+// ── Chat Event Emitters ──
+
+export function emitJoinConversation(conversationId: string): void {
+  const s = getSocket();
+  if (s?.connected) {
+    s.emit('join_conversation', { conversationId });
+  }
+}
+
+export function emitLeaveConversation(conversationId: string): void {
+  const s = getSocket();
+  if (s?.connected) {
+    s.emit('leave_conversation', { conversationId });
+  }
+}
+
+export function emitChatMessage(conversationId: string, content: string, messageType: 'text' | 'image' | 'location' | 'system' | 'file' = 'text', extra?: { imageUrl?: string; fileUrl?: string; fileName?: string; fileSize?: number; latitude?: number; longitude?: number }): void {
+  const s = getSocket();
+  if (s?.connected) {
+    s.emit('send_message', {
+      conversationId,
+      content,
+      messageType,
+      ...extra,
+    });
+  }
+}
+
+export function emitTypingStart(conversationId: string, userName: string): void {
+  const s = getSocket();
+  if (s?.connected) {
+    s.emit('typing_start', { conversationId, userId: '', userName });
+  }
+}
+
+export function emitTypingStop(conversationId: string): void {
+  const s = getSocket();
+  if (s?.connected) {
+    s.emit('typing_stop', { conversationId, userId: '' });
+  }
+}
+
+export function emitMarkRead(conversationId: string): void {
+  const s = getSocket();
+  if (s?.connected) {
+    s.emit('mark_read', { conversationId, userId: '' });
+  }
+}
+
+export function emitMessageReaction(conversationId: string, messageId: string, emoji: string, action: 'add' | 'remove' = 'add'): void {
+  const s = getSocket();
+  if (s?.connected) {
+    s.emit('message_reaction', { conversationId, messageId, userId: '', emoji, action });
+  }
+}
+
+// ── Legacy Session Event Emitters ──
 
 export function emitLocation(lat: number, lng: number, accuracy: number = 10): void {
   const s = getSocket();
   if (s?.connected) {
     s.emit('location:update', { lat, lng, accuracy });
-  }
-}
-
-export function emitChatMessage(sessionId: string, content: string): void {
-  const s = getSocket();
-  if (s?.connected) {
-    s.emit('chat:message', { sessionId, content });
   }
 }
 
@@ -136,7 +225,65 @@ export function emitGuideStatus(status: 'online' | 'offline' | 'busy'): void {
   }
 }
 
-// ── Event listeners ──
+// ── Chat Event Listeners ──
+
+export function onNewMessage(callback: (data: ChatMessageEvent) => void): () => void {
+  const s = getSocket();
+  if (!s) return () => {};
+  s.on('new_message', callback);
+  return () => s.off('new_message', callback);
+}
+
+export function onTyping(callback: (data: TypingEvent) => void): () => void {
+  const s = getSocket();
+  if (!s) return () => {};
+  s.on('typing', callback);
+  return () => s.off('typing', callback);
+}
+
+export function onTypingStop(callback: (data: { conversationId: string; userId: string }) => void): () => void {
+  const s = getSocket();
+  if (!s) return () => {};
+  s.on('typing_stop', callback);
+  return () => s.off('typing_stop', callback);
+}
+
+export function onMessagesRead(callback: (data: ReadReceiptEvent) => void): () => void {
+  const s = getSocket();
+  if (!s) return () => {};
+  s.on('messages_read', callback);
+  return () => s.off('messages_read', callback);
+}
+
+export function onMessageReaction(callback: (data: ReactionEvent) => void): () => void {
+  const s = getSocket();
+  if (!s) return () => {};
+  s.on('message_reaction', callback);
+  return () => s.off('message_reaction', callback);
+}
+
+export function onUserOnline(callback: (data: OnlineStatusEvent) => void): () => void {
+  const s = getSocket();
+  if (!s) return () => {};
+  s.on('user_online', callback);
+  return () => s.off('user_online', callback);
+}
+
+export function onUserOffline(callback: (data: { userId: string }) => void): () => void {
+  const s = getSocket();
+  if (!s) return () => {};
+  s.on('user_offline', callback);
+  return () => s.off('user_offline', callback);
+}
+
+export function onUsersOnline(callback: (userIds: string[]) => void): () => void {
+  const s = getSocket();
+  if (!s) return () => {};
+  s.on('users:online', callback);
+  return () => s.off('users:online', callback);
+}
+
+// ── Legacy Event Listeners ──
 
 export function onLocationUpdate(callback: (data: LiveLocation) => void): () => void {
   const s = getSocket();
@@ -145,7 +292,7 @@ export function onLocationUpdate(callback: (data: LiveLocation) => void): () => 
   return () => s.off('location:update', callback);
 }
 
-export function onChatMessage(callback: (data: ChatMessage) => void): () => void {
+export function onChatMessage(callback: (data: { id: string; sessionId: string; senderId: string; content: string; translatedContent: string | null; timestamp: number }) => void): () => void {
   const s = getSocket();
   if (!s) return () => {};
   s.on('chat:message', callback);

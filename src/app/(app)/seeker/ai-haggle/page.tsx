@@ -42,6 +42,10 @@ interface NegotiationResult {
   walkAwayPrice: number;
   culturalTips: string[];
   rawText?: string;
+  marketPriceRange?: string;
+  isFairPrice?: boolean;
+  fairPriceAssessment?: string;
+  counterOfferStrategy?: string;
 }
 
 interface HaggleFormData {
@@ -173,6 +177,7 @@ export default function AIHagglePage() {
   const [refinementInput, setRefinementInput] = useState('');
   const [isRefining, setIsRefining] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [savedStrategies, setSavedStrategies] = useState<{ item: string; askingPrice: number; result: NegotiationResult }[]>([]);
 
   const isFormValid = formData.item.trim() !== '' && formData.askingPrice > 0;
 
@@ -207,6 +212,8 @@ export default function AIHagglePage() {
       } else {
         setResult(parseNegotiation(JSON.stringify(negotiation), formData.askingPrice, formData.budget));
       }
+      // Save to history
+      setSavedStrategies(prev => [{ item: formData.item, askingPrice: formData.askingPrice, result: parseNegotiation(negotiation.rawText || JSON.stringify(negotiation), formData.askingPrice, formData.budget) }, ...prev].slice(0, 10));
       setShowForm(false);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Something went wrong';

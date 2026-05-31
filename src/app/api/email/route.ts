@@ -1,71 +1,91 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { previewEmail, getEmailTypes, getQueueStatus } from '@/lib/email';
 
-interface EmailPayload {
-  to: string;
-  subject: string;
-  template: 'welcome' | 'booking-confirmed' | 'booking-cancelled' | 'payout-received' | 'review-received' | 'security-alert' | 'weekly-digest';
-  data: Record<string, any>;
-}
-
-const TEMPLATES: Record<string, (data: Record<string, any>) => { html: string; text: string }> = {
-  welcome: (data) => ({
-    html: `<h1>Welcome to Chimbo Direct, ${data.name}!</h1><p>Your ${data.role} account is ready.</p><p>Start exploring Kariakoo Market with AI-powered tools.</p>`,
-    text: `Welcome to Chimbo Direct, ${data.name}! Your ${data.role} account is ready.`,
-  }),
-  'booking-confirmed': (data) => ({
-    html: `<h1>Booking Confirmed!</h1><p>Your session with ${data.guideName} on ${data.date} at ${data.time} is confirmed.</p><p>Amount: TZS ${data.amount?.toLocaleString()}</p><p>Payment held in escrow until session completion.</p>`,
-    text: `Booking confirmed with ${data.guideName} on ${data.date} at ${data.time}.`,
-  }),
-  'booking-cancelled': (data) => ({
-    html: `<h1>Booking Cancelled</h1><p>Your booking with ${data.guideName} has been cancelled.</p><p>Reason: ${data.reason || 'No reason provided'}</p><p>Refund will be processed within 24 hours.</p>`,
-    text: `Booking with ${data.guideName} cancelled. Refund processing.`,
-  }),
-  'payout-received': (data) => ({
-    html: `<h1>Payout Received!</h1><p>TZS ${data.amount?.toLocaleString()} has been sent to your ${data.method} account.</p>`,
-    text: `Payout of TZS ${data.amount?.toLocaleString()} sent to ${data.method}.`,
-  }),
-  'review-received': (data) => ({
-    html: `<h1>New Review!</h1><p>${data.seekerName} left you a ${data.rating}-star review.</p><p>"${data.comment}"</p>`,
-    text: `${data.seekerName} left a ${data.rating}-star review.`,
-  }),
-  'security-alert': (data) => ({
-    html: `<h1>Security Alert</h1><p>${data.message}</p><p>If this wasn't you, please secure your account immediately.</p>`,
-    text: `Security alert: ${data.message}`,
-  }),
-  'weekly-digest': (data) => ({
-    html: `<h1>Your Weekly Chimbo Digest</h1><p>Sessions: ${data.sessions} | Earnings: TZS ${data.earnings?.toLocaleString()} | Rating: ${data.rating}</p>`,
-    text: `Weekly: ${data.sessions} sessions, TZS ${data.earnings?.toLocaleString()} earned.`,
-  }),
-};
-
-export async function POST(req: NextRequest) {
+// GET /api/email - Get email system status, available types
+export async function GET(req: NextRequest) {
   try {
-    const { to, subject, template, data }: EmailPayload = await req.json();
+    const { searchParams } = new URL(req.url);
+    const previewType = searchParams.get('preview') as string | null;
 
-    if (!to || !template) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    if (previewType) {
+      const preview = previewEmail(previewType as any, {
+        name: 'Demo User',
+        guideName: 'Mwanamvula Juma',
+        seekerName: 'John Doe',
+        zone: 'Fabrics Zone',
+        date: new Date().toLocaleDateString(),
+        time: '10:00 AM',
+        amount: '15,000',
+        sessionCode: 'KG-2024-001',
+        transactionId: 'TXN-DEMO-001',
+        status: 'pending',
+        resetUrl: 'https://chimbo.direct/reset?token=demo',
+        appUrl: 'https://chimbo.direct',
+      });
+
+      if (!preview) {
+        return NextResponse.json({ error: 'Unknown email type' }, { status: 400 });
+      }
+
+      return NextResponse.json({ success: true, preview });
     }
-
-    const templateFn = TEMPLATES[template];
-    if (!templateFn) {
-      return NextResponse.json({ error: 'Invalid template' }, { status: 400 });
-    }
-
-    const content = templateFn(data);
-
-    // In production, use a real email service (SendGrid, Resend, etc.)
-    // For now, log the email
-    console.log('📧 Email sent:', { to, subject, template });
 
     return NextResponse.json({
       success: true,
-      message: 'Email queued for sending (demo mode - logged to console)',
-      template,
-      to,
-      preview: content,
+      types: getEmailTypes(),
+      smtpConfigured: !!(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS),
+      queue: getQueueStatus(),
     });
   } catch (error: any) {
-    console.error('Email error:', error);
+    console.error('Email API error:', error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+// POST /api/email - Admin broadcast email to multiple users
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const { subject, bodyHtml, bodyText, ctaUrl, ctaText, recipientEmails } = body;
+
+    if (!subject || (!bodyHtml && !bodyText)) {
+      return NextResponse.json(
+        { error: 'Subject and body (HTML or text) are required' },
+        { status: 400 }
+      );
+    }
+
+    if (!recipientEmails || !Array.isArray(recipientEmails) || recipientEmails.length === 0) {
+      return NextResponse.json(
+        { error: 'recipientEmails array is required' },
+        { status: 400 }
+      );
+    }
+
+    // Queue broadcast emails
+    const results = [];
+    for (const email of recipientEmails.slice(0, 100)) { // max 100 per batch
+      const { sendEmail } = await import('@/lib/email');
+      const result = await sendEmail('admin_broadcast', email, {
+        subject,
+        bodyHtml: bodyHtml || '',
+        body: bodyText || bodyHtml?.replace(/<[^>]*>/g, '') || '',
+        message: bodyText || '',
+        ctaUrl: ctaUrl || '',
+        ctaText: ctaText || '',
+        appUrl: process.env.NEXT_PUBLIC_APP_URL || 'https://chimbo.direct',
+      });
+      results.push({ email, trackingId: result.trackingId });
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: `Broadcast queued for ${results.length} recipients`,
+      count: results.length,
+      results,
+    });
+  } catch (error: any) {
+    console.error('Email broadcast error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

@@ -6,7 +6,7 @@ import {
   Sparkles, Languages, ArrowRightLeft, Volume2, Copy, Share2,
   Loader2, Check, X, ChevronRight, Info, BookOpen,
   MessageCircle, MapPin, UtensilsCrossed, AlertOctagon, Hash,
-  ShoppingBag, Send
+  ShoppingBag, Send, Camera, Heart, Microscope
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,6 +28,10 @@ interface TranslationResult {
   culturalNote: string;
   alternatives: string[];
   formalityLevel: 'formal' | 'informal' | 'slang';
+  phoneticSpelling?: string;
+  marketContext?: string;
+  relatedPhrases?: string[];
+  commonMistakes?: string;
 }
 
 interface PhrasebookPhrase {
@@ -171,6 +175,9 @@ export default function AITranslatePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [favorites, setFavorites] = useState<{ english: string; swahili: string; pronunciation: string }[]>([]);
+  const [showFavorites, setShowFavorites] = useState(false);
 
   const toLang = fromLang === 'en' ? 'sw' : 'en';
 
@@ -214,6 +221,10 @@ export default function AITranslatePage() {
           culturalNote: t.culturalNote || '',
           alternatives: Array.isArray(t.alternatives) ? t.alternatives : [],
           formalityLevel: t.formalityLevel || 'informal',
+          phoneticSpelling: t.phoneticSpelling || '',
+          marketContext: t.marketContext || '',
+          relatedPhrases: Array.isArray(t.relatedPhrases) ? t.relatedPhrases : [],
+          commonMistakes: t.commonMistakes || '',
         });
       }
     } catch (err: unknown) {
@@ -249,6 +260,52 @@ export default function AITranslatePage() {
   const handleQuickPhrase = useCallback((phrase: string) => {
     setInputText(phrase);
     setResult(null);
+  }, []);
+
+  // ── Voice Input ──
+  const toggleVoiceInput = useCallback(() => {
+    if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+      return; // Speech API not supported
+    }
+    if (isListening) {
+      setIsListening(false);
+      return;
+    }
+    const SpeechRecognition = (window as unknown as Record<string, unknown>).SpeechRecognition || (window as unknown as Record<string, unknown>).webkitSpeechRecognition;
+    const recognition = new (SpeechRecognition as new () => SpeechRecognition)();
+    recognition.lang = fromLang === 'en' ? 'en-US' : 'sw-TZ';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
+      const transcript = event.results[0][0].transcript;
+      setInputText(transcript);
+      setResult(null);
+      setIsListening(false);
+    };
+    recognition.onerror = () => setIsListening(false);
+    recognition.onend = () => setIsListening(false);
+    recognition.start();
+    setIsListening(true);
+  }, [fromLang, isListening]);
+
+  // ── Voice Output ──
+  const speakText = useCallback((text: string, lang: 'en' | 'sw') => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = lang === 'en' ? 'en-US' : 'sw-TZ';
+      utterance.rate = 0.85;
+      window.speechSynthesis.speak(utterance);
+    }
+  }, []);
+
+  // ── Add/Remove Favorite ──
+  const toggleFavorite = useCallback((english: string, swahili: string, pronunciation: string) => {
+    setFavorites(prev => {
+      const exists = prev.find(f => f.english === english && f.swahili === swahili);
+      if (exists) return prev.filter(f => f !== exists);
+      return [...prev, { english, swahili, pronunciation }];
+    });
   }, []);
 
   const formalityColors: Record<string, string> = {
@@ -340,25 +397,39 @@ export default function AITranslatePage() {
               </div>
 
               {/* Input textarea */}
-              <Textarea
-                placeholder={
-                  fromLang === 'en'
-                    ? 'Type in English… e.g. "How much is this kanga?"'
-                    : 'Andika kwa Kiswahili… mfano "Hii kanga ni bei gani?"'
-                }
-                value={inputText}
-                onChange={(e) => {
-                  setInputText(e.target.value);
-                  setResult(null);
-                }}
-                className="kinput min-h-[120px] text-base resize-none"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleTranslate();
+              <div className="relative">
+                <Textarea
+                  placeholder={
+                    fromLang === 'en'
+                      ? 'Type in English… e.g. "How much is this kanga?"'
+                      : 'Andika kwa Kiswahili… mfano "Hii kanga ni bei gani?"'
                   }
-                }}
-              />
+                  value={inputText}
+                  onChange={(e) => {
+                    setInputText(e.target.value);
+                    setResult(null);
+                  }}
+                  className="kinput min-h-[120px] text-base resize-none pr-12"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleTranslate();
+                    }
+                  }}
+                />
+                {/* Voice input button */}
+                <button
+                  onClick={toggleVoiceInput}
+                  className={`absolute right-3 bottom-3 w-9 h-9 rounded-xl flex items-center justify-center transition-all ${
+                    isListening
+                      ? 'bg-red-500 text-white animate-pulse'
+                      : 'bg-[#ECFDF5] dark:bg-[#064E3B] text-[#065F46] dark:text-[#34D399] hover:bg-[#065F46] hover:text-white'
+                  }`}
+                  title="Voice input"
+                >
+                  <Volume2 className="w-4 h-4" />
+                </button>
+              </div>
 
               {/* Common phrase chips */}
               <div>
@@ -380,12 +451,20 @@ export default function AITranslatePage() {
                 </div>
               </div>
 
-              {/* Translate button */}
-              <button
-                onClick={handleTranslate}
-                disabled={!inputText.trim() || isLoading}
-                className="w-full py-4 rounded-2xl text-base font-bold text-white bg-gradient-to-r from-[#065F46] via-[#059669] to-[#065F46] bg-[length:200%_100%] hover:bg-right shadow-lg shadow-[#065F46]/25 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-500 flex items-center justify-center gap-2.5"
-              >
+              {/* Translate + Camera buttons */}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {/* Camera translate would use VLM */}}
+                  className="kbtn-outline py-4 px-4 flex items-center justify-center gap-1"
+                  title="Point & Translate"
+                >
+                  <Camera className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={handleTranslate}
+                  disabled={!inputText.trim() || isLoading}
+                  className="flex-1 py-4 rounded-2xl text-base font-bold text-white bg-gradient-to-r from-[#065F46] via-[#059669] to-[#065F46] bg-[length:200%_100%] hover:bg-right shadow-lg shadow-[#065F46]/25 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-500 flex items-center justify-center gap-2.5"
+                >
                 {isLoading ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
@@ -398,7 +477,8 @@ export default function AITranslatePage() {
                     <ChevronRight className="w-4 h-4" />
                   </>
                 )}
-              </button>
+                </button>
+              </div>
 
               {/* Error */}
               {error && (
@@ -460,6 +540,14 @@ export default function AITranslatePage() {
                         /{result.pronunciation}/
                       </p>
                     )}
+                    {/* Play audio button */}
+                    <button
+                      onClick={() => speakText(result.translation, toLang)}
+                      className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-semibold transition-all"
+                    >
+                      <Volume2 className="w-3 h-3" />
+                      Play Audio
+                    </button>
                   </div>
                 </div>
 
@@ -480,9 +568,12 @@ export default function AITranslatePage() {
                       <p className="text-base text-[#065F46] dark:text-[#34D399] font-medium">
                         /{result.pronunciation}/
                       </p>
-                      <button className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#ECFDF5] dark:bg-[#064E3B] text-[#065F46] dark:text-[#34D399] text-xs font-semibold hover:bg-[#065F46] hover:text-white dark:hover:bg-[#34D399] dark:hover:text-[#022C22] transition-all">
+                      <button
+                        onClick={() => speakText(`/${result.pronunciation}/`, toLang)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#ECFDF5] dark:bg-[#064E3B] text-[#065F46] dark:text-[#34D399] text-xs font-semibold hover:bg-[#065F46] hover:text-white dark:hover:bg-[#34D399] dark:hover:text-[#022C22] transition-all"
+                      >
                         <Volume2 className="w-3 h-3" />
-                        Play Audio
+                        Play
                       </button>
                     </motion.div>
                   )}
@@ -572,6 +663,44 @@ export default function AITranslatePage() {
               </motion.div>
             )}
           </AnimatePresence>
+
+          {/* ── Favorites Section ── */}
+          {favorites.length > 0 && (
+            <motion.div variants={itemVariants}>
+              <div className="kcard-glass p-5 sm:p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-bold text-[#0F172A] dark:text-[#F1F5F9] flex items-center gap-2">
+                    <Heart className="w-5 h-5 text-[#F59E0B] fill-[#F59E0B]" />
+                    Saved Translations
+                  </h2>
+                  <Badge className="bg-[#ECFDF5] dark:bg-[#064E3B] text-[#065F46] dark:text-[#34D399] border-0 text-xs">
+                    {favorites.length}
+                  </Badge>
+                </div>
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {favorites.map((fav, i) => (
+                    <button
+                      key={i}
+                      onClick={() => handleQuickPhrase(fromLang === 'en' ? fav.english : fav.swahili)}
+                      className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-[#ECFDF5] dark:hover:bg-[#064E3B] transition-colors text-left group"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-[#0F172A] dark:text-[#F1F5F9]">{fav.english}</p>
+                        <p className="text-sm font-semibold text-[#065F46] dark:text-[#34D399]">{fav.swahili}</p>
+                        <p className="text-xs text-[#F59E0B] italic">/{fav.pronunciation}/</p>
+                      </div>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); toggleFavorite(fav.english, fav.swahili, fav.pronunciation); }}
+                        className="opacity-0 group-hover:opacity-100 w-7 h-7 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-500 flex items-center justify-center hover:bg-red-100 transition-all"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
 
           {/* ── Market Phrasebook ── */}
           <motion.div variants={itemVariants}>

@@ -7,7 +7,7 @@ import {
   ChevronRight, Loader2, Star, Clock, Heart, CheckCircle2,
   AlertCircle, X, Send, Compass, ArrowRight, UserCheck,
   ShoppingBag, Utensils, Landmark, Palette, Camera, Building2,
-  Leaf, Cpu, Gem, Hammer, User, Calendar
+  Leaf, Cpu, Gem, Hammer, User, Calendar, Zap
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -246,6 +246,8 @@ export default function AIMatchPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(true);
+  const [savedMatches, setSavedMatches] = useState<GuideMatch[]>([]);
+  const [quickMatching, setQuickMatching] = useState(false);
 
   const isFormValid = formData.interests.length > 0;
 
@@ -270,11 +272,12 @@ export default function AIMatchPage() {
   }, []);
 
   // ── Find matches ──
-  const handleMatch = useCallback(async () => {
+  const handleMatch = useCallback(async (quick = false) => {
     if (!isFormValid) return;
     setIsLoading(true);
     setError(null);
     setMatches(null);
+    if (quick) setQuickMatching(true);
 
     try {
       const seekerPreferences = {
@@ -299,7 +302,11 @@ export default function AIMatchPage() {
       const res = await fetch('/api/ai/match-guide', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ seekerPreferences, availableGuides }),
+        body: JSON.stringify({
+          seekerPreferences,
+          availableGuides,
+          action: quick ? 'quick' : 'full',
+        }),
       });
 
       if (!res.ok) throw new Error('Failed to find matches');
@@ -316,11 +323,13 @@ export default function AIMatchPage() {
         setMatches(parseMatches(JSON.stringify(rawMatches), formData));
       }
       setShowForm(false);
+      if (matches) setSavedMatches(matches);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Something went wrong';
       setError(message);
     } finally {
       setIsLoading(false);
+      setQuickMatching(false);
     }
   }, [formData, isFormValid]);
 
@@ -562,13 +571,14 @@ export default function AIMatchPage() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 }}
+                  className="space-y-3"
                 >
                   <button
-                    onClick={handleMatch}
+                    onClick={() => handleMatch(false)}
                     disabled={!isFormValid || isLoading}
                     className="w-full py-4 rounded-2xl text-base font-bold text-white bg-gradient-to-r from-[#065F46] via-[#059669] to-[#065F46] bg-[length:200%_100%] hover:bg-right shadow-lg shadow-[#065F46]/25 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-500 flex items-center justify-center gap-2.5"
                   >
-                    {isLoading ? (
+                    {isLoading && !quickMatching ? (
                       <>
                         <Loader2 className="w-5 h-5 animate-spin" />
                         Finding Your Perfect Guide…
@@ -580,6 +590,18 @@ export default function AIMatchPage() {
                         <ChevronRight className="w-4 h-4" />
                       </>
                     )}
+                  </button>
+                  <button
+                    onClick={() => handleMatch(true)}
+                    disabled={!isFormValid || isLoading}
+                    className="w-full py-3 rounded-2xl text-sm font-semibold border-2 border-[#065F46] dark:border-[#34D399] text-[#065F46] dark:text-[#34D399] hover:bg-[#ECFDF5] dark:hover:bg-[#064E3B] disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+                  >
+                    {quickMatching ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Zap className="w-4 h-4" />
+                    )}
+                    Quick Match — Instant Recommendation
                   </button>
                 </motion.div>
 

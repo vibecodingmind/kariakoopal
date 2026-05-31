@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/stores/auth-store';
-import { Eye, TrendingUp, Clock, Users, MapPin, Globe, Trophy, BarChart3 } from 'lucide-react';
+import { Eye, TrendingUp, Clock, Users, MapPin, Globe, Trophy, BarChart3, Star, ArrowUpRight, ArrowDownRight, Minus, MessageSquare } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const WEEKLY_VIEWS = [
@@ -37,17 +37,75 @@ const TOP_ZONES = [
 const MAX_VIEWS = Math.max(...WEEKLY_VIEWS.map(d => d.views));
 const MAX_EARNINGS = Math.max(...EARNINGS_TREND.map(d => d.amount));
 
+// Demo rating history data
+const DEMO_RATING_HISTORY = [
+  { id: 'rh1', rating: 5, avgRating: 4.3, reviewCount: 24, createdAt: new Date(Date.now() - 86400000 * 1).toISOString() },
+  { id: 'rh2', rating: 4, avgRating: 4.2, reviewCount: 23, createdAt: new Date(Date.now() - 86400000 * 3).toISOString() },
+  { id: 'rh3', rating: 5, avgRating: 4.2, reviewCount: 22, createdAt: new Date(Date.now() - 86400000 * 5).toISOString() },
+  { id: 'rh4', rating: 3, avgRating: 4.1, reviewCount: 21, createdAt: new Date(Date.now() - 86400000 * 7).toISOString() },
+  { id: 'rh5', rating: 5, avgRating: 4.2, reviewCount: 20, createdAt: new Date(Date.now() - 86400000 * 10).toISOString() },
+  { id: 'rh6', rating: 4, avgRating: 4.1, reviewCount: 19, createdAt: new Date(Date.now() - 86400000 * 13).toISOString() },
+  { id: 'rh7', rating: 5, avgRating: 4.0, reviewCount: 18, createdAt: new Date(Date.now() - 86400000 * 16).toISOString() },
+  { id: 'rh8', rating: 4, avgRating: 3.9, reviewCount: 17, createdAt: new Date(Date.now() - 86400000 * 20).toISOString() },
+];
+
+const DEMO_RATING_STATS = {
+  averageRating: 4.3,
+  totalReviews: 24,
+  ratingDistribution: { 1: 1, 2: 2, 3: 3, 4: 8, 5: 10 },
+  trendDirection: 'up' as const,
+  thirtyDayAverage: 4.5,
+  previousAverage: 4.1,
+  responseRate: 67,
+};
+
 export default function AnalyticsPage() {
   const { user, isAuthenticated, language } = useAuthStore();
   const router = useRouter();
   const sw = language === 'sw';
   const [period, setPeriod] = useState<'week' | 'month'>('week');
+  const [ratingStats, setRatingStats] = useState(DEMO_RATING_STATS);
+  const [ratingHistory, setRatingHistory] = useState(DEMO_RATING_HISTORY);
 
   useEffect(() => {
     if (!isAuthenticated || user?.role !== 'guide') router.replace('/auth');
   }, [isAuthenticated, user, router]);
 
+  const fetchRatingStats = useCallback(async () => {
+    if (!user?.id) return;
+    try {
+      const res = await fetch(`/api/guides/${user.id}/rating-stats`);
+      if (res.ok) {
+        const data = await res.json();
+        setRatingStats({
+          averageRating: data.averageRating,
+          totalReviews: data.totalReviews,
+          ratingDistribution: data.ratingDistribution,
+          trendDirection: data.trendDirection,
+          thirtyDayAverage: data.thirtyDayAverage,
+          previousAverage: data.previousAverage,
+          responseRate: data.responseRate,
+        });
+        if (data.ratingHistory?.length > 0) {
+          setRatingHistory(data.ratingHistory);
+        }
+      }
+    } catch {
+      // Use demo data
+    }
+  }, [user?.id]);
+
+  useEffect(() => {
+    fetchRatingStats();
+  }, [fetchRatingStats]);
+
   const l = (en: string, swText: string) => (sw ? swText : en);
+
+  // Rating history chart: find min/max for scaling
+  const avgRatings = ratingHistory.map(h => h.avgRating);
+  const minRating = Math.max(0, Math.floor(Math.min(...avgRatings) * 2) / 2 - 0.5);
+  const maxRating = Math.min(5, Math.ceil(Math.max(...avgRatings) * 2) / 2 + 0.5);
+  const ratingRange = maxRating - minRating || 1;
 
   return (
     <div className="px-4 py-4 space-y-5 pb-24">

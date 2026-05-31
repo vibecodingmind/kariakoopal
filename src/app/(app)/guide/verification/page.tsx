@@ -4,8 +4,9 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Shield, Camera, Upload, CheckCircle2, XCircle, Loader2,
-  ChevronRight, ChevronLeft, FileText, User, MapPin, Award,
-  AlertCircle, Clock, RefreshCw, Info
+  ChevronRight, ChevronLeft, FileText, User, MapPin,
+  AlertCircle, Clock, RefreshCw, Info, Eye, Home,
+  ScanSearch, BadgeCheck, Fingerprint
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,8 +15,8 @@ import { useAuthStore } from '@/lib/stores/auth-store';
 
 // ─── Types ──
 
-type VerificationStatus = 'not_submitted' | 'pending' | 'approved' | 'rejected';
-type WizardStep = 'personal' | 'quiz' | 'selfie' | 'documents' | 'status';
+type VerificationStatus = 'not_submitted' | 'pending' | 'under_review' | 'approved' | 'rejected';
+type WizardStep = 'personal' | 'quiz' | 'selfie' | 'documents' | 'address_proof' | 'background_check' | 'status';
 
 interface QuizQuestion {
   id: string;
@@ -35,9 +36,15 @@ interface VerificationData {
   };
   quizScore: number | null;
   quizTotal: number;
+  selfieUrl: string | null;
+  documentFrontUrl: string | null;
+  documentBackUrl: string | null;
+  addressProofUrl: string | null;
+  backgroundCheckStatus: string;
   rejectionReason: string | null;
   submittedAt: string | null;
   reviewedAt: string | null;
+  vlmResult?: { verified: boolean; confidence: number; details: string } | null;
 }
 
 // ─── Animation variants ──
@@ -104,6 +111,28 @@ const DEFAULT_QUIZ: QuizQuestion[] = [
   },
 ];
 
+// ─── Verification Badge Component ──
+
+function VerificationBadge({ status }: { status: VerificationStatus }) {
+  if (status === 'approved') {
+    return (
+      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#ECFDF5] dark:bg-[#064E3B] border border-[#34D399]/30">
+        <BadgeCheck className="w-4 h-4 text-[#34D399]" />
+        <span className="text-xs font-bold text-[#065F46] dark:text-[#34D399]">Verified</span>
+      </div>
+    );
+  }
+  if (status === 'pending' || status === 'under_review') {
+    return (
+      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#FEF3C7] dark:bg-[#422006] border border-[#F59E0B]/30">
+        <Clock className="w-3.5 h-3.5 text-[#F59E0B]" />
+        <span className="text-xs font-bold text-[#92400E] dark:text-[#FBBF24]">In Review</span>
+      </div>
+    );
+  }
+  return null;
+}
+
 // ─── Component ──
 
 export default function GuideVerificationPage() {
@@ -139,6 +168,14 @@ export default function GuideVerificationPage() {
   const docFrontRef = useRef<HTMLInputElement>(null);
   const docBackRef = useRef<HTMLInputElement>(null);
 
+  // Address proof
+  const [addressProofPreview, setAddressProofPreview] = useState<string | null>(null);
+  const [addressProofBase64, setAddressProofBase64] = useState<string | null>(null);
+  const addressProofRef = useRef<HTMLInputElement>(null);
+
+  // VLM result
+  const [vlmResult, setVlmResult] = useState<{ verified: boolean; confidence: number; details: string } | null>(null);
+
   const l = (en: string, swText: string) => (sw ? swText : en);
 
   // ── Load verification status ──
@@ -152,7 +189,9 @@ export default function GuideVerificationPage() {
           if (data.verification) {
             setVerification(data.verification as VerificationData);
             if (data.quizQuestions) setQuizQuestions(data.quizQuestions);
-            if (data.verification.status === 'pending' || data.verification.status === 'approved' || data.verification.status === 'rejected') {
+            if (data.vlmResult) setVlmResult(data.vlmResult);
+            const status = data.verification.status;
+            if (status === 'pending' || status === 'under_review' || status === 'approved' || status === 'rejected') {
               setCurrentStep('status');
             }
           }
@@ -211,12 +250,14 @@ export default function GuideVerificationPage() {
           selfieData: selfieBase64,
           documentFrontData: docFrontBase64,
           documentBackData: docBackBase64,
+          addressProofData: addressProofBase64,
         }),
       });
 
       if (res.ok) {
         const data = await res.json();
         setVerification(data.verification);
+        if (data.vlmResult) setVlmResult(data.vlmResult);
         setCurrentStep('status');
       }
     } catch (err) {
@@ -224,7 +265,7 @@ export default function GuideVerificationPage() {
     } finally {
       setIsSubmitting(false);
     }
-  }, [user?.id, fullName, idNumber, address, quizAnswers, selfieBase64, docFrontBase64, docBackBase64]);
+  }, [user?.id, fullName, idNumber, address, quizAnswers, selfieBase64, docFrontBase64, docBackBase64, addressProofBase64]);
 
   // ── Refresh status ──
   const refreshStatus = useCallback(async () => {
@@ -247,7 +288,9 @@ export default function GuideVerificationPage() {
     { id: 'personal', label: 'Personal Info', labelSw: 'Taarifa Za Kibinafsi', icon: User },
     { id: 'quiz', label: 'Zone Quiz', labelSw: 'Jaribio La Eneo', icon: MapPin },
     { id: 'selfie', label: 'Selfie', labelSw: 'Picha Ya Kibinafsi', icon: Camera },
-    { id: 'documents', label: 'Documents', labelSw: 'Nyaraka', icon: FileText },
+    { id: 'documents', label: 'ID Upload', labelSw: 'Pakia Kitambulisho', icon: FileText },
+    { id: 'address_proof', label: 'Address Proof', labelSw: 'Uthibitisho Wa Anwani', icon: Home },
+    { id: 'background_check', label: 'Background', labelSw: 'Ukaguzi', icon: Fingerprint },
     { id: 'status', label: 'Status', labelSw: 'Hali', icon: Shield },
   ];
 
@@ -256,7 +299,9 @@ export default function GuideVerificationPage() {
   const canProceedFromPersonal = fullName.trim() && idNumber.trim() && address.trim();
   const canProceedFromQuiz = quizSubmitted && quizScore >= 3;
   const canProceedFromSelfie = !!selfieBase64;
-  const canSubmit = canProceedFromPersonal && canProceedFromQuiz && canProceedFromSelfie && (docFrontBase64 || docBackBase64);
+  const canProceedFromDocuments = !!(docFrontBase64 || docBackBase64);
+  const canProceedFromAddress = !!addressProofBase64;
+  const canSubmit = canProceedFromPersonal && canProceedFromQuiz && canProceedFromSelfie && canProceedFromDocuments;
 
   // ── Loading state ──
   if (isLoading) {
@@ -275,25 +320,28 @@ export default function GuideVerificationPage() {
       {/* Header */}
       <div className="bg-gradient-to-b from-[#065F46] to-[#064E3B] dark:from-[#0F172A] dark:to-[#0F172A] px-4 pt-6 pb-8">
         <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }}>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center">
-              <Shield className="w-5 h-5 text-[#34D399]" />
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center">
+                <Shield className="w-5 h-5 text-[#34D399]" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-white">{l('Guide Verification', 'Uthibitisho Wa Mwongozo')}</h1>
+                <p className="text-xs text-[#34D399]">{l('Get verified to start guiding', 'Thibitishwa kuanza kuongoza')}</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-xl font-bold text-white">{l('Guide Verification', 'Uthibitisho Wa Mwongozo')}</h1>
-              <p className="text-xs text-[#34D399]">{l('Get verified to start guiding', 'Thibitishwa kuanza kuongoza')}</p>
-            </div>
+            <VerificationBadge status={verification?.status || 'not_submitted'} />
           </div>
         </motion.div>
 
         {/* Progress Steps */}
-        <div className="flex items-center gap-1 mt-4">
+        <div className="flex items-center gap-1 mt-4 overflow-x-auto pb-1">
           {steps.map((step, i) => {
             const StepIcon = step.icon;
             const isActive = i === currentStepIndex;
             const isCompleted = i < currentStepIndex;
             return (
-              <div key={step.id} className="flex-1 flex flex-col items-center gap-1">
+              <div key={step.id} className="flex-1 flex flex-col items-center gap-1 min-w-[40px]">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
                   isCompleted ? 'bg-[#34D399]' :
                   isActive ? 'bg-white/20 border-2 border-[#34D399]' :
@@ -305,7 +353,7 @@ export default function GuideVerificationPage() {
                     <StepIcon className={`w-3.5 h-3.5 ${isActive ? 'text-[#34D399]' : 'text-white/50'}`} />
                   )}
                 </div>
-                <span className={`text-[10px] ${isActive ? 'text-white font-semibold' : 'text-white/50'}`}>
+                <span className={`text-[8px] leading-tight text-center ${isActive ? 'text-white font-semibold' : 'text-white/50'}`}>
                   {i + 1}
                 </span>
               </div>
@@ -589,7 +637,7 @@ export default function GuideVerificationPage() {
             </motion.div>
           )}
 
-          {/* ── Step 4: Documents Upload ── */}
+          {/* ── Step 4: ID Document Upload ── */}
           {currentStep === 'documents' && (
             <motion.div key="documents" variants={containerVariants} initial="hidden" animate="visible" exit="hidden">
               <Card className="border-0 shadow-lg">
@@ -614,6 +662,10 @@ export default function GuideVerificationPage() {
                         <button onClick={() => { setDocFrontPreview(null); setDocFrontBase64(null); }} className="absolute top-1 right-1 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center">
                           <XCircle className="w-3 h-3" />
                         </button>
+                        <div className="absolute bottom-1 left-1 flex items-center gap-1 bg-[#065F46] text-white px-1.5 py-0.5 rounded text-[10px] font-medium">
+                          <ScanSearch className="w-3 h-3" />
+                          {l('AI Verified', 'AI Imethibitisha')}
+                        </div>
                       </div>
                     ) : (
                       <button onClick={() => docFrontRef.current?.click()} className="w-full border-2 border-dashed border-[#E2E8F0] dark:border-[#334155] rounded-xl p-6 text-center hover:border-[#065F46] dark:hover:border-[#34D399] transition-colors">
@@ -645,9 +697,169 @@ export default function GuideVerificationPage() {
                     <input ref={docBackRef} type="file" accept="image/*" onChange={e => handleImageSelect(e, setDocBackPreview, setDocBackBase64)} className="hidden" />
                   </div>
 
-                  {/* Info note */}
+                  {/* Info note about AI verification */}
                   <div className="p-3 rounded-xl bg-[#ECFDF5] dark:bg-[#064E3B] flex items-start gap-2">
-                    <Info className="w-4 h-4 text-[#065F46] dark:text-[#34D399] shrink-0 mt-0.5" />
+                    <ScanSearch className="w-4 h-4 text-[#065F46] dark:text-[#34D399] shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-xs text-[#065F46] dark:text-[#34D399] font-medium">
+                        {l('AI-Powered Verification', 'Uthibitisho wa AI')}
+                      </p>
+                      <p className="text-[10px] text-[#065F46] dark:text-[#34D399]/80 mt-0.5">
+                        {l('Your ID will be analyzed by AI to verify authenticity. Ensure clear, well-lit photos.', 'Kitambulisho chako kitaangaliwa na AI kuthibitisha uhalali. Hakikisha picha ni wazi.')}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <Button
+                      variant="outline"
+                      onClick={() => setCurrentStep('selfie')}
+                      className="flex-1 py-3.5 rounded-xl"
+                    >
+                      <ChevronLeft className="w-4 h-4 mr-1" />
+                      {l('Back', 'Rudi')}
+                    </Button>
+                    <Button
+                      onClick={() => setCurrentStep('address_proof')}
+                      disabled={!canProceedFromDocuments}
+                      className="flex-1 bg-[#065F46] hover:bg-[#064E3B] text-white font-bold py-3.5 rounded-xl disabled:opacity-50"
+                    >
+                      {l('Continue', 'Endelea')}
+                      <ChevronRight className="w-4 h-4 ml-1" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+
+          {/* ── Step 5: Address Proof ── */}
+          {currentStep === 'address_proof' && (
+            <motion.div key="address_proof" variants={containerVariants} initial="hidden" animate="visible" exit="hidden">
+              <Card className="border-0 shadow-lg">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2 text-[#065F46] dark:text-[#34D399]">
+                    <Home className="w-5 h-5" />
+                    {l('Address Proof', 'Uthibitisho Wa Anwani')}
+                  </CardTitle>
+                  <p className="text-xs text-[#64748B]">
+                    {l('Upload a utility bill, bank statement, or official letter showing your address', 'Pakia bili ya matumizi, taarifa ya benki, au barua rasmi inayoonyesha anwani yako')}
+                  </p>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {addressProofPreview ? (
+                    <div className="relative">
+                      <img src={addressProofPreview} alt="Address Proof" className="w-full max-h-48 object-contain rounded-xl border border-[#E2E8F0] dark:border-[#334155]" />
+                      <button onClick={() => { setAddressProofPreview(null); setAddressProofBase64(null); }} className="absolute top-1 right-1 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center">
+                        <XCircle className="w-3 h-3" />
+                      </button>
+                      <div className="absolute bottom-1 left-1 flex items-center gap-1 bg-[#065F46] text-white px-1.5 py-0.5 rounded text-[10px] font-medium">
+                        <CheckCircle2 className="w-3 h-3" />
+                        {l('Uploaded', 'Imepakiwa')}
+                      </div>
+                    </div>
+                  ) : (
+                    <button onClick={() => addressProofRef.current?.click()} className="w-full border-2 border-dashed border-[#E2E8F0] dark:border-[#334155] rounded-xl p-8 text-center hover:border-[#065F46] dark:hover:border-[#34D399] transition-colors">
+                      <div className="w-14 h-14 rounded-full bg-[#ECFDF5] dark:bg-[#064E3B] flex items-center justify-center mx-auto mb-3">
+                        <Home className="w-7 h-7 text-[#065F46] dark:text-[#34D399]" />
+                      </div>
+                      <p className="text-sm text-[#64748B]">{l('Upload address proof document', 'Pakia hati ya uthibitisho wa anwani')}</p>
+                      <p className="text-[10px] text-[#94A3B8] mt-1">
+                        {l('Utility bill, bank statement, or official letter', 'Bili ya matumizi, taarifa ya benki, au barua rasmi')}
+                      </p>
+                    </button>
+                  )}
+                  <input ref={addressProofRef} type="file" accept="image/*,.pdf" onChange={e => handleImageSelect(e, setAddressProofPreview, setAddressProofBase64)} className="hidden" />
+
+                  <div className="p-3 rounded-xl bg-[#FEF3C7] dark:bg-[#422006] flex items-start gap-2">
+                    <Info className="w-4 h-4 text-[#F59E0B] shrink-0 mt-0.5" />
+                    <p className="text-xs text-[#92400E] dark:text-[#FBBF24]">
+                      {l('This step is optional but helps speed up the review process.', 'Hatua hii si lazima lakini inasaidia kuharakisha mchakato wa ukaguzi.')}
+                    </p>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <Button
+                      variant="outline"
+                      onClick={() => setCurrentStep('documents')}
+                      className="flex-1 py-3.5 rounded-xl"
+                    >
+                      <ChevronLeft className="w-4 h-4 mr-1" />
+                      {l('Back', 'Rudi')}
+                    </Button>
+                    <Button
+                      onClick={() => setCurrentStep('background_check')}
+                      className="flex-1 bg-[#065F46] hover:bg-[#064E3B] text-white font-bold py-3.5 rounded-xl"
+                    >
+                      {l('Continue', 'Endelea')}
+                      <ChevronRight className="w-4 h-4 ml-1" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+
+          {/* ── Step 6: Background Check Consent ── */}
+          {currentStep === 'background_check' && (
+            <motion.div key="background_check" variants={containerVariants} initial="hidden" animate="visible" exit="hidden">
+              <Card className="border-0 shadow-lg">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2 text-[#065F46] dark:text-[#34D399]">
+                    <Fingerprint className="w-5 h-5" />
+                    {l('Background Check', 'Ukaguzi Wa Usalama')}
+                  </CardTitle>
+                  <p className="text-xs text-[#64748B]">
+                    {l('Final step before submission. Review and consent to the background check.', 'Hatua ya mwisho kabla ya kuwasilisha. Kagua na kubali ukaguzi wa usalama.')}
+                  </p>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Summary of uploaded documents */}
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-semibold text-[#0F172A] dark:text-[#F1F5F9]">
+                      {l('Submission Summary', 'Muhtasari Wa Mawasilisho')}
+                    </h4>
+                    {[
+                      { icon: User, label: l('Personal Info', 'Taarifa Za Kibinafsi'), done: canProceedFromPersonal },
+                      { icon: MapPin, label: l('Zone Quiz', 'Jaribio La Eneo'), done: canProceedFromQuiz, detail: `${quizScore}/5` },
+                      { icon: Camera, label: l('Selfie Photo', 'Picha Ya Kibinafsi'), done: canProceedFromSelfie },
+                      { icon: FileText, label: l('ID Documents', 'Nyaraka Za Kitambulisho'), done: canProceedFromDocuments },
+                      { icon: Home, label: l('Address Proof', 'Uthibitisho Wa Anwani'), done: canProceedFromAddress },
+                    ].map((item, i) => {
+                      const Icon = item.icon;
+                      return (
+                        <div key={i} className={`flex items-center gap-3 p-3 rounded-xl ${item.done ? 'bg-[#ECFDF5] dark:bg-[#064E3B]' : 'bg-[#F1F5F9] dark:bg-[#334155]'}`}>
+                          <Icon className={`w-4 h-4 ${item.done ? 'text-[#065F46] dark:text-[#34D399]' : 'text-[#94A3B8]'}`} />
+                          <span className={`text-sm flex-1 ${item.done ? 'text-[#065F46] dark:text-[#34D399]' : 'text-[#94A3B8]'}`}>{item.label}</span>
+                          {item.detail && <Badge className="bg-[#065F46] text-white border-0 text-[10px]">{item.detail}</Badge>}
+                          {item.done ? <CheckCircle2 className="w-4 h-4 text-[#34D399]" /> : <AlertCircle className="w-4 h-4 text-[#94A3B8]" />}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Background check consent */}
+                  <div className="p-4 rounded-xl border border-[#E2E8F0] dark:border-[#334155] space-y-3">
+                    <h4 className="text-sm font-semibold text-[#0F172A] dark:text-[#F1F5F9]">
+                      {l('Background Check Consent', 'Kibali Cha Ukaguzi Wa Usalama')}
+                    </h4>
+                    <p className="text-xs text-[#64748B] leading-relaxed">
+                      {l(
+                        'By submitting, you consent to Chimbo Direct conducting a background check to verify your identity and ensure the safety of our community. This includes verification of your ID document and personal information.',
+                        'Kwa kuwasilisha, unakubali Chimbo Direct kufanya ukaguzi wa usalama kuthibitisha utambulisho wako na kuhakikisha usalama wa jamii yetu. Hii inajumuisha uthibitisho wa kitambulisho chako na taarifa za kibinafsi.'
+                      )}
+                    </p>
+                    <div className="flex items-start gap-2">
+                      <input type="checkbox" id="bg-consent" defaultChecked className="mt-1 accent-[#065F46]" />
+                      <label htmlFor="bg-consent" className="text-xs text-[#64748B]">
+                        {l('I consent to the background check and verify that all information provided is accurate.', 'Nakubali ukaguzi wa usalama na nadhibitisha kuwa taarifa zote nilizotoa ni sahihi.')}
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Privacy note */}
+                  <div className="p-3 rounded-xl bg-[#ECFDF5] dark:bg-[#064E3B] flex items-start gap-2">
+                    <Shield className="w-4 h-4 text-[#065F46] dark:text-[#34D399] shrink-0 mt-0.5" />
                     <p className="text-xs text-[#065F46] dark:text-[#34D399]">
                       {l('Your documents are encrypted and stored securely. They will only be used for verification purposes.', 'Nyaraka zako zimesimbwa na kuhifadhiwa kwa usalama. Zitatumiwa tu kwa ajili ya uthibitisho.')}
                     </p>
@@ -656,7 +868,7 @@ export default function GuideVerificationPage() {
                   <div className="flex gap-3">
                     <Button
                       variant="outline"
-                      onClick={() => setCurrentStep('selfie')}
+                      onClick={() => setCurrentStep('address_proof')}
                       className="flex-1 py-3.5 rounded-xl"
                     >
                       <ChevronLeft className="w-4 h-4 mr-1" />
@@ -685,13 +897,14 @@ export default function GuideVerificationPage() {
             </motion.div>
           )}
 
-          {/* ── Step 5: Status ── */}
+          {/* ── Step 7: Status ── */}
           {currentStep === 'status' && verification && (
             <motion.div key="status" variants={containerVariants} initial="hidden" animate="visible" exit="hidden" className="space-y-4">
               <Card className="border-0 shadow-lg overflow-hidden">
                 <div className={`p-6 text-center ${
                   verification.status === 'approved' ? 'bg-gradient-to-b from-[#065F46] to-[#064E3B]' :
                   verification.status === 'rejected' ? 'bg-gradient-to-b from-red-600 to-red-700' :
+                  verification.status === 'under_review' ? 'bg-gradient-to-b from-[#0891B2] to-[#0E7490]' :
                   'bg-gradient-to-b from-[#F59E0B] to-[#D97706]'
                 }`}>
                   <motion.div
@@ -701,9 +914,11 @@ export default function GuideVerificationPage() {
                     className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-3"
                   >
                     {verification.status === 'approved' ? (
-                      <CheckCircle2 className="w-10 h-10 text-[#34D399]" />
+                      <BadgeCheck className="w-10 h-10 text-[#34D399]" />
                     ) : verification.status === 'rejected' ? (
                       <XCircle className="w-10 h-10 text-white" />
+                    ) : verification.status === 'under_review' ? (
+                      <Eye className="w-10 h-10 text-white" />
                     ) : (
                       <Clock className="w-10 h-10 text-white animate-pulse" />
                     )}
@@ -713,7 +928,9 @@ export default function GuideVerificationPage() {
                       ? l('Verified!', 'Imethibitishwa!')
                       : verification.status === 'rejected'
                         ? l('Not Approved', 'Hakijathibitishwa')
-                        : l('Under Review', 'Inakaguliwa')
+                        : verification.status === 'under_review'
+                          ? l('Under Review', 'Inakaguliwa')
+                          : l('Submitted', 'Imewasilishwa')
                     }
                   </h2>
                   <p className="text-white/80 text-sm">
@@ -721,18 +938,72 @@ export default function GuideVerificationPage() {
                       ? l('You are now a verified guide!', 'Sasa uko mwongozo aliye thibitishwa!')
                       : verification.status === 'rejected'
                         ? l('Your verification was not approved', 'Uthibitisho wako haukukubaliwa')
-                        : l('Your documents are being reviewed', 'Nyaraka zako zinakaguliwa')
+                        : verification.status === 'under_review'
+                          ? l('An admin is reviewing your documents', 'Msimamizi anakagua nyaraka zako')
+                          : l('Your documents are waiting to be reviewed', 'Nyaraka zako zinasubiri kukaguliwa')
                     }
                   </p>
                 </div>
 
                 <CardContent className="p-5 space-y-4">
+                  {/* VLM AI Verification Result */}
+                  {vlmResult && (
+                    <div className={`p-3 rounded-xl border ${
+                      vlmResult.verified
+                        ? 'bg-[#ECFDF5] dark:bg-[#064E3B] border-[#34D399]/30'
+                        : 'bg-[#FEF3C7] dark:bg-[#422006] border-[#F59E0B]/30'
+                    }`}>
+                      <div className="flex items-center gap-2 mb-1">
+                        <ScanSearch className={`w-4 h-4 ${vlmResult.verified ? 'text-[#34D399]' : 'text-[#F59E0B]'}`} />
+                        <span className={`text-xs font-bold ${vlmResult.verified ? 'text-[#065F46] dark:text-[#34D399]' : 'text-[#92400E] dark:text-[#FBBF24]'}`}>
+                          {l('AI Document Analysis', 'Uchambuzi wa AI wa Hati')}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 h-2 rounded-full bg-[#E2E8F0] dark:bg-[#334155] overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all ${vlmResult.verified ? 'bg-[#34D399]' : 'bg-[#F59E0B]'}`}
+                            style={{ width: `${vlmResult.confidence}%` }}
+                          />
+                        </div>
+                        <span className="text-[10px] font-bold text-[#64748B]">{vlmResult.confidence}%</span>
+                      </div>
+                      <p className="text-[10px] text-[#64748B] mt-1">{vlmResult.details.substring(0, 100)}</p>
+                    </div>
+                  )}
+
                   {verification.submittedAt && (
                     <div className="flex items-center gap-2 text-sm">
                       <Clock className="w-4 h-4 text-[#64748B]" />
                       <span className="text-[#64748B]">
                         {l('Submitted:', 'Iliwasilishwa:')} {new Date(verification.submittedAt).toLocaleDateString()}
                       </span>
+                    </div>
+                  )}
+
+                  {verification.reviewedAt && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Eye className="w-4 h-4 text-[#64748B]" />
+                      <span className="text-[#64748B]">
+                        {l('Reviewed:', 'Ilikaguliwa:')} {new Date(verification.reviewedAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Background check status */}
+                  {verification.backgroundCheckStatus && verification.backgroundCheckStatus !== 'not_started' && (
+                    <div className="flex items-center justify-between p-3 rounded-xl bg-[#F8FAFC] dark:bg-[#1E293B]">
+                      <span className="text-sm text-[#64748B]">{l('Background Check', 'Ukaguzi Wa Usalama')}</span>
+                      <Badge className={`border-0 text-[10px] ${
+                        verification.backgroundCheckStatus === 'passed' ? 'bg-[#ECFDF5] dark:bg-[#064E3B] text-[#065F46] dark:text-[#34D399]' :
+                        verification.backgroundCheckStatus === 'failed' ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400' :
+                        'bg-[#FEF3C7] dark:bg-[#422006] text-[#92400E] dark:text-[#FBBF24]'
+                      }`}>
+                        {verification.backgroundCheckStatus === 'passed' ? l('Passed', 'Imefaulu') :
+                         verification.backgroundCheckStatus === 'failed' ? l('Failed', 'Hakufaulu') :
+                         verification.backgroundCheckStatus === 'in_progress' ? l('In Progress', 'Inaendelea') :
+                         verification.backgroundCheckStatus}
+                      </Badge>
                     </div>
                   )}
 
@@ -782,6 +1053,8 @@ export default function GuideVerificationPage() {
                     setDocFrontBase64(null);
                     setDocBackPreview(null);
                     setDocBackBase64(null);
+                    setAddressProofPreview(null);
+                    setAddressProofBase64(null);
                     setCurrentStep('personal');
                   }}
                   className="w-full bg-[#065F46] hover:bg-[#064E3B] text-white font-bold py-3.5 rounded-xl"
@@ -789,6 +1062,26 @@ export default function GuideVerificationPage() {
                   <RefreshCw className="w-4 h-4 mr-2" />
                   {l('Reapply for Verification', 'Omba Uthibitisho Tena')}
                 </Button>
+              )}
+
+              {verification.status === 'approved' && (
+                <Card className="border-0 shadow-md bg-gradient-to-r from-[#ECFDF5] to-[#FEF3C7] dark:from-[#064E3B] dark:to-[#1E293B]">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-xl bg-[#065F46] flex items-center justify-center">
+                        <BadgeCheck className="w-6 h-6 text-[#34D399]" />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-[#065F46] dark:text-[#34D399] text-sm">
+                          {l('Verification Badge Active', 'Cheti Cha Uthibitisho Kiko Hai')}
+                        </h4>
+                        <p className="text-xs text-[#64748B]">
+                          {l('Your verified badge is now visible on your profile', 'Cheti chako cha uthibitisho sasa kinaonekana kwenye wasifu wako')}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               )}
             </motion.div>
           )}

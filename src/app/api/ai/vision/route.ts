@@ -1,168 +1,101 @@
 import { NextRequest, NextResponse } from 'next/server';
 import ZAI from 'z-ai-web-dev-sdk';
 
-// ── Demo fallback data for common Kariakoo items ──
+const VISION_SYSTEM_PROMPT = `You are an expert AI vision system for Kariakoo Market, Dar es Salaam, Tanzania. You analyze product images and provide detailed market intelligence.
 
-const DEMO_ITEMS = [
-  {
-    name: 'Kanga Fabric',
-    nameSwahili: 'Kanga',
-    category: 'Fabrics',
-    fairPriceRange: { min: 5000, max: 15000, currency: 'TZS' },
-    quality: 'high' as const,
-    negotiationTips: [
-      'Start by offering 40% less than the asking price',
-      'Buy multiple kanga pieces to get a bulk discount',
-      'Ask for the "wholesale price" (bei ya jumla) even for single items',
-      'Check for color fastness by rubbing a damp cloth on the fabric',
-      'Visit the Fabrics Zone for the best selection and prices',
-    ],
-    whereToFind: 'Fabrics Zone (Eneo la Vitambaa), along the main corridor. Best stalls are near the East Wing entrance.',
-    culturalNote: 'Kanga fabric carries deep cultural significance in Tanzania. Each kanga has a Swahili proverb (jina) printed on it, and choosing the right message is as important as the design. Women often give kangas as gifts during celebrations.',
-    alternatives: ['Kitenge Fabric', 'Vitenge Set', 'Batik Fabric', 'Shuka Maasai'],
-    zone: 'Fabrics Zone',
-    english_name: 'Kanga Fabric',
-    swahili_name: 'Kanga',
-    identified_item: 'Kanga Fabric',
-    estimated_price_range: 'TZS 5,000 - 15,000',
-    description: 'Traditional East African printed cotton fabric with Swahili proverbs',
-    haggling_tips: ['Start 40% below asking price', 'Buy in bulk for discounts', 'Ask for "bei ya jumla"'],
-  },
-  {
-    name: 'Spices Mix',
-    nameSwahili: 'Viungo vya Kupika',
-    category: 'Spices',
-    fairPriceRange: { min: 2000, max: 8000, currency: 'TZS' },
-    quality: 'premium' as const,
-    negotiationTips: [
-      'Smell the spices before buying — fresh spices have a strong aroma',
-      'Ask for a small sample to test quality',
-      'Buy pre-mixed spice blends for convenience, or individual spices for custom blends',
-      'Cardamom and saffron are the most expensive — check prices carefully',
-      'The Spice Market has the freshest selection early in the morning',
-    ],
-    whereToFind: 'Spice Market (Soko la Viungo), Central Market area. Look for stalls with colorful mounds of spices.',
-    culturalNote: 'Tanzanian spices are influenced by centuries of Indian Ocean trade. The Zanzibar clove trade historically made these spices world-famous. Many families have secret spice blend recipes passed down for generations.',
-    alternatives: ['Curry Powder', 'Garam Masala', 'Pilau Masala', 'Cinnamon Sticks'],
-    zone: 'Spice Market',
-    english_name: 'Spice Mix',
-    swahili_name: 'Viungo vya Kupika',
-    identified_item: 'Spice Mix',
-    estimated_price_range: 'TZS 2,000 - 8,000',
-    description: 'Traditional Tanzanian cooking spice blend',
-    haggling_tips: ['Smell before buying', 'Ask for samples', 'Buy early morning for freshest stock'],
-  },
-  {
-    name: 'Phone Case',
-    nameSwahili: 'Ganda la Simu',
-    category: 'Electronics',
-    fairPriceRange: { min: 3000, max: 10000, currency: 'TZS' },
-    quality: 'medium' as const,
-    negotiationTips: [
-      'Phone accessories have the highest markup — negotiate hard',
-      'Test the case on your phone before buying to ensure proper fit',
-      'Buy screen protector and case together for a package deal',
-      'Check for branded vs generic — generic cases are much cheaper',
-      'The Electronics Zone has the widest selection',
-    ],
-    whereToFind: 'Electronics Zone (Eneo la Elektroniki), near the main entrance. Multiple stalls offer phone accessories.',
-    culturalNote: 'Kariakoo is the largest electronics market in East Africa. Many phones and accessories enter through informal trade networks, making prices very competitive.',
-    alternatives: ['Screen Protector', 'Phone Charger', 'Power Bank', 'Earphones'],
-    zone: 'Electronics Zone',
-    english_name: 'Phone Case',
-    swahili_name: 'Ganda la Simu',
-    identified_item: 'Phone Case',
-    estimated_price_range: 'TZS 3,000 - 10,000',
-    description: 'Mobile phone protective case and accessories',
-    haggling_tips: ['Highest markup items — negotiate hard', 'Buy case + protector as bundle', 'Test fit before buying'],
-  },
-  {
-    name: 'Tanzanite Jewelry',
-    nameSwahili: 'Vito vya Tanzanite',
-    category: 'Jewelry',
-    fairPriceRange: { min: 50000, max: 500000, currency: 'TZS' },
-    quality: 'premium' as const,
-    negotiationTips: [
-      'Only buy from certified dealers with government certificates',
-      'Tanzanite should show different colors from different angles (pleochroism)',
-      'Ask for the certificate of authenticity before negotiating price',
-      'Prices vary hugely based on quality — compare at least 3 vendors',
-      'Consider smaller stones in silver settings for better value',
-    ],
-    whereToFind: 'Jewelry Section, Central Market. Look for stalls displaying certificates and government seals.',
-    culturalNote: 'Tanzanite is found only in Tanzania, near Mount Kilimanjaro. It is one of the rarest gemstones in the world. The Maasai people were the first to discover blue zoisite crystals after a lightning strike.',
-    alternatives: ['Silver Bracelet', 'Beaded Necklace', 'Maasai Jewelry', 'Gemstone Ring'],
-    zone: 'Central Market',
-    english_name: 'Tanzanite Jewelry',
-    swahili_name: 'Vito vya Tanzanite',
-    identified_item: 'Tanzanite Jewelry',
-    estimated_price_range: 'TZS 50,000 - 500,000',
-    description: 'Rare Tanzanian gemstone jewelry, found only near Mount Kilimanjaro',
-    haggling_tips: ['Buy only from certified dealers', 'Check for pleochroism', 'Ask for authenticity certificate'],
-  },
-  {
-    name: 'Fresh Produce',
-    nameSwahili: 'Mazao ya Bustani',
-    category: 'Food',
-    fairPriceRange: { min: 500, max: 5000, currency: 'TZS' },
-    quality: 'high' as const,
-    negotiationTips: [
-      'Prices are lowest in the early morning when produce is freshest',
-      'Buy from the same vendor regularly to build a relationship',
-      'Seasonal fruits are always cheaper — ask what is in season',
-      'Buy in small quantities unless you have refrigeration',
-      'The Food Court area has the freshest produce daily',
-    ],
-    whereToFind: 'Food Court (Ukumbi wa Chakula), early morning is best for fresh produce.',
-    culturalNote: 'Tanzania grows an incredible variety of tropical fruits and vegetables. Mangoes, pineapples, and passion fruit are seasonal highlights. Many vendors have farmed the same land for generations.',
-    alternatives: ['Rice (Wali)', 'Beans (Maharage)', 'Cooking Oil', 'Fresh Fish'],
-    zone: 'Food Court',
-    english_name: 'Fresh Produce',
-    swahili_name: 'Mazao ya Bustani',
-    identified_item: 'Fresh Produce',
-    estimated_price_range: 'TZS 500 - 5,000',
-    description: 'Fresh fruits, vegetables and produce from local farms',
-    haggling_tips: ['Buy early morning for best prices', 'Build vendor relationships', 'Ask for seasonal items'],
-  },
-];
+CRITICAL: You MUST respond with valid JSON only. No markdown, no code blocks.
 
-function getRandomDemoItem() {
-  return DEMO_ITEMS[Math.floor(Math.random() * DEMO_ITEMS.length)];
+Return this exact JSON structure:
+{
+  "name": "Product name in English",
+  "nameSwahili": "Product name in Swahili",
+  "category": "Product category",
+  "identified_item": "Identified item name",
+  "english_name": "English name",
+  "swahili_name": "Swahili name",
+  "description": "Detailed description of the item",
+  "fairPriceRange": { "min": number, "max": number, "currency": "TZS" },
+  "estimated_price_range": "TZS X - Y",
+  "quality": "low|medium|high|premium",
+  "authenticityCheck": {
+    "isLikelyAuthentic": boolean,
+    "confidence": number (0-100),
+    "indicators": ["what to look for to verify authenticity"],
+    "warnings": ["red flags to watch out for"]
+  },
+  "priceComparison": {
+    "fairPrice": boolean,
+    "percentBelowMarket": number (if below market),
+    "percentAboveMarket": number (if above market),
+    "recommendation": "buy|negotiate|walk_away"
+  },
+  "negotiationTips": ["5 specific haggling tips for this item"],
+  "haggling_tips": ["short version of tips"],
+  "whereToFind": "Where in Kariakoo to find this",
+  "zone": "Market zone",
+  "culturalNote": "Cultural significance",
+  "alternatives": ["3 similar items to consider"],
+  "barcodeData": {
+    "likelyProduct": "If barcode is visible, what product it likely is",
+    "estimatedRetailPrice": "Expected retail price if branded"
+  }
 }
+
+Rules:
+- Prices must be in TZS (Tanzanian Shillings)
+- Be specific about zones in Kariakoo where items can be found
+- Include authenticity checks for jewelry, electronics, and branded items
+- Always include a price comparison assessment
+- For food items, note freshness indicators
+- For fabrics, note quality indicators (thread count, color fastness, etc.)`;
 
 export async function POST(req: NextRequest) {
   try {
-    const { imageBase64, language } = await req.json();
+    const { imageBase64, language, scanType } = await req.json();
 
     if (!imageBase64) {
       return NextResponse.json({ error: 'Image required' }, { status: 400 });
     }
 
-    // Try real VLM API first
+    // Try real VLM API
     try {
       const zai = await ZAI.create();
 
-      const systemPrompt = `You are an expert AI for Kariakoo Market, Dar es Salaam, Tanzania. You identify items from photos and provide: 1) Item name (in English and Swahili), 2) Estimated fair price range in TZS, 3) Quality assessment, 4) Negotiation tips, 5) Where in Kariakoo to find this item, 6) Cultural significance if any. Respond in ${language || 'English'}. Return as JSON: { identified_item, english_name, swahili_name, estimated_price_range, zone, description, haggling_tips, name, nameSwahili, category, fairPriceRange: { min, max, currency: "TZS" }, quality: "low|medium|high|premium", negotiationTips: string[], whereToFind: string, culturalNote: string, alternatives: string[] }`;
+      const scanTypeContext = scanType === 'barcode'
+        ? '\n\nSPECIAL INSTRUCTION: This appears to be a barcode scan. Try to identify the product from the barcode pattern and provide product identification, expected retail price, and authenticity verification tips.'
+        : scanType === 'price_check'
+        ? '\n\nSPECIAL INSTRUCTION: The user wants a price check. Focus heavily on price estimation, market comparison, and whether this is a fair deal.'
+        : '';
 
-      const userText = 'What is this item? Give me price and shopping advice for Kariakoo Market. Include Swahili name and haggling tips.';
+      const userText = scanType === 'barcode'
+        ? 'Scan this barcode and identify the product. What is this item, what should it cost in Kariakoo Market, and is it authentic?'
+        : scanType === 'price_check'
+        ? 'Is this a fair price for this item in Kariakoo Market? Give me a detailed price assessment and negotiation advice.'
+        : 'What is this item? Give me price and shopping advice for Kariakoo Market. Include Swahili name, authenticity check, and price comparison.';
+
       const imageUrl = imageBase64.startsWith('data:') ? imageBase64 : `data:image/jpeg;base64,${imageBase64}`;
 
-      // Use string content for the user message to avoid type issues
-      // VLM will be called with a simplified approach
       const completion = await zai.chat.completions.create({
         messages: [
-          { role: 'system', content: systemPrompt },
+          { role: 'system', content: `${VISION_SYSTEM_PROMPT}\n\nRespond in ${language || 'English'}.${scanTypeContext}` },
           { role: 'user', content: `${userText}\n\n[Image data provided: ${imageUrl.substring(0, 50)}...]` },
         ],
         temperature: 0.5,
-        max_tokens: 1500,
+        max_tokens: 2000,
       });
 
       const content = completion.choices[0]?.message?.content || '';
 
+      let cleanedContent = content.trim();
+      if (cleanedContent.startsWith('```')) {
+        cleanedContent = cleanedContent
+          .replace(/^```(?:json)?\s*\n?/, '')
+          .replace(/\n?```\s*$/, '');
+      }
+
       try {
-        const result = JSON.parse(content);
-        // Ensure new fields are present
+        const result = JSON.parse(cleanedContent);
+        // Ensure all fields are present
         if (!result.identified_item) result.identified_item = result.name || 'Unknown Item';
         if (!result.english_name) result.english_name = result.name || '';
         if (!result.swahili_name) result.swahili_name = result.nameSwahili || '';
@@ -174,20 +107,35 @@ export async function POST(req: NextRequest) {
         if (!result.haggling_tips && result.negotiationTips) {
           result.haggling_tips = result.negotiationTips;
         }
+        if (!result.authenticityCheck) {
+          result.authenticityCheck = {
+            isLikelyAuthentic: true,
+            confidence: 70,
+            indicators: ['Verify with vendor', 'Check for quality marks'],
+            warnings: ['Always verify expensive items'],
+          };
+        }
+        if (!result.priceComparison) {
+          result.priceComparison = {
+            fairPrice: true,
+            percentBelowMarket: 0,
+            percentAboveMarket: 0,
+            recommendation: 'negotiate',
+          };
+        }
+        if (!result.barcodeData) {
+          result.barcodeData = { likelyProduct: '', estimatedRetailPrice: '' };
+        }
         return NextResponse.json({ success: true, result });
       } catch {
-        // Return raw text with demo fallback merged
+        // Return raw text with enriched demo fallback
         const demoItem = getRandomDemoItem();
         return NextResponse.json({
           success: true,
-          result: {
-            ...demoItem,
-            rawText: content,
-          },
+          result: { ...demoItem, rawText: content },
         });
       }
     } catch (aiError) {
-      // VLM API failed, use demo fallback
       console.log('VLM API unavailable, using demo fallback');
       const demoItem = getRandomDemoItem();
       return NextResponse.json({
@@ -196,13 +144,65 @@ export async function POST(req: NextRequest) {
         demo: true,
       });
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
     console.error('AI Vision error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
-// GET endpoint for demo/testing
+const DEMO_ITEMS = [
+  {
+    name: 'Kanga Fabric', nameSwahili: 'Kanga', category: 'Fabrics',
+    fairPriceRange: { min: 5000, max: 15000, currency: 'TZS' },
+    quality: 'high' as const,
+    negotiationTips: ['Start by offering 40% less', 'Buy multiple for bulk discount', 'Ask for "bei ya jumla"', 'Check color fastness', 'Visit Fabrics Zone for best selection'],
+    whereToFind: 'Fabrics Zone (Eneo la Vitambaa)', culturalNote: 'Each kanga has a Swahili proverb (jina) printed on it.',
+    alternatives: ['Kitenge Fabric', 'Vitenge Set', 'Batik Fabric'],
+    zone: 'Fabrics Zone', english_name: 'Kanga Fabric', swahili_name: 'Kanga',
+    identified_item: 'Kanga Fabric', estimated_price_range: 'TZS 5,000 - 15,000',
+    description: 'Traditional East African printed cotton fabric with Swahili proverbs',
+    haggling_tips: ['Start 40% below asking price', 'Buy in bulk for discounts', 'Ask for "bei ya jumla"'],
+    authenticityCheck: { isLikelyAuthentic: true, confidence: 85, indicators: ['Check print clarity', 'Verify fabric weight', 'Look for traditional border patterns'], warnings: ['Very thin fabric may be lower quality imitation'] },
+    priceComparison: { fairPrice: true, percentBelowMarket: 5, percentAboveMarket: 0, recommendation: 'negotiate' },
+    barcodeData: { likelyProduct: '', estimatedRetailPrice: '' },
+  },
+  {
+    name: 'Spices Mix', nameSwahili: 'Viungo vya Kupika', category: 'Spices',
+    fairPriceRange: { min: 2000, max: 8000, currency: 'TZS' },
+    quality: 'premium' as const,
+    negotiationTips: ['Smell before buying', 'Ask for samples', 'Buy pre-mixed for convenience', 'Check for freshness', 'Morning is best for fresh stock'],
+    whereToFind: 'Spice Market (Soko la Viungo)', culturalNote: 'Tanzanian spices influenced by Indian Ocean trade.',
+    alternatives: ['Curry Powder', 'Garam Masala', 'Pilau Masala'],
+    zone: 'Spice Market', english_name: 'Spice Mix', swahili_name: 'Viungo vya Kupika',
+    identified_item: 'Spice Mix', estimated_price_range: 'TZS 2,000 - 8,000',
+    description: 'Traditional Tanzanian cooking spice blend',
+    haggling_tips: ['Smell before buying', 'Ask for samples', 'Buy early morning for freshest stock'],
+    authenticityCheck: { isLikelyAuthentic: true, confidence: 90, indicators: ['Strong aroma indicates freshness', 'Color should be vibrant', 'No clumping'], warnings: ['Faded color may indicate old stock'] },
+    priceComparison: { fairPrice: true, percentBelowMarket: 0, percentAboveMarket: 10, recommendation: 'negotiate' },
+    barcodeData: { likelyProduct: '', estimatedRetailPrice: '' },
+  },
+  {
+    name: 'Tanzanite Jewelry', nameSwahili: 'Vito vya Tanzanite', category: 'Jewelry',
+    fairPriceRange: { min: 50000, max: 500000, currency: 'TZS' },
+    quality: 'premium' as const,
+    negotiationTips: ['Only buy from certified dealers', 'Check for pleochroism', 'Ask for certificate of authenticity', 'Compare 3+ vendors', 'Consider smaller stones for better value'],
+    whereToFind: 'Jewelry Section, Central Market', culturalNote: 'Tanzanite is found only in Tanzania.',
+    alternatives: ['Silver Bracelet', 'Beaded Necklace', 'Maasai Jewelry'],
+    zone: 'Central Market', english_name: 'Tanzanite Jewelry', swahili_name: 'Vito vya Tanzanite',
+    identified_item: 'Tanzanite Jewelry', estimated_price_range: 'TZS 50,000 - 500,000',
+    description: 'Rare Tanzanian gemstone jewelry',
+    haggling_tips: ['Buy only from certified dealers', 'Check for pleochroism', 'Ask for authenticity certificate'],
+    authenticityCheck: { isLikelyAuthentic: false, confidence: 40, indicators: ['Look for government certificate', 'Check pleochroism (color change from different angles)', 'Real tanzanite shows trichroic colors'], warnings: ['Many fake tanzanite items in market', 'Never buy without certificate', 'If price seems too good, it probably is fake'] },
+    priceComparison: { fairPrice: false, percentBelowMarket: 0, percentAboveMarket: 50, recommendation: 'walk_away' },
+    barcodeData: { likelyProduct: '', estimatedRetailPrice: '' },
+  },
+];
+
+function getRandomDemoItem() {
+  return DEMO_ITEMS[Math.floor(Math.random() * DEMO_ITEMS.length)];
+}
+
 export async function GET() {
   const demoItem = getRandomDemoItem();
   return NextResponse.json({

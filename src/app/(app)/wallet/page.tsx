@@ -7,6 +7,7 @@ import {
   Clock, CheckCircle2, XCircle, Smartphone, Shield, CreditCard,
   QrCode, X, Receipt, ChevronRight, Zap,
   Loader2, Phone, AlertCircle, Globe, Building2,
+  Lock, AlertTriangle, Unlock, Scale,
 } from 'lucide-react';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { useNotificationStore } from '@/lib/stores/notification-store';
@@ -106,6 +107,16 @@ export default function WalletPage() {
   const pendingBalance = 75000;
   const availableBalance = walletBalance - pendingBalance;
   const usdEquivalent = (walletBalance / 2600).toFixed(2);
+
+  // ── Escrow demo data ──
+  const escrowItems = [
+    { id: 'esc-1', sessionId: 'SES-2847', guideName: 'Mwanaildi Juma', amount: 35000, status: 'held' as const, date: '2h ago', autoRelease: '46h remaining' },
+    { id: 'esc-2', sessionId: 'SES-2901', guideName: 'Fatma Hassan', amount: 45000, status: 'disputed' as const, date: '1d ago', autoRelease: 'Disputed' },
+    { id: 'esc-3', sessionId: 'SES-2756', guideName: 'Asha Mohamed', amount: 25000, status: 'released' as const, date: '3d ago', autoRelease: 'Released' },
+  ];
+
+  const escrowHeld = escrowItems.filter(e => e.status === 'held').reduce((s, e) => s + e.amount, 0);
+  const escrowDisputed = escrowItems.filter(e => e.status === 'disputed').reduce((s, e) => s + e.amount, 0);
 
   const filtered = DEMO_TRANSACTIONS.filter(t => {
     if (filter === 'all') return true;
@@ -242,6 +253,78 @@ export default function WalletPage() {
             <span className="text-xs font-medium">{action.label}</span>
           </button>
         ))}
+      </motion.div>
+
+      {/* ── Escrow Status ── */}
+      <motion.div variants={itemVariants} className="kcard-glass p-5 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Lock className="w-5 h-5 text-[#065F46] dark:text-[#34D399]" />
+            <h3 className="font-bold text-sm">{l('Escrow Payments', 'Malipo ya Amana')}</h3>
+          </div>
+          <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-[#FEF3C7] text-[#92400E] font-semibold">{escrowItems.length} {l('Active', 'Hai')}</span>
+        </div>
+
+        {/* Escrow Summary */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="p-3 rounded-xl bg-[#ECFDF5] dark:bg-[#064E3B]/30 border border-[#065F46]/10 dark:border-[#34D399]/10">
+            <div className="flex items-center gap-1.5 mb-1">
+              <Lock className="w-3.5 h-3.5 text-[#065F46] dark:text-[#34D399]" />
+              <span className="text-[10px] font-medium text-[#065F46] dark:text-[#34D399]">{l('Held in Escrow', 'Imewekwa Amana')}</span>
+            </div>
+            <p className="text-lg font-bold text-[#065F46] dark:text-[#34D399]">TZS {escrowHeld.toLocaleString()}</p>
+          </div>
+          <div className="p-3 rounded-xl bg-[#FEF3C7] dark:bg-[#422006]/30 border border-[#F59E0B]/10">
+            <div className="flex items-center gap-1.5 mb-1">
+              <AlertTriangle className="w-3.5 h-3.5 text-[#F59E0B]" />
+              <span className="text-[10px] font-medium text-[#92400E] dark:text-[#F59E0B]">{l('Disputed', 'Imepingwa')}</span>
+            </div>
+            <p className="text-lg font-bold text-[#92400E] dark:text-[#F59E0B]">TZS {escrowDisputed.toLocaleString()}</p>
+          </div>
+        </div>
+
+        {/* Escrow Items */}
+        <div className="space-y-2 max-h-48 overflow-y-auto">
+          {escrowItems.map((item) => (
+            <div key={item.id} className="flex items-center justify-between p-3 rounded-xl bg-white dark:bg-[#1E293B] border border-[#E2E8F0] dark:border-[#334155]">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
+                  item.status === 'held' ? 'bg-[#ECFDF5] dark:bg-[#064E3B]' :
+                  item.status === 'disputed' ? 'bg-[#FEF3C7] dark:bg-[#422006]' :
+                  'bg-[#F1F5F9] dark:bg-[#334155]'
+                }`}>
+                  {item.status === 'held' ? <Lock className="w-4 h-4 text-[#065F46] dark:text-[#34D399]" /> :
+                   item.status === 'disputed' ? <Scale className="w-4 h-4 text-[#F59E0B]" /> :
+                   <Unlock className="w-4 h-4 text-[#64748B]" />}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-medium truncate">{item.guideName}</p>
+                  <p className="text-[10px] text-[#64748B]">{item.sessionId} · {item.date}</p>
+                </div>
+              </div>
+              <div className="text-right shrink-0 ml-3">
+                <p className="text-xs font-bold">TZS {item.amount.toLocaleString()}</p>
+                <span className={`text-[8px] px-1.5 py-0.5 rounded-full font-semibold ${
+                  item.status === 'held' ? 'bg-[#ECFDF5] text-[#065F46]' :
+                  item.status === 'disputed' ? 'bg-[#FEF3C7] text-[#92400E]' :
+                  'bg-[#F1F5F9] text-[#64748B]'
+                }`}>
+                  {item.status === 'held' ? l('Held', 'Imewekwa') :
+                   item.status === 'disputed' ? l('Disputed', 'Imepingwa') :
+                   l('Released', 'Imeachiliwa')}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Escrow info */}
+        <div className="flex items-start gap-2 p-3 rounded-xl bg-[#F1F5F9] dark:bg-[#334155] text-xs text-[#64748B]">
+          <Shield className="w-4 h-4 shrink-0 mt-0.5 text-[#065F46] dark:text-[#34D399]" />
+          <span>
+            {l('Funds are held in escrow until session completion. Auto-release after 48 hours. File a dispute if there\'s an issue.', 'Pesa zinawekwa kwenye amana hadi kipindi kikamilike. Zitaachiliwa baada ya masaa 48. Wasilisha tatizo kama kuna shida.')}
+          </span>
+        </div>
       </motion.div>
 
       {/* Payment Providers Quick Top Up */}

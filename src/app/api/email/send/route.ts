@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sendEmail, getEmailTypes, previewEmail } from '@/lib/email';
+import { sendEmail, getEmailTypes, previewEmail, getQueueStatus } from '@/lib/email';
 
-// POST /api/email/send - Send a transactional email
+// POST /api/email/send - Send a transactional email (uses the queue)
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -20,6 +20,7 @@ export async function POST(req: NextRequest) {
       success: result.success,
       message: result.message,
       demo: result.demo || false,
+      trackingId: result.trackingId,
     });
   } catch (error: any) {
     console.error('Email API error:', error);
@@ -46,6 +47,16 @@ export async function GET(req: NextRequest) {
         transactionId: 'TXN-DEMO-001',
         status: 'pending',
         resetUrl: 'https://chimbo.direct/reset?token=demo',
+        reason: 'Document quality too low',
+        weekStart: 'May 25-31',
+        sessions: '5',
+        earnings: '75,000',
+        rating: '4.8',
+        reward: '5,000',
+        referredName: 'Amina',
+        subject: 'Important Platform Update',
+        body: 'We have exciting new features coming to Chimbo Direct!',
+        appUrl: 'https://chimbo.direct',
       });
 
       if (!preview) {
@@ -55,10 +66,13 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ success: true, preview });
     }
 
+    const queueStatus = getQueueStatus();
+
     return NextResponse.json({
       success: true,
       types: getEmailTypes(),
       smtpConfigured: !!(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS),
+      queue: queueStatus,
     });
   } catch (error: any) {
     console.error('Email API error:', error);

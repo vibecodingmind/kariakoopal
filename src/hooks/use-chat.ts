@@ -102,7 +102,8 @@ export function useSocketChat() {
     newSocket.connect();
 
     socketRef.current = newSocket;
-    setSocket(newSocket);
+    // Use flushSync alternative - schedule state update outside effect sync
+    queueMicrotask(() => setSocket(newSocket));
 
     return () => {
       // Disconnect and clean up when auth changes or component unmounts

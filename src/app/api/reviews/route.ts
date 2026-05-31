@@ -1,5 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { sendEmail } from '@/lib/email';
+
+// ── Profanity check (simple word list) ──
+const PROFANITY_LIST = [
+  'fuck', 'shit', 'damn', 'ass', 'bastard', 'crap', 'hell',
+  'idiot', 'stupid', 'moron', 'dumb', 'hate', 'suck', 'loser',
+  'terrible', 'worst', 'scam', 'fraud', 'thief', 'steal',
+];
+
+function containsProfanity(text: string): boolean {
+  const lower = text.toLowerCase();
+  return PROFANITY_LIST.some(word => lower.includes(word));
+}
+
+function isShortReview(text: string): boolean {
+  return text.trim().length < 10;
+}
+
+function isExtremeRatingWithoutText(rating: number, text: string): boolean {
+  return rating === 1 && text.trim().length < 20;
+}
 
 // ── Demo reviews (fallback when DB is empty or in demo mode) ──
 const DEMO_REVIEWS = [
@@ -10,12 +31,138 @@ const DEMO_REVIEWS = [
   { id: 'r5', sessionId: 's5', reviewerId: 'u6', reviewerName: 'Sarah Mollel', revieweeId: 'u1', rating: 3, comment: 'Good guide but was a bit late to our meeting point. Otherwise helpful.', response: 'Sorry about that Sarah! I\'ll be on time next time.', respondedAt: new Date(Date.now() - 1000 * 60 * 60 * 200).toISOString(), createdAt: new Date(Date.now() - 1000 * 60 * 60 * 240).toISOString(), updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 200).toISOString() },
 ];
 
+// ── Helper: Recalculate guide rating stats ──
+async function recalculateGuideRating(guideId: string) {
+  try {
+    const reviews = await db.review.findMany({
+      where: { revieweeId: guideId },
+      select: { rating: true, createdAt: true },
+    });
+
+    const totalReviews = reviews.length;
+    const averageRating = totalReviews > 0
+      ? Math.round((reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews) * 10) / 10
+      : 0;
+
+    // 30-day trending rating
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const recentReviews = reviews.filter(r => new Date(r.createdAt) >= thirtyDaysAgo);
+    const trendingRating = recentReviews.length > 0
+      ? Math.round((recentReviews.reduce((sum, r) => sum + r.rating, 0) / recentReviews.length) * 10) / 10
+      : averageRating;
+
+    // Rating distribution
+    const ratingDistribution: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    reviews.forEach(r => {
+      const rounded = Math.round(r.rating);
+      if (rounded >= 1 && rounded <= 5) ratingDistribution[rounded]++;
+    });
+
+    // Update guide profile
+    const guideProfile = await db.guideProfile.findFirst({
+      where: { userId: guideId },
+    });
+
+    if (guideProfile) {
+      const oldAvg = guideProfile.avgRating;
+      const oldCount = guideProfile.reviewCount;
+
+      await db.guideProfile.update({
+        where: { id: guideProfile.id },
+        data: {
+          avgRating: averageRating,
+          reviewCount: totalReviews,
+          trendingRating,
+        },
+      });
+
+      // Check for significant rating change alert
+      if (oldCount > 0 && Math.abs(averageRating - oldAvg) >= 0.5) {
+        const isPositive = averageRating > oldAvg;
+        // Create in-app notification for the guide
+        try {
+          await db.notification.create({
+            data: {
+              userId: guideId,
+              type: 'alert',
+              title: 'Rating Changed',
+              titleSw: 'Alama imebadilika',
+              message: `Your average rating changed from ${oldAvg.toFixed(1)} to ${averageRating.toFixed(1)}`,
+              bodySw: `Wastani wa alama zako umebadilika kutoka ${oldAvg.toFixed(1)} hadi ${averageRating.toFixed(1)}`,
+            },
+          });
+        } catch {
+          // Notification creation is best-effort
+        }
+
+        // Send email notification for significant rating change
+        try {
+          const guideUser = await db.user.findUnique({ where: { id: guideId }, select: { email: true, name: true } });
+          if (guideUser?.email) {
+            await sendEmail('admin_broadcast', guideUser.email, {
+              name: guideUser.name || 'Guide',
+              subject: isPositive ? '⭐ Your Rating Improved!' : '⚠️ Your Rating Changed',
+              bodyHtml: `
+                <p>Your average rating on Chimbo Direct has changed significantly.</p>
+                <p><strong>Previous:</strong> ${oldAvg.toFixed(1)} ★</p>
+                <p><strong>Current:</strong> ${averageRating.toFixed(1)} ★</p>
+                <p><strong>Total Reviews:</strong> ${totalReviews}</p>
+                <p>${isPositive
+                  ? 'Great work! Keep providing excellent service to maintain your momentum.'
+                  : 'Consider reviewing recent feedback to improve your service quality.'
+                }</p>
+              `,
+              body: `Your rating changed from ${oldAvg.toFixed(1)} to ${averageRating.toFixed(1)} (${totalReviews} reviews). ${isPositive ? 'Great work!' : 'Review your recent feedback.'}`,
+              appUrl: process.env.NEXT_PUBLIC_APP_URL || 'https://chimbo.direct',
+            });
+          }
+        } catch {
+          // Email notification is best-effort
+        }
+      }
+    }
+
+    return { averageRating, totalReviews, trendingRating, ratingDistribution };
+  } catch (error) {
+    console.error('Recalculate guide rating error:', error);
+    return null;
+  }
+}
+
+// ── Helper: Auto-flag review for moderation ──
+async function autoFlagReview(reviewId: string, rating: number, comment: string) {
+  const flags: string[] = [];
+
+  if (containsProfanity(comment)) flags.push('profanity');
+  if (isShortReview(comment)) flags.push('short_review');
+  if (isExtremeRatingWithoutText(rating, comment)) flags.push('extreme_rating');
+
+  if (flags.length > 0) {
+    try {
+      await db.reviewModeration.create({
+        data: {
+          reviewId,
+          status: 'pending',
+          reason: `Auto-flagged: ${flags.join(', ')}`,
+          flaggedBy: 'system',
+          flagReason: flags[0],
+        },
+      });
+    } catch {
+      // Moderation flagging is best-effort
+    }
+  }
+
+  return flags;
+}
+
 // GET /api/reviews - Return reviews for a user (by reviewerId or revieweeId)
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const reviewerId = searchParams.get('reviewerId');
     const revieweeId = searchParams.get('revieweeId');
+    const includeModeration = searchParams.get('includeModeration') === 'true';
 
     // Try to fetch from DB first
     let dbReviews: Array<{
@@ -86,19 +233,60 @@ export async function GET(request: NextRequest) {
     const respondedCount = reviews.filter(r => r.response).length;
     const responseRate = reviews.length > 0 ? Math.round((respondedCount / reviews.length) * 100) : 0;
 
-    return NextResponse.json({
+    // Rating distribution
+    const ratingDistribution: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    reviews.forEach(r => {
+      const rounded = Math.round(r.rating);
+      if (rounded >= 1 && rounded <= 5) ratingDistribution[rounded]++;
+    });
+
+    const result: Record<string, unknown> = {
       reviews,
       averageRating: avgRating,
       totalReviews: reviews.length,
       breakdown,
       responseRate,
-    });
+      ratingDistribution,
+    };
+
+    // Include moderation data if requested
+    if (includeModeration) {
+      try {
+        const moderationData = await db.reviewModeration.findMany({
+          where: { reviewId: { in: reviews.map(r => r.id) } },
+        });
+        result.moderation = moderationData;
+      } catch {
+        result.moderation = [];
+      }
+    }
+
+    // Trending rating for reviewee
+    if (revieweeId) {
+      try {
+        const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+        const recentReviews = await db.review.findMany({
+          where: {
+            revieweeId,
+            createdAt: { gte: thirtyDaysAgo },
+          },
+          select: { rating: true },
+        });
+        result.trendingRating = recentReviews.length > 0
+          ? Math.round((recentReviews.reduce((sum, r) => sum + r.rating, 0) / recentReviews.length) * 10) / 10
+          : avgRating;
+      } catch {
+        result.trendingRating = avgRating;
+      }
+    }
+
+    return NextResponse.json(result);
   } catch {
     return NextResponse.json({ error: 'Failed to fetch reviews' }, { status: 500 });
   }
 }
 
-// POST /api/reviews - Create a new review
+// POST /api/reviews - Create a new review with auto-rating-update and moderation
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -109,10 +297,19 @@ export async function POST(request: NextRequest) {
     }
 
     const clampedRating = Math.min(5, Math.max(1, Number(rating)));
+    const commentText = comment || '';
 
     // Try to save to DB
     let newReview;
     try {
+      // Check for duplicate review (same reviewer, same session)
+      const existing = await db.review.findFirst({
+        where: { sessionId, reviewerId },
+      });
+      if (existing) {
+        return NextResponse.json({ error: 'You have already reviewed this session' }, { status: 409 });
+      }
+
       const reviewer = await db.user.findUnique({ where: { id: reviewerId }, select: { name: true } });
 
       newReview = await db.review.create({
@@ -121,9 +318,32 @@ export async function POST(request: NextRequest) {
           reviewerId,
           revieweeId,
           rating: clampedRating,
-          comment: comment || '',
+          comment: commentText,
         },
       });
+
+      // Auto-flag for moderation
+      const flags = await autoFlagReview(newReview.id, clampedRating, commentText);
+
+      // Auto-recalculate guide rating
+      const ratingStats = await recalculateGuideRating(revieweeId);
+
+      // Record rating history
+      if (ratingStats) {
+        try {
+          await db.ratingHistory.create({
+            data: {
+              guideId: revieweeId,
+              rating: clampedRating,
+              reviewId: newReview.id,
+              avgRating: ratingStats.averageRating,
+              reviewCount: ratingStats.totalReviews,
+            },
+          });
+        } catch {
+          // Rating history is best-effort
+        }
+      }
 
       return NextResponse.json({
         success: true,
@@ -140,8 +360,19 @@ export async function POST(request: NextRequest) {
           createdAt: newReview.createdAt.toISOString(),
           updatedAt: newReview.updatedAt.toISOString(),
         },
+        moderationFlags: flags,
+        ratingStats: ratingStats ? {
+          averageRating: ratingStats.averageRating,
+          totalReviews: ratingStats.totalReviews,
+          trendingRating: ratingStats.trendingRating,
+          ratingDistribution: ratingStats.ratingDistribution,
+        } : null,
       });
-    } catch {
+    } catch (dbError) {
+      // Check if it's the duplicate error we threw
+      if (dbError instanceof Error && dbError.message === 'You have already reviewed this session') {
+        return NextResponse.json({ error: dbError.message }, { status: 409 });
+      }
       // DB not available, return mock response
       const mockReview = {
         id: `r-${Date.now()}`,
@@ -150,7 +381,7 @@ export async function POST(request: NextRequest) {
         reviewerName: 'You',
         revieweeId,
         rating: clampedRating,
-        comment: comment || '',
+        comment: commentText,
         response: null,
         respondedAt: null,
         createdAt: new Date().toISOString(),
@@ -160,6 +391,41 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: true,
         review: mockReview,
+        moderationFlags: [],
+        ratingStats: null,
+      });
+    }
+  } catch {
+    return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+  }
+}
+
+// DELETE /api/reviews - Report a review (flag as inappropriate)
+export async function DELETE(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { reviewId, reporterId, reason, details } = body;
+
+    if (!reviewId || !reporterId || !reason) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    try {
+      const report = await db.reviewReport.create({
+        data: {
+          reviewId,
+          reporterId,
+          reason,
+          details: details || '',
+          status: 'pending',
+        },
+      });
+
+      return NextResponse.json({ success: true, report });
+    } catch {
+      return NextResponse.json({
+        success: true,
+        report: { id: `rr-${Date.now()}`, reviewId, reporterId, reason, status: 'pending' },
       });
     }
   } catch {

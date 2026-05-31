@@ -1,5 +1,6 @@
 // Chimbo Direct - Service Worker
 // Caches app shell with cache-first for static assets, network-first for API calls
+// Also handles web push notifications
 
 const CACHE_NAME = 'chimbo-direct-v1';
 
@@ -66,6 +67,216 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(cacheFirst(request));
 });
 
+// ─── Push Notification Handler ────────────────────────────────────
+
+self.addEventListener('push', (event) => {
+  let data = {
+    title: 'Chimbo Direct',
+    body: 'You have a new notification',
+    icon: '/icon-192.png',
+    badge: '/icon-192.png',
+    tag: 'chimbo-notification',
+    url: '/',
+    type: 'info',
+  };
+
+  if (event.data) {
+    try {
+      const parsed = event.data.json();
+      data = { ...data, ...parsed };
+    } catch (e) {
+      data.body = event.data.text() || data.body;
+    }
+  }
+
+  // Customize notification appearance based on type
+  const typeConfig = getTypeConfig(data.type);
+  data.title = data.title || typeConfig.title;
+  data.icon = typeConfig.icon || data.icon;
+
+  const options = {
+    body: data.body,
+    icon: data.icon,
+    badge: data.badge,
+    tag: data.tag || `chimbo-${Date.now()}`,
+    data: {
+      url: data.url || data.actionUrl || '/',
+      type: data.type,
+      notificationId: data.notificationId,
+      createdAt: Date.now(),
+    },
+    vibrate: typeConfig.vibrate,
+    requireInteraction: typeConfig.requireInteraction,
+    actions: typeConfig.actions,
+    silent: typeConfig.silent,
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(data.title, options)
+  );
+});
+
+// ─── Notification Click Handler ───────────────────────────────────
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+
+  const notificationData = event.notification.data || {};
+  const targetUrl = notificationData.url || '/';
+  const action = event.action;
+
+  // Handle action button clicks
+  if (action === 'reply' && notificationData.conversationId) {
+    // Open chat page for reply
+    event.waitUntil(
+      clients.openWindow(`/chat/${notificationData.conversationId}`)
+    );
+    return;
+  }
+
+  if (action === 'accept' && notificationData.bookingId) {
+    // Open booking for acceptance
+    event.waitUntil(
+      clients.openWindow(`/guide/sessions?id=${notificationData.bookingId}`)
+    );
+    return;
+  }
+
+  if (action === 'dismiss') {
+    return;
+  }
+
+  // Default: open the target URL
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      // If there's already a window open, focus it and navigate
+      for (const client of clientList) {
+        if (client.url.includes(self.location.origin) && 'focus' in client) {
+          client.navigate(targetUrl);
+          return client.focus();
+        }
+      }
+      // Otherwise open a new window
+      return clients.openWindow(targetUrl);
+    })
+  );
+});
+
+// ─── Notification Close Handler ───────────────────────────────────
+
+self.addEventListener('notificationclose', (event) => {
+  const notificationData = event.notification.data || {};
+  // Track notification dismissal for analytics
+  if (notificationData.notificationId) {
+    fetch('/api/notifications/track?XTransformPort=3000', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        notificationId: notificationData.notificationId,
+        action: 'dismissed',
+        timestamp: Date.now(),
+      }),
+    }).catch(() => { /* tracking failed, ok */ });
+  }
+});
+
+// ─── Push Subscription Change Handler ─────────────────────────────
+
+self.addEventListener('pushsubscriptionchange', (event) => {
+  // Re-subscribe and send new subscription to server
+  event.waitUntil(
+    self.registration.pushManager.getSubscription().then((subscription) => {
+      if (subscription) {
+        return fetch('/api/notifications/subscribe?XTransformPort=3000', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            subscription: subscription.toJSON(),
+            action: 'update',
+          }),
+        });
+      }
+    })
+  );
+});
+
+// ─── Helper: Type-based notification config ──────────────────────
+
+function getTypeConfig(type) {
+  switch (type) {
+    case 'new_message':
+    case 'chat_message':
+      return {
+        title: 'New Message',
+        icon: '/icon-192.png',
+        vibrate: [100, 50, 100],
+        requireInteraction: false,
+        silent: false,
+        actions: [
+          { action: 'reply', title: 'Reply' },
+          { action: 'dismiss', title: 'Dismiss' },
+        ],
+      };
+    case 'booking_confirmed':
+    case 'booking_new':
+      return {
+        title: 'Booking Update',
+        icon: '/icon-192.png',
+        vibrate: [200, 100, 200],
+        requireInteraction: true,
+        silent: false,
+        actions: [
+          { action: 'accept', title: 'View' },
+          { action: 'dismiss', title: 'Later' },
+        ],
+      };
+    case 'escrow_release':
+    case 'payment_received':
+      return {
+        title: 'Payment Update',
+        icon: '/icon-192.png',
+        vibrate: [100],
+        requireInteraction: false,
+        silent: false,
+        actions: [
+          { action: 'view', title: 'View Wallet' },
+        ],
+      };
+    case 'guide_verified':
+    case 'verification':
+      return {
+        title: 'Verification Update',
+        icon: '/icon-192.png',
+        vibrate: [100, 50, 100, 50, 100],
+        requireInteraction: false,
+        silent: false,
+        actions: [],
+      };
+    case 'dispute':
+      return {
+        title: 'Dispute Alert',
+        icon: '/icon-192.png',
+        vibrate: [300, 100, 300],
+        requireInteraction: true,
+        silent: false,
+        actions: [
+          { action: 'view', title: 'View Details' },
+        ],
+      };
+    default:
+      return {
+        title: 'Chimbo Direct',
+        icon: '/icon-192.png',
+        vibrate: [100],
+        requireInteraction: false,
+        silent: false,
+        actions: [],
+      };
+  }
+}
+
+// ─── Caching Strategies ──────────────────────────────────────────
+
 // Cache-first: try cache, fallback to network
 async function cacheFirst(request) {
   const cached = await caches.match(request);
@@ -81,7 +292,6 @@ async function cacheFirst(request) {
     }
     return response;
   } catch (error) {
-    // If offline and not in cache, return a basic offline response
     return new Response('Offline', { status: 503, statusText: 'Service Unavailable' });
   }
 }
@@ -117,12 +327,10 @@ async function navigationFallback(request) {
     }
     return response;
   } catch (error) {
-    // Offline: serve the cached root page (SPA shell)
     const cached = await caches.match('/');
     if (cached) {
       return cached;
     }
-    // Ultimate fallback: simple offline page
     return new Response(
       `<!DOCTYPE html>
 <html lang="sw">

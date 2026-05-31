@@ -7,7 +7,7 @@ import { useAuthStore } from '@/lib/stores/auth-store';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search, MessageCircle, Plus, Compass,
-  Clock, CheckCheck,
+  CheckCheck, Paperclip, Smile,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 
@@ -50,13 +50,15 @@ export default function ChatListPage() {
     return name.split(' ').map(n => n[0]).join('').slice(0, 2);
   };
 
+  const currentUserId = user?.role === 'guide' ? 'demo-guide' : 'demo-seeker';
+
   return (
-    <div className="px-4 py-4 space-y-4">
+    <div className="px-4 py-4 space-y-4 md:px-0 md:py-0">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between"
+        className="flex items-center justify-between md:px-4 md:pt-4"
       >
         <div>
           <h1 className="text-2xl font-bold text-[#065F46] dark:text-[#34D399]">
@@ -82,19 +84,19 @@ export default function ChatListPage() {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.05 }}
-        className="relative"
+        className="relative md:px-4"
       >
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94A3B8]" />
+        <Search className="absolute left-7 md:left-7 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94A3B8]" />
         <Input
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder={l('Search conversations...', 'Tafuta mazungumzo...')}
-          className="pl-9 h-10 bg-[#F1F5F9] dark:bg-[#1E293B] border-none rounded-xl text-sm"
+          className="pl-10 h-10 bg-[#F1F5F9] dark:bg-[#1E293B] border-none rounded-xl text-sm"
         />
       </motion.div>
 
       {/* Conversation List */}
-      <div className="space-y-1">
+      <div className="space-y-1 md:px-2">
         {isLoading && conversations.length === 0 ? (
           // Loading skeleton
           <div className="space-y-2">
@@ -132,7 +134,7 @@ export default function ChatListPage() {
             {!searchQuery && (
               <button
                 onClick={() => router.push('/guides')}
-                className="mt-4 kbtn text-sm py-2 px-4 flex items-center gap-2 mx-auto"
+                className="mt-4 px-4 py-2 rounded-xl bg-[#065F46] text-white text-sm font-semibold flex items-center gap-2 mx-auto"
               >
                 <Compass className="w-4 h-4" />
                 {l('Find a Guide', 'Tafuta Mwongozo')}
@@ -181,7 +183,7 @@ export default function ChatListPage() {
                   </div>
                   <div className="flex items-center justify-between gap-2 mt-0.5">
                     <p className={`text-xs truncate ${conv.unreadCount > 0 ? 'font-medium text-[#475569] dark:text-[#CBD5E1]' : 'text-[#94A3B8]'}`}>
-                      {conv.lastMessage.senderId === (user?.role === 'guide' ? 'demo-guide' : 'demo-seeker') && (
+                      {conv.lastMessage.senderId === currentUserId && (
                         <CheckCheck className="w-3 h-3 inline mr-0.5 text-[#34D399]" />
                       )}
                       {conv.lastMessage.content}
