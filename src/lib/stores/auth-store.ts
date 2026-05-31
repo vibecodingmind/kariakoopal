@@ -139,6 +139,10 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: () => {
+        // Clear the user_role cookie on logout
+        if (typeof document !== 'undefined') {
+          document.cookie = 'user_role=; path=/; max-age=0';
+        }
         set({
           user: null,
           guideProfile: null,

@@ -22,8 +22,10 @@ import {
   Wallet,
   Settings,
   ShoppingBag,
+  Clock,
 } from 'lucide-react';
 import { AIChatAssistant } from '@/components/ai-chat-assistant';
+import { useRealtime } from '@/hooks/use-realtime';
 import { LanguageToggle } from '@/components/language-toggle';
 import { Moon, Sun, LogOut, ChevronDown, ChevronRight } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -132,17 +134,17 @@ function BottomNav() {
 
   const seekerTabs = [
     { href: '/', icon: Home, label: 'Home', labelSw: 'Nyumbani' },
-    { href: '/market', icon: ShoppingBag, label: 'Market', labelSw: 'Soko' },
-    { href: '/seeker/find', icon: Search, label: 'Find', labelSw: 'Tafuta' },
-    { href: '/prices', icon: TrendingUp, label: 'Prices', labelSw: 'Bei' },
+    { href: '/search', icon: Search, label: 'Search', labelSw: 'Tafuta' },
+    { href: '/seeker/bookings', icon: CalendarCheck, label: 'Bookings', labelSw: 'Uhifadhi' },
+    { href: '/wallet', icon: Wallet, label: 'Wallet', labelSw: 'Mkoba' },
     { href: '/seeker/profile', icon: UserCircle2, label: 'Profile', labelSw: 'Wasifu' },
   ];
 
   const guideTabs = [
     { href: '/guide', icon: Home, label: 'Home', labelSw: 'Nyumbani' },
-    { href: '/guide/sessions', icon: CalendarCheck, label: 'Sessions', labelSw: 'Vipindi' },
-    { href: '/guide/packages', icon: Compass, label: 'Packages', labelSw: 'Pakiti' },
+    { href: '/guide/bookings', icon: CalendarCheck, label: 'Bookings', labelSw: 'Uhifadhi' },
     { href: '/guide/earnings', icon: TrendingUp, label: 'Earnings', labelSw: 'Mapato' },
+    { href: '/guide/availability', icon: Clock, label: 'Schedule', labelSw: 'Ratiba' },
     { href: '/guide/profile', icon: UserCircle2, label: 'Profile', labelSw: 'Wasifu' },
   ];
 
@@ -351,8 +353,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { user } = useAuthStore();
 
+  useRealtime(); // Enable real-time notifications
+
   // Only hide shell on auth page
   const isAuth = pathname === '/auth';
+  const isAdminRoute = pathname.startsWith('/admin');
 
   if (isAuth) {
     return <>{children}</>;
@@ -364,10 +369,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <NavProgress />
       <div className="min-h-screen flex flex-col bg-[#F8FAFC] dark:bg-[#0F172A]">
         <TopHeader />
-        <main className="flex-1 pb-20 max-w-4xl mx-auto w-full">
+        <main className={`flex-1 ${isAdminRoute ? '' : 'pb-20 max-w-4xl mx-auto'} w-full`}>
           {children}
         </main>
-        <BottomNav />
+        {!isAdminRoute && <BottomNav />}
       </div>
       <AIChatAssistant userRole={user?.role || 'seeker'} />
     </>

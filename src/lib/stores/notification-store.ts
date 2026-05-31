@@ -5,12 +5,13 @@ import { persist } from 'zustand/middleware';
 
 export interface Notification {
   id: string;
-  userId: string;
-  type: 'info' | 'success' | 'warning' | 'error' | 'session' | 'payment' | 'system';
+  userId?: string;
+  type: 'info' | 'success' | 'warning' | 'error' | 'session' | 'payment' | 'system' | 'booking' | 'message' | 'review';
   title: string;
   message: string;
   read: boolean;
   actionUrl?: string;
+  data?: Record<string, any>;
   createdAt: string;
 }
 
@@ -22,7 +23,8 @@ interface NotificationState {
 
   // Actions
   setNotifications: (notifications: Notification[]) => void;
-  addNotification: (notification: Omit<Notification, 'id' | 'createdAt'>) => void;
+  addNotification: (notification: Partial<Notification> & { title: string; message: string; type: Notification['type']; read: boolean }) => void;
+  incrementUnread: () => void;
   markAsRead: (id: string) => void;
   markAllRead: () => void;
   removeNotification: (id: string) => void;
@@ -144,15 +146,25 @@ export const useNotificationStore = create<NotificationState>()(
 
       addNotification: (notification) => {
         const newNotif: Notification = {
-          ...notification,
-          id: `n-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-          createdAt: new Date().toISOString(),
+          id: notification.id || `n-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+          userId: notification.userId || '',
+          type: notification.type,
+          title: notification.title,
+          message: notification.message,
+          read: notification.read,
+          actionUrl: notification.actionUrl,
+          data: notification.data,
+          createdAt: notification.createdAt || new Date().toISOString(),
         };
         const updated = [newNotif, ...get().notifications];
         set({
           notifications: updated,
           unreadCount: updated.filter(n => !n.read).length,
         });
+      },
+
+      incrementUnread: () => {
+        set({ unreadCount: get().unreadCount + 1 });
       },
 
       markAsRead: (id) => {

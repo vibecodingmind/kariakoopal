@@ -1,11 +1,13 @@
 'use client';
 
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
   Sparkles, Languages, Handshake, UserCheck, MapPin,
   ArrowRight, Star, TrendingDown, Volume2, Compass,
   Brain, CalendarDays, Shield, Wallet, QrCode, Gift,
-  Navigation, Bot, Lightbulb, Zap
+  Navigation, Bot, Lightbulb, Zap, Loader2
 } from 'lucide-react';
 import Link from 'next/link';
 import { useAuthStore } from '@/lib/stores/auth-store';
@@ -131,7 +133,28 @@ const itemVariants = {
 // ─── Component ───────────────────────────────────────────────────────
 
 export default function HomePage() {
-  const { user } = useAuthStore();
+  const { user, isAuthenticated } = useAuthStore();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      if (user.role === 'admin') router.replace('/admin');
+      else if (user.role === 'guide') router.replace('/guide');
+      else router.replace('/seeker');
+    }
+  }, [isAuthenticated, user, router]);
+
+  // Show loading spinner while redirecting authenticated users
+  if (isAuthenticated && user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC] dark:bg-[#0F172A]">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="w-8 h-8 animate-spin text-[#065F46] dark:text-[#34D399]" />
+          <p className="text-sm text-[#64748B] dark:text-[#94A3B8]">Redirecting...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0F172A]">

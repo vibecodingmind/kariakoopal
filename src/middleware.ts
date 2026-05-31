@@ -3,12 +3,19 @@ import type { NextRequest } from 'next/server';
 
 // Role-based route protection middleware
 const ROLE_ROUTES: Record<string, string[]> = {
-  seeker: ['/seeker', '/wallet', '/notifications', '/settings'],
-  guide: ['/guide', '/wallet', '/notifications', '/settings'],
+  seeker: ['/seeker', '/wallet', '/notifications', '/settings', '/market', '/prices', '/events', '/vendors', '/guides'],
+  guide: ['/guide', '/wallet', '/notifications', '/settings', '/market', '/prices', '/events', '/vendors', '/guides'],
   admin: ['/admin', '/wallet', '/notifications', '/settings'],
 };
 
-const PUBLIC_ROUTES = ['/', '/auth', '/guides', '/market', '/prices', '/events', '/vendors', '/stories', '/seeker/ai-trip-planner'];
+const PUBLIC_ROUTES = ['/', '/auth', '/guides', '/market', '/prices', '/events', '/vendors', '/stories'];
+
+// Role-specific dashboard for redirecting unauthorized access
+const ROLE_DASHBOARD: Record<string, string> = {
+  seeker: '/seeker',
+  guide: '/guide',
+  admin: '/admin',
+};
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -40,24 +47,34 @@ export function middleware(request: NextRequest) {
   }
 
   // Role-specific route protection
-  // Note: Since JWT role verification requires secret key access,
-  // we do basic route-level checks here. Full role validation happens client-side.
   const roleFromCookie = request.cookies.get('user_role')?.value;
 
   if (roleFromCookie) {
-    // Admin-only routes
-    if (pathname.startsWith('/admin') && roleFromCookie !== 'admin') {
-      return NextResponse.redirect(new URL('/', request.url));
+    const allowedRoutes = ROLE_ROUTES[roleFromCookie];
+    const dashboard = ROLE_DASHBOARD[roleFromCookie];
+
+    // If seeker tries to access /guide/* or /admin/*, redirect to /seeker
+    if (pathname.startsWith('/guide') && roleFromCookie === 'seeker') {
+      return NextResponse.redirect(new URL('/seeker', request.url));
+    }
+    if (pathname.startsWith('/admin') && roleFromCookie === 'seeker') {
+      return NextResponse.redirect(new URL('/seeker', request.url));
     }
 
-    // Guide-only routes
-    if (pathname.startsWith('/guide') && roleFromCookie !== 'guide' && roleFromCookie !== 'admin') {
-      return NextResponse.redirect(new URL('/', request.url));
+    // If guide tries to access /seeker/* or /admin/*, redirect to /guide
+    if (pathname.startsWith('/seeker') && roleFromCookie === 'guide') {
+      return NextResponse.redirect(new URL('/guide', request.url));
+    }
+    if (pathname.startsWith('/admin') && roleFromCookie === 'guide') {
+      return NextResponse.redirect(new URL('/guide', request.url));
     }
 
-    // Seeker-only routes
-    if (pathname.startsWith('/seeker') && roleFromCookie !== 'seeker' && roleFromCookie !== 'admin') {
-      return NextResponse.redirect(new URL('/', request.url));
+    // If admin tries to access /seeker/* or /guide/*, redirect to /admin
+    if (pathname.startsWith('/seeker') && roleFromCookie === 'admin') {
+      return NextResponse.redirect(new URL('/admin', request.url));
+    }
+    if (pathname.startsWith('/guide') && roleFromCookie === 'admin') {
+      return NextResponse.redirect(new URL('/admin', request.url));
     }
   }
 

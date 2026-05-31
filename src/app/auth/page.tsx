@@ -74,7 +74,7 @@ function AnimatedBackground() {
 
 // ── Auth Screen ──
 function AuthContent() {
-  const { login, language, isLoading, isAuthenticated } = useAuthStore();
+  const { login, language, isLoading, isAuthenticated, user } = useAuthStore();
   const { showOnboarding } = useAppStore();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -95,8 +95,12 @@ function AuthContent() {
   const [agreeTerms, setAgreeTerms] = useState(false);
 
   useEffect(() => {
-    if (isAuthenticated) router.replace('/');
-  }, [isAuthenticated, router, showOnboarding]);
+    if (isAuthenticated && user) {
+      if (user.role === 'admin') router.replace('/admin');
+      else if (user.role === 'guide') router.replace('/guide');
+      else router.replace('/seeker');
+    }
+  }, [isAuthenticated, user, router]);
 
   const handleSendOtp = () => {
     if (phone.length < 9) { setError(language === 'sw' ? 'Weka nambari sahihi ya simu' : 'Enter a valid phone number'); return; }

@@ -16,7 +16,7 @@ const AVAILABLE_GUIDES = [
 
 export default function FindGuidePage() {
   const router = useRouter();
-  const { language, isAuthenticated } = useAuthStore();
+  const { language, isAuthenticated, user } = useAuthStore();
   const sw = language === 'sw';
   const [search, setSearch] = useState('');
   const [selectedZone, setSelectedZone] = useState('');
@@ -26,7 +26,9 @@ export default function FindGuidePage() {
 
   useEffect(() => {
     if (!isAuthenticated) router.replace('/auth');
-  }, [isAuthenticated, router]);
+    else if (user?.role === 'guide') router.replace('/guide');
+    else if (user?.role === 'admin') router.replace('/admin');
+  }, [isAuthenticated, user, router]);
 
   const l = (en: string, swText: string) => (sw ? swText : en);
 

@@ -24,6 +24,13 @@ export async function POST(request: NextRequest) {
           maxAge: 60 * 60 * 24 * 7,
           path: '/',
         });
+        cookieStore.set('user_role', userRole, {
+          httpOnly: false,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          maxAge: 60 * 60 * 24 * 7,
+          path: '/',
+        });
       } catch {}
 
       const guideProfile = userRole === 'guide' ? (DEMO_GUIDE_PROFILES[user.id] || DEMO_GUIDE_PROFILES['demo-guide-1']) : null;
@@ -63,6 +70,13 @@ export async function POST(request: NextRequest) {
           const cookieStore = await cookies();
           cookieStore.set('auth_token', token, {
             httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 60 * 60 * 24 * 7,
+            path: '/',
+          });
+          cookieStore.set('user_role', userRole, {
+            httpOnly: false,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'lax',
             maxAge: 60 * 60 * 24 * 7,
@@ -108,6 +122,13 @@ export async function POST(request: NextRequest) {
           const cookieStore = await cookies();
           cookieStore.set('auth_token', token, {
             httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 60 * 60 * 24 * 7,
+            path: '/',
+          });
+          cookieStore.set('user_role', updatedUser.role, {
+            httpOnly: false,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'lax',
             maxAge: 60 * 60 * 24 * 7,
@@ -201,6 +222,13 @@ export async function POST(request: NextRequest) {
       const cookieStore = await cookies();
       cookieStore.set('auth_token', token, {
         httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24 * 7,
+        path: '/',
+      });
+      cookieStore.set('user_role', user.role, {
+        httpOnly: false,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
         maxAge: 60 * 60 * 24 * 7,
