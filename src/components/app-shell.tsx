@@ -25,7 +25,6 @@ import {
   Clock,
   MessageCircle,
 } from 'lucide-react';
-import { AIChatAssistant } from '@/components/ai-chat-assistant';
 import { useRealtime } from '@/hooks/use-realtime';
 import { LanguageToggle } from '@/components/language-toggle';
 import { Moon, Sun, LogOut, ChevronDown, ChevronRight } from 'lucide-react';
@@ -230,8 +229,6 @@ function TopHeader() {
 
   const sw = language === 'sw';
 
-  const profileHref = user?.role === 'guide' ? '/guide/profile' : user?.role === 'admin' ? '/admin' : '/seeker/profile';
-
   return (
     <header className="knav sticky top-0 z-50">
       <div className="flex items-center justify-between px-4 h-14 max-w-4xl mx-auto">
@@ -314,7 +311,6 @@ function TopHeader() {
                       </div>
                       <div className="p-1.5">
                         {[
-                          { icon: UserCircle2, label: sw ? 'Wasifu Wangu' : 'My Profile', href: profileHref },
                           { icon: MessageCircle, label: sw ? 'Ujumbe' : 'Messages', href: '/chat' },
                           { icon: Wallet, label: sw ? 'Mkoba' : 'Wallet', href: '/wallet' },
                           { icon: Bell, label: sw ? 'Arifa' : 'Notifications', href: '/notifications', badge: unreadCount },
@@ -444,7 +440,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </main>
         {!isAdminRoute && <BottomNav />}
       </div>
-      <AIChatAssistant userRole={user?.role || 'seeker'} />
     </>
   );
 }
