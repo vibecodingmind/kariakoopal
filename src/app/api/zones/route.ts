@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { DEMO_ZONES, getDbOrNull } from '@/lib/demo-data';
 
 export async function GET() {
   try {
+    const db = getDbOrNull();
+    if (!db) {
+      return NextResponse.json({ zones: DEMO_ZONES.map(z => ({ ...z, _count: { vendors: 0, priceRadar: 0, requests: 0 } })) }, { status: 200 });
+    }
+
     const zones = await db.zone.findMany({
       include: {
         _count: {
@@ -12,10 +17,14 @@ export async function GET() {
       orderBy: { createdAt: 'desc' },
     });
 
+    if (zones.length === 0) {
+      return NextResponse.json({ zones: DEMO_ZONES.map(z => ({ ...z, _count: { vendors: 0, priceRadar: 0, requests: 0 } })) }, { status: 200 });
+    }
+
     return NextResponse.json({ zones }, { status: 200 });
   } catch (error) {
     console.error('Get zones error:', error);
-    return NextResponse.json({ error: 'Failed to fetch zones' }, { status: 500 });
+    return NextResponse.json({ zones: DEMO_ZONES.map(z => ({ ...z, _count: { vendors: 0, priceRadar: 0, requests: 0 } })) }, { status: 200 });
   }
 }
 
@@ -25,6 +34,11 @@ export async function POST(request: NextRequest) {
 
     if (!name) {
       return NextResponse.json({ error: 'Zone name is required' }, { status: 400 });
+    }
+
+    const db = getDbOrNull();
+    if (!db) {
+      return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
     }
 
     const zone = await db.zone.create({

@@ -1,10 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { DEMO_GUIDES, getDbOrNull } from '@/lib/demo-data';
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
+
+    const db = getDbOrNull();
+    if (!db) {
+      let filtered = DEMO_GUIDES;
+      if (status) filtered = filtered.filter(g => g.guideProfile.status === status);
+      return NextResponse.json({
+        guides: filtered.map(g => ({
+          ...g.guideProfile,
+          user: g.user,
+          badges: [],
+        })),
+      }, { status: 200 });
+    }
 
     const where = status ? { status } : {};
 
@@ -25,9 +38,25 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: 'desc' },
     });
 
+    if (guides.length === 0) {
+      return NextResponse.json({
+        guides: DEMO_GUIDES.map(g => ({
+          ...g.guideProfile,
+          user: g.user,
+          badges: [],
+        })),
+      }, { status: 200 });
+    }
+
     return NextResponse.json({ guides }, { status: 200 });
   } catch (error) {
     console.error('Get guides error:', error);
-    return NextResponse.json({ error: 'Failed to fetch guides' }, { status: 500 });
+    return NextResponse.json({
+      guides: DEMO_GUIDES.map(g => ({
+        ...g.guideProfile,
+        user: g.user,
+        badges: [],
+      })),
+    }, { status: 200 });
   }
 }

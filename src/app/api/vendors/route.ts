@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { DEMO_VENDORS, DEMO_ZONES, getDbOrNull } from '@/lib/demo-data';
 
 export async function GET(request: NextRequest) {
   try {
@@ -7,6 +7,18 @@ export async function GET(request: NextRequest) {
     const zoneId = searchParams.get('zoneId');
     const category = searchParams.get('category');
     const approved = searchParams.get('approved');
+
+    const db = getDbOrNull();
+    if (!db) {
+      let vendors = DEMO_VENDORS.map(v => ({
+        ...v,
+        zone: DEMO_ZONES.find(z => z.id === v.zoneId) || null,
+      }));
+      if (zoneId) vendors = vendors.filter(v => v.zoneId === zoneId);
+      if (category) vendors = vendors.filter(v => v.categories.includes(category));
+      if (approved !== null && approved !== undefined) vendors = vendors.filter(v => v.approved === (approved === 'true'));
+      return NextResponse.json({ vendors }, { status: 200 });
+    }
 
     const where: Record<string, unknown> = {};
     if (zoneId) where.zoneId = zoneId;
@@ -23,10 +35,23 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: 'desc' },
     });
 
+    if (vendors.length === 0) {
+      const demoVendors = DEMO_VENDORS.map(v => ({
+        ...v,
+        zone: DEMO_ZONES.find(z => z.id === v.zoneId) || null,
+      }));
+      return NextResponse.json({ vendors: demoVendors }, { status: 200 });
+    }
+
     return NextResponse.json({ vendors }, { status: 200 });
   } catch (error) {
     console.error('Get vendors error:', error);
-    return NextResponse.json({ error: 'Failed to fetch vendors' }, { status: 500 });
+    return NextResponse.json({
+      vendors: DEMO_VENDORS.map(v => ({
+        ...v,
+        zone: DEMO_ZONES.find(z => z.id === v.zoneId) || null,
+      })),
+    }, { status: 200 });
   }
 }
 
@@ -50,6 +75,11 @@ export async function POST(request: NextRequest) {
         { error: 'name and zoneId are required' },
         { status: 400 }
       );
+    }
+
+    const db = getDbOrNull();
+    if (!db) {
+      return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
     }
 
     const zone = await db.zone.findUnique({ where: { id: zoneId } });
