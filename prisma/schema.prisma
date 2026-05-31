@@ -796,3 +796,511 @@ model QRCheckIn {
   @@index([seekerId])
   @@index([qrCodeHash])
 }
+
+// ══════════════════════════════════════════════════════
+// NEXT-LEVEL FEATURES (20 new features)
+// ══════════════════════════════════════════════════════
+
+// ── AI Price Oracle (1) ──
+model PriceEstimate {
+  id          String   @id @default(cuid())
+  category    String
+  zoneId      String
+  itemName    String
+  estimatedMin Float
+  estimatedMax Float
+  fairPrice   Float    // AI-computed fair price
+  confidence  Float    @default(0) // 0-1
+  dataPoints  Int      @default(0) // number of data sources used
+  sources     String   @default("{}") // JSON: breakdown of data sources
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([category, zoneId])
+  @@index([itemName])
+}
+
+// ── AI Negotiation Coach (2) ──
+model NegotiationSession {
+  id              String   @id @default(cuid())
+  userId          String
+  sessionId       String?
+  vendorName      String   @default("")
+  itemName        String
+  askingPrice     Float
+  currentOffer    Float    @default(0)
+  targetPrice     Float    @default(0) // AI-suggested target
+  coachTips       String   @default("[]") // JSON array of tip objects
+  status          String   @default("active") // active, completed, abandoned
+  finalPrice      Float?
+  savingsPercent  Float    @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId])
+  @@index([sessionId])
+}
+
+// ── AI Route Optimizer (3) ──
+model OptimizedRoute {
+  id              String   @id @default(cuid())
+  userId          String
+  zoneId          String
+  stops           String   @default("[]") // JSON: [{ vendorId, lat, lng, priority, estimatedTime }]
+  optimizedOrder  String   @default("[]") // JSON: ordered stop IDs
+  totalDistance   Float    @default(0) // meters
+  totalTime       Float    @default(0) // minutes
+  crowdData       String   @default("{}") // JSON: real-time crowd levels
+  startLat        Float    @default(-6.8264)
+  startLng        Float    @default(39.2695)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId])
+  @@index([zoneId])
+}
+
+// ── AI Cultural Translator (4) ──
+model CulturalInsight {
+  id          String   @id @default(cuid())
+  zoneId      String
+  category    String   // greeting, gesture, custom, bargaining, dress_code, food
+  title       String
+  titleSw     String   @default("")
+  description String
+  descriptionSw String @default("")
+  doAdvice    String   @default("") // what to do
+  dontAdvice  String   @default("") // what NOT to do
+  severity    String   @default("info") // info, important, critical
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([zoneId, category])
+}
+
+// ── AI Fraud Voice Shield (5) ──
+model VoiceShieldAlert {
+  id            String   @id @default(cuid())
+  sessionId     String
+  userId        String   // seeker being protected
+  alertType     String   // pressure, scam, threat, unusual_request, distraction
+  confidence    Float    @default(0) // 0-1
+  transcript    String   @default("") // relevant audio snippet text
+  actionTaken   String   @default("none") // none, warning_shown, session_paused, sos_triggered
+  resolved      Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([sessionId])
+  @@index([userId])
+  @@index([alertType])
+}
+
+// ── SOS Panic Button (6) ──
+model SOSEvent {
+  id              String   @id @default(cuid())
+  userId          String
+  sessionId       String?
+  type            String   @default("panic") // panic, medical, theft, harassment, lost
+  status          String   @default("active") // active, resolved, false_alarm
+  lat             Float?
+  lng             Float?
+  audioRecordingUrl String @default("")
+  contactsNotified String @default("[]") // JSON: array of contact IDs notified
+  authorityNotified Boolean @default(false)
+  resolvedBy      String?
+  resolution      String?  // safe, false_alarm, escalated, assisted
+  resolvedAt      DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// ── Trusted Contact Tracking (7) ──
+model TrustedContact {
+  id          String   @id @default(cuid())
+  userId      String   // the seeker who adds the contact
+  name        String
+  phone       String
+  email       String?
+  relation    String   @default("family") // family, friend, colleague, other
+  notifyOn    String   @default("[\"session_start\",\"sos\",\"offline\"]") // JSON: events to notify on
+  canTrack    Boolean  @default(true) // can see live location
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model TripShare {
+  id          String   @id @default(cuid())
+  seekerId    String
+  sessionId   String
+  contactId   String
+  shareToken  String   @unique // unique token for tracking URL
+  isActive    Boolean  @default(true)
+  expiresAt   DateTime?
+  createdAt   DateTime @default(now())
+
+  @@index([seekerId])
+  @@index([shareToken])
+  @@index([contactId])
+}
+
+// ── Vendor Trust Score (8) ──
+model VendorTrustScore {
+  id              String   @id @default(cuid())
+  vendorId        String   @unique
+  overallScore    Int      @default(50) // 0-100
+  reviewScore     Float    @default(0) // avg rating from reviews
+  disputeRate     Float    @default(0) // disputes per 100 transactions
+  priceFairness   Float    @default(0) // 0-1 how fair prices are vs market
+  responseTime    Float    @default(0) // avg response time in minutes
+  repeatCustomerRate Float @default(0) // % of repeat customers
+  timeInMarket    Int      @default(0) // months
+  factors         String   @default("{}") // JSON: breakdown of all factors
+  lastCalculated  DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([overallScore])
+  @@index([vendorId])
+}
+
+// ── Identity Verification KYC (9) ──
+model KYCVerification {
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  status              String   @default("not_started") // not_started, pending, approved, rejected, expired
+  documentType        String   @default("") // national_id, passport, drivers_license
+  documentNumber      String   @default("")
+  documentFrontUrl    String?
+  documentBackUrl     String?
+  selfieUrl           String?
+  selfieWithDocUrl    String?
+  addressProofUrl     String?
+  address             String   @default("")
+  dateOfBirth         String   @default("")
+  nationality         String   @default("")
+  verificationProvider String @default("manual") // manual, jumio, onfido, smile_identity
+  providerRef         String   @default("")
+  aiFaceMatchScore    Float    @default(0) // 0-1 confidence
+  aiDocAuthScore      Float    @default(0) // 0-1 confidence
+  rejectionReason     String?
+  reviewedBy          String?
+  submittedAt         DateTime?
+  reviewedAt          DateTime?
+  expiresAt           DateTime?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([status])
+  @@index([userId])
+}
+
+// ── Smart Escrow Release (10) ──
+model EscrowMilestone {
+  id            String    @id @default(cuid())
+  sessionId     String
+  milestoneType String    // meetup, midpoint, completion, custom
+  label         String    @default("")
+  percentage    Int       @default(33) // % of total to release
+  amount        Float     @default(0)
+  status        String    @default("pending") // pending, verified, released, skipped
+  verifiedBy    String    @default("") // guide, seeker, gps, admin
+  lat           Float?
+  lng           Float?
+  gpsRadius     Float     @default(100) // meters - must be within this radius to verify
+  verifiedAt    DateTime?
+  releasedAt    DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([sessionId])
+  @@index([status])
+}
+
+// ── Commission Engine (11) ──
+model CommissionRule {
+  id            String   @id @default(cuid())
+  tier          String   // free, pro, elite
+  category      String   @default("session") // session, package, tip, boost
+  rate          Float    @default(0.15) // 15% commission
+  minAmount     Float    @default(0)
+  maxAmount     Float?   // null = no cap
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([tier, category])
+}
+
+model CommissionLedger {
+  id              String   @id @default(cuid())
+  sessionId       String?
+  fromUserId      String
+  toUserId        String   // usually guide
+  grossAmount     Float
+  commissionRate  Float
+  commissionAmount Float
+  netAmount       Float
+  status          String   @default("pending") // pending, collected, refunded
+  description     String   @default("")
+  createdAt       DateTime @default(now())
+
+  @@index([fromUserId])
+  @@index([toUserId])
+  @@index([status])
+}
+
+// ── Featured Listings / Boost (12) ──
+model FeaturedListing {
+  id          String   @id @default(cuid())
+  guideId     String
+  type        String   @default("profile") // profile, package, tour
+  targetId    String   @default("") // ID of the boosted item
+  position    Int      @default(0) // display order
+  zoneId      String   @default("") // can target specific zones
+  startDate   DateTime
+  endDate     DateTime
+  impressions Int      @default(0)
+  clicks      Int      @default(0)
+  cost        Float    @default(0)
+  status      String   @default("active") // active, paused, expired, cancelled
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([guideId])
+  @@index([status])
+  @@index([position])
+  @@index([zoneId])
+}
+
+// ── Tip Jar (13) ──
+model Tip {
+  id          String   @id @default(cuid())
+  sessionId   String
+  fromUserId  String
+  toGuideId   String
+  amount      Float
+  message     String   @default("")
+  isAnonymous Boolean  @default(false)
+  status      String   @default("completed") // pending, completed, refunded
+  createdAt   DateTime @default(now())
+
+  @@index([toGuideId])
+  @@index([fromUserId])
+  @@index([sessionId])
+}
+
+// ── Premium Content Gating (14) ──
+model PremiumContent {
+  id          String   @id @default(cuid())
+  guideId     String
+  title       String
+  description String   @default("")
+  contentUrl  String   @default("")
+  coverUrl    String   @default("")
+  category    String   @default("market_intel") // market_intel, food_spots, hidden_gems, fashion_tips, safety
+  accessType  String   @default("one_time") // one_time, subscription
+  price       Float    @default(0) // TZS, 0 = free preview
+  purchases   Int      @default(0)
+  rating      Float    @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([guideId])
+  @@index([category])
+  @@index([accessType])
+}
+
+model ContentPurchase {
+  id         String   @id @default(cuid())
+  userId     String
+  contentId  String
+  amount     Float    @default(0)
+  status     String   @default("completed") // completed, refunded
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, contentId])
+  @@index([userId])
+  @@index([contentId])
+}
+
+// ── Corporate/B2B Accounts (15) ──
+model CorporateAccount {
+  id              String   @id @default(cuid())
+  companyName     String
+  companyEmail    String   @unique
+  companyPhone    String   @default("")
+  adminUserId     String   // main admin user
+  tier            String   @default("business") // business, enterprise
+  teamSize        Int      @default(1)
+  monthlyBudget   Float    @default(0)
+  spentThisMonth  Float    @default(0)
+  invoiceEmail    String   @default("")
+  taxId           String   @default("")
+  status          String   @default("active") // active, suspended, cancelled
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([adminUserId])
+  @@index([status])
+}
+
+model CorporateMember {
+  id            String   @id @default(cuid())
+  corporateId   String
+  userId        String
+  role          String   @default("member") // admin, manager, member
+  spendLimit    Float    @default(0) // per-booking limit, 0 = unlimited
+  canBook       Boolean  @default(true)
+  canApprove    Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([corporateId, userId])
+  @@index([corporateId])
+  @@index([userId])
+}
+
+// ── Multi-Language CMS (21) ──
+model TranslationKey {
+  id          String   @id @default(cuid())
+  key         String   @unique // e.g. "nav_home", "auth_title"
+  category    String   @default("general") // general, nav, auth, guide, seeker, admin
+  valueEn     String   @default("")
+  valueSw     String   @default("")
+  isEditable  Boolean  @default(true)
+  updatedBy   String   @default("system")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([category])
+  @@index([key])
+}
+
+// ── Dynamic Pricing Engine (22) ──
+model PricingRule {
+  id            String   @id @default(cuid())
+  zoneId        String   @default("") // empty = all zones
+  guideTier     String   @default("all") // all, free, pro, elite
+  ruleType      String   @default("surge") // surge, discount, seasonal, time_based
+  multiplier    Float    @default(1.0) // 1.5 = 50% surge, 0.8 = 20% discount
+  conditions    String   @default("{}") // JSON: { dayOfWeek, startTime, endTime, minBookings, event }
+  priority      Int      @default(0) // higher = applies first
+  startDate     DateTime?
+  endDate       DateTime?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([zoneId])
+  @@index([ruleType])
+  @@index([isActive])
+}
+
+// ── Offline Mode / PWA Cache (23) ──
+model OfflineCache {
+  id          String   @id @default(cuid())
+  userId      String
+  cacheType   String   // guides, vendors, shopping_lists, zones, prices
+  data        String   @default("{}") // JSON cached data
+  version     Int      @default(1)
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, cacheType])
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+// ── Analytics Dashboard 2.0 (24) ──
+model AnalyticsEvent {
+  id          String   @id @default(cuid())
+  eventType   String   // page_view, booking, cancellation, tip, dispute, signup
+  userId      String?
+  entity_type String?  // guide, seeker, vendor, session
+  entityId    String?
+  metadata    String   @default("{}") // JSON: extra data
+  value       Float    @default(0) // monetary value if applicable
+  createdAt   DateTime @default(now())
+
+  @@index([eventType])
+  @@index([userId])
+  @@index([entity_type, entityId])
+  @@index([createdAt])
+}
+
+model AnalyticsReport {
+  id          String   @id @default(cuid())
+  type        String   // daily, weekly, monthly, custom
+  periodStart DateTime
+  periodEnd   DateTime
+  data        String   @default("{}") // JSON: full report data
+  insights    String   @default("[]") // JSON: AI-generated insights
+  generatedBy String   @default("system") // system, admin_id
+  createdAt   DateTime @default(now())
+
+  @@index([type])
+  @@index([periodStart, periodEnd])
+}
+
+// ── Webhook & API Marketplace (25) ──
+model WebhookEndpoint {
+  id            String   @id @default(cuid())
+  userId        String
+  url           String
+  events        String   @default("[]") // JSON: ["booking.created", "session.completed", ...]
+  secret        String   @default("") // HMAC secret for verification
+  isActive      Boolean  @default(true)
+  lastTriggered DateTime?
+  failureCount  Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([userId])
+  @@index([isActive])
+}
+
+model WebhookDelivery {
+  id          String   @id @default(cuid())
+  endpointId  String
+  event       String
+  payload     String   @default("{}") // JSON
+  statusCode  Int      @default(0)
+  response    String   @default("")
+  success     Boolean  @default(false)
+  retries     Int      @default(0)
+  deliveredAt DateTime?
+  createdAt   DateTime @default(now())
+
+  @@index([endpointId])
+  @@index([success])
+  @@index([createdAt])
+}
+
+model APIClient {
+  id            String   @id @default(cuid())
+  userId        String
+  name          String   // "Hotel Booking Integration"
+  apiKey        String   @unique
+  apiSecretHash String
+  permissions   String   @default("[\"read_guides\",\"read_sessions\"]") // JSON
+  rateLimit     Int      @default(100) // requests per minute
+  requestCount  Int      @default(0)
+  isActive      Boolean  @default(true)
+  lastUsedAt    DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([userId])
+  @@index([apiKey])
+  @@index([isActive])
+}

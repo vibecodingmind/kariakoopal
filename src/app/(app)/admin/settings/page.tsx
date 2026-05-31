@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   Settings, Brain, CreditCard, Shield, Bell, Save, Sparkles,
-  ArrowLeft,
+  ArrowLeft, Percent, DollarSign, Eye,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Switch } from '@/components/ui/switch';
@@ -247,6 +247,18 @@ export default function AdminSettingsPage() {
   const [smsNotifications, setSmsNotifications] = useState(true);
   const [pushNotifications, setPushNotifications] = useState(true);
   const [slackWebhook, setSlackWebhook] = useState('');
+
+  // ── Commission Engine ──
+  const [commissionRules, setCommissionRules] = useState([
+    { id: 'cr1', tier: 'free', category: 'session', rate: 15, minAmount: 0, maxAmount: 0, isActive: true },
+    { id: 'cr2', tier: 'pro', category: 'session', rate: 10, minAmount: 0, maxAmount: 0, isActive: true },
+    { id: 'cr3', tier: 'elite', category: 'session', rate: 5, minAmount: 0, maxAmount: 0, isActive: true },
+    { id: 'cr4', tier: 'free', category: 'package', rate: 15, minAmount: 0, maxAmount: 0, isActive: true },
+    { id: 'cr5', tier: 'pro', category: 'package', rate: 8, minAmount: 0, maxAmount: 0, isActive: true },
+    { id: 'cr6', tier: 'free', category: 'tip', rate: 5, minAmount: 0, maxAmount: 0, isActive: true },
+    { id: 'cr7', tier: 'free', category: 'boost', rate: 20, minAmount: 0, maxAmount: 0, isActive: true },
+  ]);
+  const [ledgerTotal, setLedgerTotal] = useState({ grossAmount: 4500000, commissionAmount: 525000, netAmount: 3975000 });
 
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -512,6 +524,80 @@ export default function AdminSettingsPage() {
           placeholder="https://hooks.slack.com/services/..."
           type="url"
         />
+      </SettingsCard>
+
+      {/* ══════════════════════════════════════
+          Commission Engine
+          ══════════════════════════════════════ */}
+      <SettingsCard icon={Percent} title="Commission Engine" delay={0.3} accent="#34D399">
+        {/* Ledger totals */}
+        <div className="grid grid-cols-3 gap-3">
+          <div className="p-3 rounded-xl bg-[#0F172A] text-center">
+            <p className="text-xs text-[#94A3B8]">Gross Volume</p>
+            <p className="text-sm font-bold text-white">TZS {(ledgerTotal.grossAmount / 1000).toFixed(0)}K</p>
+          </div>
+          <div className="p-3 rounded-xl bg-[#0F172A] text-center">
+            <p className="text-xs text-[#94A3B8]">Commission Earned</p>
+            <p className="text-sm font-bold text-[#34D399]">TZS {(ledgerTotal.commissionAmount / 1000).toFixed(0)}K</p>
+          </div>
+          <div className="p-3 rounded-xl bg-[#0F172A] text-center">
+            <p className="text-xs text-[#94A3B8]">Net to Guides</p>
+            <p className="text-sm font-bold text-[#F59E0B]">TZS {(ledgerTotal.netAmount / 1000).toFixed(0)}K</p>
+          </div>
+        </div>
+
+        {/* Rules table */}
+        <div className="space-y-2">
+          <p className="text-xs font-bold text-[#F1F5F9]">Commission Rules by Tier & Category</p>
+          <div className="rounded-xl overflow-hidden border border-[#334155]">
+            <div className="grid grid-cols-5 gap-2 px-3 py-2 bg-[#0F172A] text-[10px] font-bold text-[#94A3B8] uppercase">
+              <span>Tier</span>
+              <span>Category</span>
+              <span>Rate</span>
+              <span>Active</span>
+              <span className="text-right">Actions</span>
+            </div>
+            {commissionRules.map((rule) => (
+              <div key={rule.id} className="grid grid-cols-5 gap-2 px-3 py-2 border-t border-[#334155] items-center">
+                <span className={`text-xs font-bold px-2 py-0.5 rounded-full inline-block text-center ${
+                  rule.tier === 'free' ? 'bg-[#F1F5F9] text-[#64748B]' :
+                  rule.tier === 'pro' ? 'bg-[#065F46]/20 text-[#34D399]' :
+                  'bg-[#F59E0B]/10 text-[#F59E0B]'
+                }`}>{rule.tier}</span>
+                <span className="text-xs text-[#F1F5F9]">{rule.category}</span>
+                <div className="flex items-center gap-1">
+                  <Input
+                    type="number"
+                    value={rule.rate}
+                    min={0}
+                    max={50}
+                    step={1}
+                    onChange={(e) => {
+                      const val = Number(e.target.value);
+                      setCommissionRules(prev => prev.map(r => r.id === rule.id ? { ...r, rate: val } : r));
+                    }}
+                    className="w-16 h-7 bg-[#0F172A] border-[#475569] text-[#F1F5F9] text-xs rounded text-center px-1"
+                  />
+                  <span className="text-xs text-[#94A3B8]">%</span>
+                </div>
+                <Switch
+                  checked={rule.isActive}
+                  onCheckedChange={(v) => {
+                    setCommissionRules(prev => prev.map(r => r.id === rule.id ? { ...r, isActive: v } : r));
+                  }}
+                />
+                <div className="flex justify-end">
+                  <button
+                    onClick={() => setCommissionRules(prev => prev.map(r => r.id === rule.id ? { ...r, isActive: false } : r))}
+                    className="p-1 rounded hover:bg-red-500/10 text-red-400 text-xs"
+                  >
+                    Deactivate
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </SettingsCard>
 
       {/* ── Save Button ── */}
