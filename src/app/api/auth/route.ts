@@ -1,17 +1,48 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { DEMO_USERS, DEMO_GUIDE_PROFILES, isDemoPhone, db } from '@/lib/demo-data';
+import { sanitizePhone, sanitizeEmail, sanitizeString, sanitizeRole } from '@/lib/sanitize';
+import { rateLimit, getClientIp } from '@/lib/rate-limit';
 
 export async function POST(request: NextRequest) {
   try {
-    const { phone, name, email, role } = await request.json();
+    // ── Rate Limiting ──
+    const clientIp = getClientIp(request);
+    const rateResult = rateLimit(`auth:${clientIp}`, 5, 60 * 1000); // 5 attempts per minute per IP
+    if (!rateResult.allowed) {
+      return NextResponse.json(
+        {
+          error: 'Too many login attempts. Please try again later.',
+          success: false,
+          retryAfter: Math.ceil((rateResult.resetTime - Date.now()) / 1000),
+        },
+        {
+          status: 429,
+          headers: {
+            'X-RateLimit-Limit': String(rateResult.total),
+            'X-RateLimit-Remaining': '0',
+            'X-RateLimit-Reset': String(rateResult.resetTime),
+            'Retry-After': String(Math.ceil((rateResult.resetTime - Date.now()) / 1000)),
+          },
+        }
+      );
+    }
+
+    const body = await request.json();
+    const { phone, name, email, role } = body;
+
+    // ── Input Sanitization ──
+    const sanitizedPhone = sanitizePhone(phone);
+    const sanitizedName = sanitizeString(name, 100);
+    const sanitizedEmail = sanitizeEmail(email);
+    const sanitizedRole = sanitizeRole(role);
 
     // ── Demo Mode Fallback (no database required) ──
     // Demo users are served directly without hitting the database
-    if (phone && isDemoPhone(phone)) {
+    if (sanitizedPhone && isDemoPhone(phone)) {
       const demoUser = DEMO_USERS[phone];
-      const userRole = (role === 'guide' || role === 'admin') ? role : demoUser.role;
-      const user = { ...demoUser, role: userRole, name: name || demoUser.name };
+      const userRole = (sanitizedRole === 'guide' || sanitizedRole === 'admin') ? sanitizedRole : demoUser.role;
+      const user = { ...demoUser, role: userRole, name: sanitizedName || demoUser.name };
 
       const token = `demo_token_${user.id}_${Date.now()}`;
 
@@ -49,14 +80,14 @@ export async function POST(request: NextRequest) {
 
     if (!dbAvailable) {
       // If no database available and not a demo user, create a temporary in-memory user
-      if (phone) {
-        const userRole = (role === 'guide' || role === 'admin') ? role : 'seeker';
+      if (sanitizedPhone) {
+        const userRole = (sanitizedRole === 'guide' || sanitizedRole === 'admin') ? sanitizedRole : 'seeker';
         const tempId = `temp_${Date.now()}_${Math.random().toString(36).slice(2)}`;
         const user = {
           id: tempId,
-          phone,
-          name: name || phone.replace(/^\+/, ''),
-          email: email || null,
+          phone: sanitizedPhone,
+          name: sanitizedName || sanitizedPhone.replace(/^\+/, ''),
+          email: sanitizedEmail || null,
           role: userRole,
           languagePref: 'sw' as const,
           avatarUrl: null,
@@ -104,15 +135,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Support email-based lookup for social login users
-    if (!phone && email) {
-      const user = await db.user.findFirst({ where: { email } });
+    if (!sanitizedPhone && sanitizedEmail) {
+      const user = await db.user.findFirst({ where: { email: sanitizedEmail } });
 
       if (user) {
         let updatedUser = user;
-        if (role && user.role !== role && (role === 'seeker' || role === 'guide' || role === 'admin')) {
+        if (sanitizedRole && user.role !== sanitizedRole) {
           updatedUser = await db.user.update({
             where: { id: user.id },
-            data: { role },
+            data: { role: sanitizedRole },
           });
         }
 
@@ -156,18 +187,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    if (!phone) {
+    if (!sanitizedPhone) {
       return NextResponse.json({ error: 'Phone number is required' }, { status: 400 });
     }
 
-    let user = await db.user.findUnique({ where: { phone } });
+    let user = await db.user.findUnique({ where: { phone: sanitizedPhone } });
     let isNewUser = false;
 
     if (!user) {
-      const userName = name || phone.replace(/^\+/, '');
-      const userRole = (role === 'guide' || role === 'admin') ? role : 'seeker';
+      const userName = sanitizedName || sanitizedPhone.replace(/^\+/, '');
+      const userRole = (sanitizedRole === 'guide' || sanitizedRole === 'admin') ? sanitizedRole : 'seeker';
       user = await db.user.create({
-        data: { phone, name: userName, email: email || null, role: userRole },
+        data: { phone: sanitizedPhone, name: userName, email: sanitizedEmail || null, role: userRole },
       });
       isNewUser = true;
 
@@ -187,13 +218,13 @@ export async function POST(request: NextRequest) {
         });
       }
     } else {
-      if (role && user.role !== role && (role === 'seeker' || role === 'guide' || role === 'admin')) {
+      if (sanitizedRole && user.role !== sanitizedRole) {
         user = await db.user.update({
           where: { id: user.id },
-          data: { role },
+          data: { role: sanitizedRole },
         });
 
-        if (role === 'guide') {
+        if (sanitizedRole === 'guide') {
           const existingProfile = await db.guideProfile.findUnique({
             where: { userId: user.id },
           });

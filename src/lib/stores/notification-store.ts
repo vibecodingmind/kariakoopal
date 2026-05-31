@@ -3,15 +3,26 @@ import { persist } from 'zustand/middleware';
 
 // ── Types ──
 
+export type NotificationType =
+  | 'info' | 'success' | 'warning' | 'error'
+  | 'session' | 'payment' | 'system'
+  | 'booking' | 'message' | 'review'
+  | 'booking_new' | 'booking_confirmed' | 'booking_cancelled'
+  | 'chat_message'
+  | 'payment_received' | 'payment_failed'
+  | 'guide_verified'
+  | 'review_received'
+  | 'system_announcement';
+
 export interface Notification {
   id: string;
   userId?: string;
-  type: 'info' | 'success' | 'warning' | 'error' | 'session' | 'payment' | 'system' | 'booking' | 'message' | 'review';
+  type: NotificationType;
   title: string;
   message: string;
   read: boolean;
   actionUrl?: string;
-  data?: Record<string, any>;
+  data?: Record<string, unknown>;
   createdAt: string;
 }
 
@@ -23,7 +34,7 @@ interface NotificationState {
 
   // Actions
   setNotifications: (notifications: Notification[]) => void;
-  addNotification: (notification: Partial<Notification> & { title: string; message: string; type: Notification['type']; read: boolean }) => void;
+  addNotification: (notification: Partial<Notification> & { title: string; message: string; type: NotificationType; read: boolean }) => void;
   incrementUnread: () => void;
   markAsRead: (id: string) => void;
   markAllRead: () => void;
@@ -37,7 +48,7 @@ const DEMO_NOTIFICATIONS: Notification[] = [
   {
     id: 'n1',
     userId: 'demo-seeker',
-    type: 'session',
+    type: 'booking_confirmed',
     title: 'Guide Accepted Your Request',
     message: 'Mwanaildi Juma has accepted your guide request for Fabrics Zone. Session starts soon!',
     read: false,
@@ -47,7 +58,7 @@ const DEMO_NOTIFICATIONS: Notification[] = [
   {
     id: 'n2',
     userId: 'demo-seeker',
-    type: 'payment',
+    type: 'payment_received',
     title: 'Payment Received',
     message: 'TZS 35,000 has been held in escrow for your session with Fatma Hassan.',
     read: false,
@@ -57,7 +68,17 @@ const DEMO_NOTIFICATIONS: Notification[] = [
   {
     id: 'n3',
     userId: 'demo-seeker',
-    type: 'info',
+    type: 'chat_message',
+    title: 'New Message from Fatma',
+    message: 'Tuna vitambaa vya kanga vipya! Njoo uone 🌟',
+    read: false,
+    actionUrl: '/chat',
+    createdAt: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
+  },
+  {
+    id: 'n4',
+    userId: 'demo-seeker',
+    type: 'booking_new',
     title: 'Price Drop Alert!',
     message: 'Samsung Galaxy A54 price dropped in Electronics Zone. Check Price Radar for details.',
     read: false,
@@ -65,7 +86,7 @@ const DEMO_NOTIFICATIONS: Notification[] = [
     createdAt: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
   },
   {
-    id: 'n4',
+    id: 'n5',
     userId: 'demo-seeker',
     type: 'session',
     title: 'Session Completed',
@@ -75,18 +96,28 @@ const DEMO_NOTIFICATIONS: Notification[] = [
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(),
   },
   {
-    id: 'n5',
+    id: 'n6',
     userId: 'demo-seeker',
-    type: 'system',
+    type: 'review_received',
+    title: 'Review Received!',
+    message: 'Asha Mohamed left a 5-star review for your session!',
+    read: true,
+    actionUrl: '/seeker/history',
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 6).toISOString(),
+  },
+  {
+    id: 'n7',
+    userId: 'demo-seeker',
+    type: 'system_announcement',
     title: 'Welcome to Kariako Guide!',
     message: 'Your account has been set up successfully. Start exploring Kariakoo market with a local guide.',
     read: true,
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
   },
   {
-    id: 'n6',
+    id: 'n8',
     userId: 'demo-guide',
-    type: 'session',
+    type: 'booking_new',
     title: 'New Session Request',
     message: 'James K. is requesting a guide for Electronics Zone. Budget: TZS 35,000.',
     read: false,
@@ -94,9 +125,9 @@ const DEMO_NOTIFICATIONS: Notification[] = [
     createdAt: new Date(Date.now() - 1000 * 60 * 3).toISOString(),
   },
   {
-    id: 'n7',
+    id: 'n9',
     userId: 'demo-guide',
-    type: 'payment',
+    type: 'payment_received',
     title: 'Payout Processed',
     message: 'TZS 125,000 has been sent to your M-Pesa account (0712***890).',
     read: false,
@@ -104,26 +135,46 @@ const DEMO_NOTIFICATIONS: Notification[] = [
     createdAt: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
   },
   {
-    id: 'n8',
+    id: 'n10',
     userId: 'demo-guide',
-    type: 'success',
+    type: 'guide_verified',
     title: 'New Badge Earned!',
     message: 'Congratulations! You earned the "100+ Sessions" badge. Keep up the great work!',
     read: true,
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 8).toISOString(),
   },
   {
-    id: 'n9',
+    id: 'n11',
     userId: 'demo-guide',
-    type: 'warning',
-    title: 'Subscription Renewal',
-    message: 'Your Pro subscription renews in 3 days. Ensure your M-Pesa account has sufficient balance.',
+    type: 'booking_cancelled',
+    title: 'Booking Cancelled',
+    message: 'A booking for Spices Zone has been cancelled by the seeker.',
     read: false,
-    actionUrl: '/guide/subscriptions',
+    actionUrl: '/guide/sessions',
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 12).toISOString(),
   },
   {
-    id: 'n10',
+    id: 'n12',
+    userId: 'demo-guide',
+    type: 'chat_message',
+    title: 'Message from Amina',
+    message: 'Naomba msaada kwa spices zone kesho',
+    read: false,
+    actionUrl: '/chat',
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 14).toISOString(),
+  },
+  {
+    id: 'n13',
+    userId: 'demo-guide',
+    type: 'payment_failed',
+    title: 'Payment Failed',
+    message: 'Wallet top-up of TZS 10,000 failed. Please try again.',
+    read: true,
+    actionUrl: '/wallet',
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
+  },
+  {
+    id: 'n14',
     userId: 'demo-guide',
     type: 'system',
     title: 'New Feature: QR Check-in',

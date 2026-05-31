@@ -1,13 +1,15 @@
 {
   "name": "Kariako Guide",
   "short_name": "Kariako",
-  "description": "Your guide to Kariakoo market - Find trusted local guides",
+  "description": "Your trusted guide to Kariakoo Market - Find verified local guides, fair prices, and smart shopping in Dar es Salaam",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#312E81",
-  "theme_color": "#312E81",
+  "background_color": "#0F172A",
+  "theme_color": "#065F46",
   "orientation": "portrait-primary",
   "lang": "sw",
+  "dir": "ltr",
+  "scope": "/",
   "icons": [
     {
       "src": "/logo.svg",
@@ -34,13 +36,14 @@
       "purpose": "maskable"
     }
   ],
-  "categories": ["shopping", "travel", "lifestyle"],
+  "categories": ["shopping", "travel", "lifestyle", "business"],
+  "prefer_related_applications": false,
   "shortcuts": [
     {
-      "name": "Post Request",
-      "short_name": "Post Request",
-      "description": "Submit a new market guide request",
-      "url": "/?action=post-request",
+      "name": "Find a Guide",
+      "short_name": "Guides",
+      "description": "Find a verified local guide in Kariakoo",
+      "url": "/guides",
       "icons": [
         {
           "src": "/logo.svg",
@@ -51,9 +54,22 @@
     },
     {
       "name": "Price Radar",
-      "short_name": "Price Radar",
+      "short_name": "Prices",
       "description": "Check fair prices in Kariakoo market",
-      "url": "/?action=price-radar",
+      "url": "/prices",
+      "icons": [
+        {
+          "src": "/logo.svg",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "AI Vision Scanner",
+      "short_name": "AI Scan",
+      "description": "Identify items and get price estimates with AI",
+      "url": "/seeker/ai-vision",
       "icons": [
         {
           "src": "/logo.svg",
@@ -62,5 +78,9 @@
         }
       ]
     }
-  ]
+  ],
+  "related_applications": [],
+  "screenshots": [],
+  "iarc_rating_id": "",
+  "display_override": ["standalone", "minimal-ui"]
 }

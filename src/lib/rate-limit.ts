@@ -1,45 +1,90 @@
-// Simple in-memory rate limiter
-const rateLimits = new Map<string, { count: number; resetTime: number }>();
+// ── In-Memory Rate Limiter ──
+// Simple per-identifier, per-route rate limiting
+// Uses a sliding window approach with cleanup
 
-interface RateLimitOptions {
-  windowMs: number;  // Time window in milliseconds
-  maxRequests: number; // Max requests per window
+interface RateLimitEntry {
+  count: number;
+  resetTime: number;
 }
 
-const DEFAULT_OPTIONS: RateLimitOptions = {
-  windowMs: 60 * 1000, // 1 minute
-  maxRequests: 60, // 60 requests per minute
-};
+const rateLimitStore = new Map<string, RateLimitEntry>();
 
-export function rateLimit(identifier: string, options: RateLimitOptions = DEFAULT_OPTIONS): { allowed: boolean; remaining: number; resetIn: number } {
+// Clean up expired entries every 5 minutes
+if (typeof setInterval !== 'undefined') {
+  setInterval(() => {
+    const now = Date.now();
+    for (const [key, entry] of rateLimitStore.entries()) {
+      if (now > entry.resetTime) {
+        rateLimitStore.delete(key);
+      }
+    }
+  }, 5 * 60 * 1000);
+}
+
+/**
+ * Check if a request should be rate limited
+ * @param identifier - Usually IP address or user ID
+ * @param limit - Maximum number of requests allowed in the window
+ * @param windowMs - Time window in milliseconds (default: 60 seconds)
+ * @returns { allowed: boolean, remaining: number, resetTime: number }
+ */
+export function rateLimit(
+  identifier: string,
+  limit: number = 100,
+  windowMs: number = 60 * 1000
+): { allowed: boolean; remaining: number; resetTime: number; total: number } {
+  const key = identifier;
   const now = Date.now();
-  const record = rateLimits.get(identifier);
-  
-  if (!record || now > record.resetTime) {
-    // New window
-    rateLimits.set(identifier, { count: 1, resetTime: now + options.windowMs });
-    return { allowed: true, remaining: options.maxRequests - 1, resetIn: options.windowMs };
+
+  const entry = rateLimitStore.get(key);
+
+  if (!entry || now > entry.resetTime) {
+    // No entry or window expired — start fresh
+    const resetTime = now + windowMs;
+    rateLimitStore.set(key, { count: 1, resetTime });
+    return { allowed: true, remaining: limit - 1, resetTime, total: limit };
   }
-  
-  if (record.count >= options.maxRequests) {
-    return { allowed: false, remaining: 0, resetIn: record.resetTime - now };
+
+  if (entry.count >= limit) {
+    // Rate limit exceeded
+    return { allowed: false, remaining: 0, resetTime: entry.resetTime, total: limit };
   }
-  
-  record.count++;
-  return { allowed: true, remaining: options.maxRequests - record.count, resetIn: record.resetTime - now };
+
+  // Increment count
+  entry.count += 1;
+  return {
+    allowed: true,
+    remaining: limit - entry.count,
+    resetTime: entry.resetTime,
+    total: limit,
+  };
 }
 
-// Strict rate limit for auth routes (5 per minute)
-export function authRateLimit(identifier: string) {
-  return rateLimit(identifier, { windowMs: 60 * 1000, maxRequests: 5 });
+/**
+ * Get client identifier from request (IP address)
+ */
+export function getClientIp(request: Request): string {
+  // Check various headers for the real IP
+  const forwarded = request.headers.get('x-forwarded-for');
+  if (forwarded) {
+    return forwarded.split(',')[0].trim();
+  }
+
+  const realIp = request.headers.get('x-real-ip');
+  if (realIp) {
+    return realIp.trim();
+  }
+
+  // Fallback
+  return 'unknown';
 }
 
-// Standard rate limit for API routes (60 per minute)
-export function apiRateLimit(identifier: string) {
-  return rateLimit(identifier, { windowMs: 60 * 1000, maxRequests: 60 });
-}
-
-// AI rate limit (20 per minute, AI calls are expensive)
-export function aiRateLimit(identifier: string) {
-  return rateLimit(identifier, { windowMs: 60 * 1000, maxRequests: 20 });
-}
+/**
+ * Pre-configured rate limiters
+ */
+export const rateLimiters = {
+  api: (ip: string) => rateLimit(`api:${ip}`, 100, 60 * 1000),          // 100 req/min
+  auth: (ip: string) => rateLimit(`auth:${ip}`, 10, 60 * 1000),         // 10 req/min
+  payment: (ip: string) => rateLimit(`payment:${ip}`, 5, 60 * 1000),    // 5 req/min
+  booking: (ip: string) => rateLimit(`booking:${ip}`, 20, 60 * 1000),   // 20 req/min
+};

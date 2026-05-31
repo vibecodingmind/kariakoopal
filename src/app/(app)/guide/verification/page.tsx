@@ -1,95 +1,46 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Shield, CheckCircle2, Clock, XCircle, Upload, Camera,
-  FileText, MapPin, Globe, ChevronRight, Loader2, Info,
-  Award, Star, TrendingUp, Eye, Users, BadgeCheck, AlertTriangle
+  Shield, Camera, Upload, CheckCircle2, XCircle, Loader2,
+  ChevronRight, ChevronLeft, FileText, User, MapPin, Award,
+  AlertCircle, Clock, RefreshCw, Info
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Progress } from '@/components/ui/progress';
+import { useAuthStore } from '@/lib/stores/auth-store';
 
-// ─── Types ───────────────────────────────────────────────────────────
+// ─── Types ──
 
-type VerificationStatus = 'unverified' | 'pending' | 'verified' | 'rejected';
+type VerificationStatus = 'not_submitted' | 'pending' | 'approved' | 'rejected';
+type WizardStep = 'personal' | 'quiz' | 'selfie' | 'documents' | 'status';
 
-interface VerificationForm {
-  idDocument: File | null;
-  idDocumentPreview: string | null;
-  selfieWithId: File | null;
-  selfieWithIdPreview: string | null;
-  certificates: File[];
-  certificatePreviews: string[];
-  zones: string[];
-  languages: string[];
+interface QuizQuestion {
+  id: string;
+  question: string;
+  questionSw: string;
+  options: string[];
+  optionsSw: string[];
+  correctIndex: number;
 }
 
-// ─── Data ────────────────────────────────────────────────────────────
+interface VerificationData {
+  status: VerificationStatus;
+  personalInfo: {
+    fullName: string;
+    idNumber: string;
+    address: string;
+  };
+  quizScore: number | null;
+  quizTotal: number;
+  rejectionReason: string | null;
+  submittedAt: string | null;
+  reviewedAt: string | null;
+}
 
-const ZONES = [
-  'Electronics Zone',
-  'Fabrics & Textiles',
-  'Spices & Herbs',
-  'Kitchenware',
-  'Fresh Produce',
-  'Wholesale Area',
-  'Jewelry & Crafts',
-  'Clothing & Fashion',
-  'Food & Restaurants',
-  'General Market',
-];
-
-const LANGUAGES = [
-  'Swahili',
-  'English',
-  'Arabic',
-  'French',
-  'Hindi',
-  'Gujarati',
-  'Chinese (Mandarin)',
-  'Portuguese',
-  'German',
-  'Japanese',
-];
-
-const VERIFICATION_BENEFITS = [
-  {
-    icon: Star,
-    title: 'Priority in Search',
-    description: 'Verified guides appear first in search results',
-  },
-  {
-    icon: TrendingUp,
-    title: 'Higher Earnings',
-    description: 'Charge up to 40% more than unverified guides',
-  },
-  {
-    icon: BadgeCheck,
-    title: 'Trust Badge',
-    description: 'Display a verified badge on your profile',
-  },
-  {
-    icon: Eye,
-    title: 'More Visibility',
-    description: 'Get featured in recommendations and promotions',
-  },
-  {
-    icon: Users,
-    title: 'More Bookings',
-    description: 'Seekers prefer verified guides 3:1',
-  },
-  {
-    icon: Award,
-    title: 'Premium Features',
-    description: 'Access advanced analytics and tools',
-  },
-];
-
-// ─── Animation variants ─────────────────────────────────────────────
+// ─── Animation variants ──
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -108,597 +59,740 @@ const itemVariants = {
   },
 };
 
-// ─── Component ───────────────────────────────────────────────────────
+// ─── Default quiz questions (fallback) ──
+
+const DEFAULT_QUIZ: QuizQuestion[] = [
+  {
+    id: 'q1',
+    question: 'Where can you find the best selection of kanga fabrics in Kariakoo?',
+    questionSw: 'Unaweza kupata uchaguzi bora wa kanga Kariakoo wapi?',
+    options: ['Electronics Zone', 'Fabrics Zone', 'Spice Market', 'Food Court'],
+    optionsSw: ['Eneo la Elektroniki', 'Eneo la Vitambaa', 'Soko la Viungo', 'Ukumbi wa Chakula'],
+    correctIndex: 1,
+  },
+  {
+    id: 'q2',
+    question: 'What is the Swahili name for the central market area?',
+    questionSw: 'Jina la Kiswahili la eneo kuu la soko ni nini?',
+    options: ['Soko Kuu', 'Mnamboleo', 'Upeo Mashariki', 'Kariakoo Kusini'],
+    optionsSw: ['Soko Kuu', 'Mnamboleo', 'Upeo Mashariki', 'Kariakoo Kusini'],
+    correctIndex: 0,
+  },
+  {
+    id: 'q3',
+    question: 'Which zone is known for wholesale electronics and gadgets?',
+    questionSw: 'Eneo lipi linajulikana kwa elektroniki na vifaa vya jumla?',
+    options: ['Fabrics Zone', 'Spice Market', 'Electronics Zone', 'West Wing'],
+    optionsSw: ['Eneo la Vitambaa', 'Soko la Viungo', 'Eneo la Elektroniki', 'Upeo Magharibi'],
+    correctIndex: 2,
+  },
+  {
+    id: 'q4',
+    question: 'What is the typical market opening time for most vendors?',
+    questionSw: 'Saa ya kawaida ya kufungua soko kwa wauzaji wengi ni ipi?',
+    options: ['6:00 AM', '8:00 AM', '10:00 AM', '12:00 PM'],
+    optionsSw: ['Saa 12 asubuhi', 'Saa 2 asubuhi', 'Saa 4 asubuhi', 'Saa 6 mchana'],
+    correctIndex: 1,
+  },
+  {
+    id: 'q5',
+    question: 'What Swahili phrase should you use to ask for the wholesale price?',
+    questionSw: 'Ni kauli gani ya Kiswahili unayotumia kuuliza bei ya jumla?',
+    options: ['Bei gani?', 'Bei ya jumla?', 'Punguza bei', 'Nipe bei yako'],
+    optionsSw: ['Bei gani?', 'Bei ya jumla?', 'Punguza bei', 'Nipe bei yako'],
+    correctIndex: 1,
+  },
+];
+
+// ─── Component ──
 
 export default function GuideVerificationPage() {
-  const [status, setStatus] = useState<VerificationStatus>('unverified');
+  const { user, language } = useAuthStore();
+  const sw = language === 'sw';
+
+  const [verification, setVerification] = useState<VerificationData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [currentStep, setCurrentStep] = useState<WizardStep>('personal');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [form, setForm] = useState<VerificationForm>({
-    idDocument: null,
-    idDocumentPreview: null,
-    selfieWithId: null,
-    selfieWithIdPreview: null,
-    certificates: [],
-    certificatePreviews: [],
-    zones: [],
-    languages: [],
-  });
+  const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>(DEFAULT_QUIZ);
 
-  const idInputRef = useRef<HTMLInputElement>(null);
-  const selfieInputRef = useRef<HTMLInputElement>(null);
-  const certificateInputRef = useRef<HTMLInputElement>(null);
+  // Personal info
+  const [fullName, setFullName] = useState(user?.name || '');
+  const [idNumber, setIdNumber] = useState('');
+  const [address, setAddress] = useState('');
 
-  // ── Calculate progress ──
-  const calculateProgress = useCallback(() => {
-    let progress = 0;
-    if (form.idDocument) progress += 30;
-    if (form.selfieWithId) progress += 30;
-    if (form.zones.length > 0) progress += 20;
-    if (form.languages.length > 0) progress += 20;
-    return progress;
-  }, [form]);
+  // Quiz
+  const [quizAnswers, setQuizAnswers] = useState<number[]>([-1, -1, -1, -1, -1]);
+  const [quizSubmitted, setQuizSubmitted] = useState(false);
+  const [quizScore, setQuizScore] = useState(0);
 
-  const progress = calculateProgress();
+  // Selfie
+  const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
+  const [selfieBase64, setSelfieBase64] = useState<string | null>(null);
+  const selfieRef = useRef<HTMLInputElement>(null);
 
-  // ── Handle file selection ──
-  const handleIdDocument = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  // Documents
+  const [docFrontPreview, setDocFrontPreview] = useState<string | null>(null);
+  const [docFrontBase64, setDocFrontBase64] = useState<string | null>(null);
+  const [docBackPreview, setDocBackPreview] = useState<string | null>(null);
+  const [docBackBase64, setDocBackBase64] = useState<string | null>(null);
+  const docFrontRef = useRef<HTMLInputElement>(null);
+  const docBackRef = useRef<HTMLInputElement>(null);
+
+  const l = (en: string, swText: string) => (sw ? swText : en);
+
+  // ── Load verification status ──
+  useEffect(() => {
+    const fetchVerification = async () => {
+      try {
+        const guideId = user?.id || 'demo-guide';
+        const res = await fetch(`/api/verification?guideId=${guideId}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.verification) {
+            setVerification(data.verification as VerificationData);
+            if (data.quizQuestions) setQuizQuestions(data.quizQuestions);
+            if (data.verification.status === 'pending' || data.verification.status === 'approved' || data.verification.status === 'rejected') {
+              setCurrentStep('status');
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load verification:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchVerification();
+  }, [user?.id]);
+
+  // ── Handle image selection ──
+  const handleImageSelect = useCallback((
+    e: React.ChangeEvent<HTMLInputElement>,
+    setPreview: (v: string | null) => void,
+    setBase64: (v: string | null) => void
+  ) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const preview = URL.createObjectURL(file);
-    setForm((prev) => ({ ...prev, idDocument: file, idDocumentPreview: preview }));
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const dataUrl = ev.target?.result as string;
+      setPreview(dataUrl);
+      setBase64(dataUrl);
+    };
+    reader.readAsDataURL(file);
     e.target.value = '';
   }, []);
 
-  const handleSelfieWithId = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const preview = URL.createObjectURL(file);
-    setForm((prev) => ({ ...prev, selfieWithId: file, selfieWithIdPreview: preview }));
-    e.target.value = '';
-  }, []);
+  // ── Submit quiz ──
+  const handleSubmitQuiz = useCallback(() => {
+    let score = 0;
+    quizAnswers.forEach((answer, index) => {
+      if (quizQuestions[index] && answer === quizQuestions[index].correctIndex) {
+        score++;
+      }
+    });
+    setQuizScore(score);
+    setQuizSubmitted(true);
+  }, [quizAnswers, quizQuestions]);
 
-  const handleCertificate = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    if (files.length === 0) return;
-    const previews = files.map((f) => URL.createObjectURL(f));
-    setForm((prev) => ({
-      ...prev,
-      certificates: [...prev.certificates, ...files],
-      certificatePreviews: [...prev.certificatePreviews, ...previews],
-    }));
-    e.target.value = '';
-  }, []);
-
-  // ── Toggle zone ──
-  const toggleZone = useCallback((zone: string) => {
-    setForm((prev) => ({
-      ...prev,
-      zones: prev.zones.includes(zone)
-        ? prev.zones.filter((z) => z !== zone)
-        : [...prev.zones, zone],
-    }));
-  }, []);
-
-  // ── Toggle language ──
-  const toggleLanguage = useCallback((language: string) => {
-    setForm((prev) => ({
-      ...prev,
-      languages: prev.languages.includes(language)
-        ? prev.languages.filter((l) => l !== language)
-        : [...prev.languages, language],
-    }));
-  }, []);
-
-  // ── Submit ──
-  const handleSubmit = useCallback(async () => {
-    if (!form.idDocument || !form.selfieWithId || form.zones.length === 0 || form.languages.length === 0) {
-      return;
-    }
-
+  // ── Submit verification ──
+  const handleSubmitVerification = useCallback(async () => {
     setIsSubmitting(true);
+    try {
+      const guideId = user?.id || 'demo-guide';
+      const res = await fetch('/api/verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          guideId,
+          personalInfo: { fullName, idNumber, address },
+          quizAnswers,
+          selfieData: selfieBase64,
+          documentFrontData: docFrontBase64,
+          documentBackData: docBackBase64,
+        }),
+      });
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+      if (res.ok) {
+        const data = await res.json();
+        setVerification(data.verification);
+        setCurrentStep('status');
+      }
+    } catch (err) {
+      console.error('Verification submission failed:', err);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [user?.id, fullName, idNumber, address, quizAnswers, selfieBase64, docFrontBase64, docBackBase64]);
 
-    setStatus('pending');
-    setIsSubmitting(false);
-  }, [form]);
+  // ── Refresh status ──
+  const refreshStatus = useCallback(async () => {
+    try {
+      const guideId = user?.id || 'demo-guide';
+      const res = await fetch(`/api/verification?guideId=${guideId}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.verification) {
+          setVerification(data.verification);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to refresh:', err);
+    }
+  }, [user?.id]);
 
-  // ── Status config ──
-  const statusConfig: Record<VerificationStatus, { label: string; color: string; icon: React.ElementType; description: string }> = {
-    unverified: {
-      label: 'Unverified',
-      color: 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400',
-      icon: XCircle,
-      description: 'Complete the verification form below to get verified',
-    },
-    pending: {
-      label: 'Pending Review',
-      color: 'bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400',
-      icon: Clock,
-      description: 'Your verification is being reviewed. This usually takes 24-48 hours.',
-    },
-    verified: {
-      label: 'Verified',
-      color: 'bg-[#ECFDF5] dark:bg-[#064E3B] text-[#065F46] dark:text-[#34D399]',
-      icon: CheckCircle2,
-      description: 'You are a verified guide! Enjoy all the benefits.',
-    },
-    rejected: {
-      label: 'Rejected',
-      color: 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400',
-      icon: XCircle,
-      description: 'Your verification was not approved. Please review and resubmit.',
-    },
-  };
+  // ── Steps config ──
+  const steps: { id: WizardStep; label: string; labelSw: string; icon: any }[] = [
+    { id: 'personal', label: 'Personal Info', labelSw: 'Taarifa Za Kibinafsi', icon: User },
+    { id: 'quiz', label: 'Zone Quiz', labelSw: 'Jaribio La Eneo', icon: MapPin },
+    { id: 'selfie', label: 'Selfie', labelSw: 'Picha Ya Kibinafsi', icon: Camera },
+    { id: 'documents', label: 'Documents', labelSw: 'Nyaraka', icon: FileText },
+    { id: 'status', label: 'Status', labelSw: 'Hali', icon: Shield },
+  ];
 
-  const currentStatus = statusConfig[status];
-  const StatusIcon = currentStatus.icon;
+  const currentStepIndex = steps.findIndex(s => s.id === currentStep);
+
+  const canProceedFromPersonal = fullName.trim() && idNumber.trim() && address.trim();
+  const canProceedFromQuiz = quizSubmitted && quizScore >= 3;
+  const canProceedFromSelfie = !!selfieBase64;
+  const canSubmit = canProceedFromPersonal && canProceedFromQuiz && canProceedFromSelfie && (docFrontBase64 || docBackBase64);
+
+  // ── Loading state ──
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0F172A] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-12 h-12 rounded-full border-4 border-[#065F46]/20 border-t-[#065F46] animate-spin" />
+          <p className="text-sm text-[#64748B]">{l('Loading verification...', 'Inapakia uthibitisho...')}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0F172A]">
-      {/* ── Hero Section ── */}
-      <div className="relative overflow-hidden">
-        <div
-          className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05]"
-          style={{
-            backgroundImage: 'radial-gradient(circle, #065F46 1px, transparent 1px)',
-            backgroundSize: '24px 24px',
-          }}
-        />
-        <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-[#065F46]/10 dark:bg-[#34D399]/5 blur-3xl" />
-        <div className="absolute -bottom-32 -left-16 w-64 h-64 rounded-full bg-[#F59E0B]/10 dark:bg-[#FBBF24]/5 blur-3xl" />
-
-        <div className="relative px-4 pt-8 pb-10 sm:px-6 lg:px-8 max-w-5xl mx-auto text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <div className="inline-flex items-center gap-2 bg-[#065F46]/10 dark:bg-[#34D399]/10 px-4 py-1.5 rounded-full mb-4">
-              <Shield className="w-4 h-4 text-[#065F46] dark:text-[#34D399]" />
-              <span className="text-xs font-semibold text-[#065F46] dark:text-[#34D399] uppercase tracking-wider">
-                Verification
-              </span>
+      {/* Header */}
+      <div className="bg-gradient-to-b from-[#065F46] to-[#064E3B] dark:from-[#0F172A] dark:to-[#0F172A] px-4 pt-6 pb-8">
+        <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }}>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center">
+              <Shield className="w-5 h-5 text-[#34D399]" />
             </div>
-          </motion.div>
+            <div>
+              <h1 className="text-xl font-bold text-white">{l('Guide Verification', 'Uthibitisho Wa Mwongozo')}</h1>
+              <p className="text-xs text-[#34D399]">{l('Get verified to start guiding', 'Thibitishwa kuanza kuongoza')}</p>
+            </div>
+          </div>
+        </motion.div>
 
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-3"
-          >
-            <span className="gradient-text-green">Guide</span>{' '}
-            <span className="gradient-text-gold">Verification</span>
-          </motion.h1>
-
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-base sm:text-lg text-[#64748B] dark:text-[#94A3B8] max-w-xl mx-auto"
-          >
-            Get verified to unlock premium features and earn more
-          </motion.p>
+        {/* Progress Steps */}
+        <div className="flex items-center gap-1 mt-4">
+          {steps.map((step, i) => {
+            const StepIcon = step.icon;
+            const isActive = i === currentStepIndex;
+            const isCompleted = i < currentStepIndex;
+            return (
+              <div key={step.id} className="flex-1 flex flex-col items-center gap-1">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
+                  isCompleted ? 'bg-[#34D399]' :
+                  isActive ? 'bg-white/20 border-2 border-[#34D399]' :
+                  'bg-white/10'
+                }`}>
+                  {isCompleted ? (
+                    <CheckCircle2 className="w-4 h-4 text-white" />
+                  ) : (
+                    <StepIcon className={`w-3.5 h-3.5 ${isActive ? 'text-[#34D399]' : 'text-white/50'}`} />
+                  )}
+                </div>
+                <span className={`text-[10px] ${isActive ? 'text-white font-semibold' : 'text-white/50'}`}>
+                  {i + 1}
+                </span>
+              </div>
+            );
+          })}
         </div>
       </div>
 
-      <div className="px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto pb-16 space-y-8">
-        {/* ── Status Badge ── */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          <div className={`kcard p-5 flex items-center gap-4 ${status === 'verified' ? 'border-2 border-[#065F46]/20 dark:border-[#34D399]/20' : ''}`}>
-            <div className={`w-14 h-14 rounded-2xl ${currentStatus.color} flex items-center justify-center shrink-0`}>
-              <StatusIcon className="w-7 h-7" />
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <h3 className="text-base font-bold text-[#0F172A] dark:text-[#F1F5F9]">
-                  Verification Status
-                </h3>
-                <Badge className={`${currentStatus.color} border-0 text-xs font-bold`}>
-                  {currentStatus.label}
-                </Badge>
-              </div>
-              <p className="text-sm text-[#64748B] dark:text-[#94A3B8]">
-                {currentStatus.description}
-              </p>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* ── Progress Bar ── */}
-        {status === 'unverified' && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.35 }}
-          >
-            <div className="kcard p-5">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-semibold text-[#0F172A] dark:text-[#F1F5F9]">
-                  Verification Progress
-                </span>
-                <span className="text-sm font-bold text-[#065F46] dark:text-[#34D399]">
-                  {progress}%
-                </span>
-              </div>
-              <Progress value={progress} className="h-3" />
-              <p className="text-xs text-[#64748B] dark:text-[#94A3B8] mt-2">
-                Complete all sections to submit for review
-              </p>
-            </div>
-          </motion.div>
-        )}
-
-        {status === 'unverified' && (
-          <>
-            {/* ── ID Document Upload ── */}
-            <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-            >
-              <motion.div variants={itemVariants} className="kcard-glass p-5 sm:p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <FileText className="w-5 h-5 text-[#F59E0B]" />
-                  <h3 className="text-base font-bold text-[#0F172A] dark:text-[#F1F5F9]">
-                    ID Document
-                  </h3>
-                  <Badge className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border-0 text-xs">
-                    Required
-                  </Badge>
-                </div>
-                <p className="text-sm text-[#64748B] dark:text-[#94A3B8] mb-4">
-                  Upload your national ID card or passport for identity verification.
-                </p>
-
-                {form.idDocumentPreview ? (
-                  <div className="relative rounded-xl overflow-hidden border-2 border-[#065F46]/20 dark:border-[#34D399]/20 bg-black/5">
-                    <img
-                      src={form.idDocumentPreview}
-                      alt="ID Document preview"
-                      className="w-full max-h-48 object-contain"
+      {/* Content */}
+      <div className="px-4 -mt-4 pb-8 max-w-lg mx-auto">
+        <AnimatePresence mode="wait">
+          {/* ── Step 1: Personal Info ── */}
+          {currentStep === 'personal' && (
+            <motion.div key="personal" variants={containerVariants} initial="hidden" animate="visible" exit="hidden">
+              <Card className="border-0 shadow-lg">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2 text-[#065F46] dark:text-[#34D399]">
+                    <User className="w-5 h-5" />
+                    {l('Personal Information', 'Taarifa Za Kibinafsi')}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <label className="text-xs font-medium text-[#64748B] mb-1.5 block">
+                      {l('Full Name (as on ID)', 'Jina Kamili (kama kwenye kitambulisho)')}
+                    </label>
+                    <input
+                      type="text"
+                      value={fullName}
+                      onChange={e => setFullName(e.target.value)}
+                      placeholder={l('Enter your full name', 'Weka jina lako kamili')}
+                      className="w-full px-4 py-3 rounded-xl border border-[#E2E8F0] dark:border-[#334155] bg-[#F8FAFC] dark:bg-[#1E293B] text-sm outline-none focus:ring-2 focus:ring-[#065F46]/20 focus:border-[#065F46] transition-all"
                     />
-                    <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/60 to-transparent p-3 flex items-center justify-between">
-                      <span className="text-xs text-white font-medium">{form.idDocument?.name}</span>
-                      <button
-                        onClick={() => setForm((prev) => ({ ...prev, idDocument: null, idDocumentPreview: null }))}
-                        className="w-7 h-7 rounded-full bg-red-500/80 text-white flex items-center justify-center hover:bg-red-500"
-                      >
-                        <XCircle className="w-4 h-4" />
-                      </button>
-                    </div>
-                    <CheckCircle2 className="absolute top-3 right-3 w-6 h-6 text-[#34D399]" />
                   </div>
-                ) : (
-                  <button
-                    onClick={() => idInputRef.current?.click()}
-                    className="w-full border-2 border-dashed border-[#E2E8F0] dark:border-[#334155] rounded-xl p-6 text-center hover:border-[#065F46] dark:hover:border-[#34D399] transition-colors"
+                  <div>
+                    <label className="text-xs font-medium text-[#64748B] mb-1.5 block">
+                      {l('ID Number (NIDA)', 'Nambari ya Kitambulisho (NIDA)')}
+                    </label>
+                    <input
+                      type="text"
+                      value={idNumber}
+                      onChange={e => setIdNumber(e.target.value)}
+                      placeholder={l('e.g. 1234567890', 'Mfano: 1234567890')}
+                      className="w-full px-4 py-3 rounded-xl border border-[#E2E8F0] dark:border-[#334155] bg-[#F8FAFC] dark:bg-[#1E293B] text-sm outline-none focus:ring-2 focus:ring-[#065F46]/20 focus:border-[#065F46] transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-[#64748B] mb-1.5 block">
+                      {l('Address', 'Anwani')}
+                    </label>
+                    <textarea
+                      value={address}
+                      onChange={e => setAddress(e.target.value)}
+                      placeholder={l('Your residential address', 'Anwani yako ya makazi')}
+                      rows={3}
+                      className="w-full px-4 py-3 rounded-xl border border-[#E2E8F0] dark:border-[#334155] bg-[#F8FAFC] dark:bg-[#1E293B] text-sm outline-none focus:ring-2 focus:ring-[#065F46]/20 focus:border-[#065F46] transition-all resize-none"
+                    />
+                  </div>
+                  <Button
+                    onClick={() => setCurrentStep('quiz')}
+                    disabled={!canProceedFromPersonal}
+                    className="w-full bg-[#065F46] hover:bg-[#064E3B] text-white font-bold py-3.5 rounded-xl disabled:opacity-50"
                   >
-                    <Upload className="w-8 h-8 text-[#94A3B8] mx-auto mb-2" />
-                    <p className="text-sm font-semibold text-[#0F172A] dark:text-[#F1F5F9]">Upload ID Document</p>
-                    <p className="text-xs text-[#64748B] dark:text-[#94A3B8] mt-1">National ID or Passport (JPG, PNG, PDF)</p>
-                  </button>
-                )}
-                <input
-                  ref={idInputRef}
-                  type="file"
-                  accept="image/*,.pdf"
-                  onChange={handleIdDocument}
-                  className="hidden"
-                />
-              </motion.div>
+                    {l('Continue to Quiz', 'Endelea kwenye Jaribio')}
+                    <ChevronRight className="w-4 h-4 ml-1" />
+                  </Button>
+                </CardContent>
+              </Card>
             </motion.div>
+          )}
 
-            {/* ── Selfie with ID ── */}
-            <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-            >
-              <motion.div variants={itemVariants} className="kcard-glass p-5 sm:p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <Camera className="w-5 h-5 text-[#F59E0B]" />
-                  <h3 className="text-base font-bold text-[#0F172A] dark:text-[#F1F5F9]">
-                    Selfie with ID
-                  </h3>
-                  <Badge className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border-0 text-xs">
-                    Required
-                  </Badge>
-                </div>
-                <p className="text-sm text-[#64748B] dark:text-[#94A3B8] mb-4">
-                  Take a selfie holding your ID document next to your face for identity verification.
-                </p>
+          {/* ── Step 2: Zone Knowledge Quiz ── */}
+          {currentStep === 'quiz' && (
+            <motion.div key="quiz" variants={containerVariants} initial="hidden" animate="visible" exit="hidden" className="space-y-4">
+              <Card className="border-0 shadow-lg">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2 text-[#065F46] dark:text-[#34D399]">
+                    <MapPin className="w-5 h-5" />
+                    {l('Zone Knowledge Quiz', 'Jaribio La Ujuzi Wa Eneo')}
+                  </CardTitle>
+                  <p className="text-xs text-[#64748B]">
+                    {l('Answer at least 3/5 correctly to proceed', 'Jibu angalau 3/5 kwa usahihi kuendelea')}
+                  </p>
+                </CardHeader>
+              </Card>
 
-                {form.selfieWithIdPreview ? (
-                  <div className="relative rounded-xl overflow-hidden border-2 border-[#065F46]/20 dark:border-[#34D399]/20 bg-black/5">
-                    <img
-                      src={form.selfieWithIdPreview}
-                      alt="Selfie with ID preview"
-                      className="w-full max-h-48 object-contain"
-                    />
-                    <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/60 to-transparent p-3 flex items-center justify-between">
-                      <span className="text-xs text-white font-medium">{form.selfieWithId?.name}</span>
-                      <button
-                        onClick={() => setForm((prev) => ({ ...prev, selfieWithId: null, selfieWithIdPreview: null }))}
-                        className="w-7 h-7 rounded-full bg-red-500/80 text-white flex items-center justify-center hover:bg-red-500"
-                      >
-                        <XCircle className="w-4 h-4" />
-                      </button>
-                    </div>
-                    <CheckCircle2 className="absolute top-3 right-3 w-6 h-6 text-[#34D399]" />
-                  </div>
-                ) : (
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <button
-                      onClick={() => {
-                        if (selfieInputRef.current) {
-                          selfieInputRef.current.setAttribute('capture', 'environment');
-                          selfieInputRef.current.click();
-                        }
-                      }}
-                      className="flex-1 border-2 border-dashed border-[#E2E8F0] dark:border-[#334155] rounded-xl p-6 text-center hover:border-[#065F46] dark:hover:border-[#34D399] transition-colors"
-                    >
-                      <Camera className="w-8 h-8 text-[#94A3B8] mx-auto mb-2" />
-                      <p className="text-sm font-semibold text-[#0F172A] dark:text-[#F1F5F9]">Take Selfie</p>
-                      <p className="text-xs text-[#64748B] dark:text-[#94A3B8] mt-1">Use camera</p>
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (selfieInputRef.current) {
-                          selfieInputRef.current.removeAttribute('capture');
-                          selfieInputRef.current.click();
-                        }
-                      }}
-                      className="flex-1 border-2 border-dashed border-[#E2E8F0] dark:border-[#334155] rounded-xl p-6 text-center hover:border-[#065F46] dark:hover:border-[#34D399] transition-colors"
-                    >
-                      <Upload className="w-8 h-8 text-[#94A3B8] mx-auto mb-2" />
-                      <p className="text-sm font-semibold text-[#0F172A] dark:text-[#F1F5F9]">Upload Photo</p>
-                      <p className="text-xs text-[#64748B] dark:text-[#94A3B8] mt-1">From gallery</p>
-                    </button>
-                  </div>
-                )}
-                <input
-                  ref={selfieInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleSelfieWithId}
-                  className="hidden"
-                />
-              </motion.div>
-            </motion.div>
-
-            {/* ── Certificate Upload (Optional) ── */}
-            <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-            >
-              <motion.div variants={itemVariants} className="kcard-glass p-5 sm:p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <Award className="w-5 h-5 text-[#F59E0B]" />
-                  <h3 className="text-base font-bold text-[#0F172A] dark:text-[#F1F5F9]">
-                    Certifications
-                  </h3>
-                  <Badge className="bg-[#ECFDF5] dark:bg-[#064E3B] text-[#065F46] dark:text-[#34D399] border-0 text-xs">
-                    Optional
-                  </Badge>
-                </div>
-                <p className="text-sm text-[#64748B] dark:text-[#94A3B8] mb-4">
-                  Upload any relevant certifications (tourism, first aid, language, etc.) to boost your profile.
-                </p>
-
-                {form.certificatePreviews.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {form.certificatePreviews.map((preview, i) => (
-                      <div key={i} className="relative group">
-                        <img
-                          src={preview}
-                          alt={`Certificate ${i + 1}`}
-                          className="w-20 h-20 object-cover rounded-lg border border-[#E2E8F0] dark:border-[#334155]"
-                        />
-                        <button
-                          onClick={() => {
-                            setForm((prev) => ({
-                              ...prev,
-                              certificates: prev.certificates.filter((_, idx) => idx !== i),
-                              certificatePreviews: prev.certificatePreviews.filter((_, idx) => idx !== i),
-                            }));
-                          }}
-                          className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <XCircle className="w-3 h-3" />
-                        </button>
+              {quizQuestions.map((q, qi) => (
+                <motion.div key={q.id} variants={itemVariants}>
+                  <Card className="border-0 shadow-md">
+                    <CardContent className="p-4">
+                      <p className="text-sm font-semibold text-[#0F172A] dark:text-[#F1F5F9] mb-3">
+                        {qi + 1}. {sw ? q.questionSw : q.question}
+                      </p>
+                      <div className="space-y-2">
+                        {q.options.map((opt, oi) => {
+                          const isSelected = quizAnswers[qi] === oi;
+                          const isCorrect = quizSubmitted && oi === q.correctIndex;
+                          const isWrong = quizSubmitted && isSelected && oi !== q.correctIndex;
+                          return (
+                            <button
+                              key={oi}
+                              onClick={() => {
+                                if (!quizSubmitted) {
+                                  const newAnswers = [...quizAnswers];
+                                  newAnswers[qi] = oi;
+                                  setQuizAnswers(newAnswers);
+                                }
+                              }}
+                              disabled={quizSubmitted}
+                              className={`w-full text-left px-4 py-3 rounded-xl text-sm transition-all ${
+                                isCorrect ? 'bg-[#ECFDF5] dark:bg-[#064E3B] border-2 border-[#34D399] text-[#065F46] dark:text-[#34D399]' :
+                                isWrong ? 'bg-red-50 dark:bg-red-900/20 border-2 border-red-400 text-red-700 dark:text-red-400' :
+                                isSelected ? 'bg-[#ECFDF5] dark:bg-[#064E3B] border-2 border-[#065F46] dark:border-[#34D399]' :
+                                'bg-[#F8FAFC] dark:bg-[#1E293B] border-2 border-transparent hover:border-[#E2E8F0] dark:hover:border-[#334155]'
+                              }`}
+                            >
+                              <span className="font-medium">{sw ? q.optionsSw[oi] : opt}</span>
+                              {isCorrect && <CheckCircle2 className="w-4 h-4 inline ml-2 text-[#34D399]" />}
+                              {isWrong && <XCircle className="w-4 h-4 inline ml-2 text-red-500" />}
+                            </button>
+                          );
+                        })}
                       </div>
-                    ))}
-                  </div>
-                )}
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
 
-                <button
-                  onClick={() => certificateInputRef.current?.click()}
-                  className="w-full border-2 border-dashed border-[#E2E8F0] dark:border-[#334155] rounded-xl p-4 text-center hover:border-[#065F46] dark:hover:border-[#34D399] transition-colors"
-                >
-                  <Upload className="w-6 h-6 text-[#94A3B8] mx-auto mb-1" />
-                  <p className="text-xs font-semibold text-[#0F172A] dark:text-[#F1F5F9]">Add Certificate</p>
-                </button>
-                <input
-                  ref={certificateInputRef}
-                  type="file"
-                  accept="image/*,.pdf"
-                  multiple
-                  onChange={handleCertificate}
-                  className="hidden"
-                />
-              </motion.div>
-            </motion.div>
-
-            {/* ── Zone Selection ── */}
-            <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-            >
-              <motion.div variants={itemVariants} className="kcard-glass p-5 sm:p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <MapPin className="w-5 h-5 text-[#F59E0B]" />
-                  <h3 className="text-base font-bold text-[#0F172A] dark:text-[#F1F5F9]">
-                    Zones You Can Guide In
-                  </h3>
-                  <Badge className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border-0 text-xs">
-                    Required
-                  </Badge>
-                </div>
-                <p className="text-sm text-[#64748B] dark:text-[#94A3B8] mb-4">
-                  Select all the zones in Kariakoo Market where you can guide seekers.
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {ZONES.map((zone) => {
-                    const isActive = form.zones.includes(zone);
-                    return (
-                      <motion.button
-                        key={zone}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => toggleZone(zone)}
-                        className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold transition-all duration-200 ${
-                          isActive
-                            ? 'bg-[#065F46] dark:bg-[#34D399] text-white dark:text-[#022C22] shadow-md'
-                            : 'bg-[#F1F5F9] dark:bg-[#334155] text-[#64748B] dark:text-[#94A3B8] hover:bg-[#E2E8F0] dark:hover:bg-[#475569]'
-                        }`}
-                      >
-                        <MapPin className="w-3.5 h-3.5" />
-                        {zone}
-                      </motion.button>
-                    );
-                  })}
-                </div>
-                {form.zones.length > 0 && (
-                  <p className="text-xs text-[#065F46] dark:text-[#34D399] font-semibold mt-3">
-                    {form.zones.length} zone{form.zones.length > 1 ? 's' : ''} selected
-                  </p>
-                )}
-              </motion.div>
-            </motion.div>
-
-            {/* ── Languages Spoken ── */}
-            <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-            >
-              <motion.div variants={itemVariants} className="kcard-glass p-5 sm:p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <Globe className="w-5 h-5 text-[#F59E0B]" />
-                  <h3 className="text-base font-bold text-[#0F172A] dark:text-[#F1F5F9]">
-                    Languages You Speak
-                  </h3>
-                  <Badge className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border-0 text-xs">
-                    Required
-                  </Badge>
-                </div>
-                <p className="text-sm text-[#64748B] dark:text-[#94A3B8] mb-4">
-                  Select all languages you can communicate in during a session.
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {LANGUAGES.map((language) => {
-                    const isActive = form.languages.includes(language);
-                    return (
-                      <motion.button
-                        key={language}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => toggleLanguage(language)}
-                        className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold transition-all duration-200 ${
-                          isActive
-                            ? 'bg-[#065F46] dark:bg-[#34D399] text-white dark:text-[#022C22] shadow-md'
-                            : 'bg-[#F1F5F9] dark:bg-[#334155] text-[#64748B] dark:text-[#94A3B8] hover:bg-[#E2E8F0] dark:hover:bg-[#475569]'
-                        }`}
-                      >
-                        <Globe className="w-3.5 h-3.5" />
-                        {language}
-                      </motion.button>
-                    );
-                  })}
-                </div>
-                {form.languages.length > 0 && (
-                  <p className="text-xs text-[#065F46] dark:text-[#34D399] font-semibold mt-3">
-                    {form.languages.length} language{form.languages.length > 1 ? 's' : ''} selected
-                  </p>
-                )}
-              </motion.div>
-            </motion.div>
-
-            {/* ── Submit Button ── */}
-            <motion.div
-              variants={itemVariants}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-            >
-              <button
-                onClick={handleSubmit}
-                disabled={!form.idDocument || !form.selfieWithId || form.zones.length === 0 || form.languages.length === 0 || isSubmitting}
-                className="w-full py-4 rounded-2xl text-base font-bold text-white bg-gradient-to-r from-[#065F46] via-[#059669] to-[#065F46] bg-[length:200%_100%] hover:bg-right shadow-lg shadow-[#065F46]/25 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-500 flex items-center justify-center gap-2.5"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Submitting for Review…
-                  </>
-                ) : (
-                  <>
-                    <Shield className="w-5 h-5" />
-                    Submit for Review
-                    <ChevronRight className="w-4 h-4" />
-                  </>
-                )}
-              </button>
-
-              {(!form.idDocument || !form.selfieWithId || form.zones.length === 0 || form.languages.length === 0) && (
-                <div className="mt-3 flex items-start gap-2 p-3 rounded-xl bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800">
-                  <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                  <p className="text-xs text-amber-700 dark:text-amber-400">
-                    Please complete all required sections (ID Document, Selfie with ID, Zones, and Languages) before submitting.
-                  </p>
-                </div>
-              )}
-            </motion.div>
-          </>
-        )}
-
-        {/* ── Verification Benefits ── */}
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          <motion.h2 variants={itemVariants} className="text-lg font-bold text-[#0F172A] dark:text-[#F1F5F9] mb-4">
-            Why Get Verified?
-          </motion.h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {VERIFICATION_BENEFITS.map((benefit, i) => {
-              const Icon = benefit.icon;
-              return (
-                <motion.div key={benefit.title} variants={itemVariants}>
-                  <div className="kcard p-5">
-                    <div className="w-10 h-10 rounded-xl bg-[#ECFDF5] dark:bg-[#064E3B] flex items-center justify-center mb-3">
-                      <Icon className="w-5 h-5 text-[#065F46] dark:text-[#34D399]" />
+              {quizSubmitted && (
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+                  <div className={`p-4 rounded-xl border-2 ${
+                    quizScore >= 3
+                      ? 'bg-[#ECFDF5] dark:bg-[#064E3B] border-[#34D399]'
+                      : 'bg-red-50 dark:bg-red-900/20 border-red-400'
+                  }`}>
+                    <div className="flex items-center gap-2 mb-2">
+                      {quizScore >= 3 ? (
+                        <CheckCircle2 className="w-5 h-5 text-[#34D399]" />
+                      ) : (
+                        <XCircle className="w-5 h-5 text-red-500" />
+                      )}
+                      <span className={`text-base font-bold ${quizScore >= 3 ? 'text-[#065F46] dark:text-[#34D399]' : 'text-red-700 dark:text-red-400'}`}>
+                        {l(`Score: ${quizScore}/${quizQuestions.length}`, `Alama: ${quizScore}/${quizQuestions.length}`)}
+                      </span>
                     </div>
-                    <h3 className="text-sm font-bold text-[#0F172A] dark:text-[#F1F5F9] mb-1">
-                      {benefit.title}
-                    </h3>
-                    <p className="text-xs text-[#64748B] dark:text-[#94A3B8]">
-                      {benefit.description}
+                    <p className="text-sm text-[#64748B] dark:text-[#94A3B8]">
+                      {quizScore >= 3
+                        ? l('Great job! You passed the quiz.', 'Vizuri! Umefaulu jaribio.')
+                        : l('You need at least 3/5 to pass. Try again!', 'Unahitaji angalau 3/5 kufaulu. Jaribu tena!')
+                      }
                     </p>
                   </div>
                 </motion.div>
-              );
-            })}
-          </div>
-        </motion.div>
+              )}
+
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setCurrentStep('personal')}
+                  className="flex-1 py-3.5 rounded-xl"
+                >
+                  <ChevronLeft className="w-4 h-4 mr-1" />
+                  {l('Back', 'Rudi')}
+                </Button>
+                {!quizSubmitted ? (
+                  <Button
+                    onClick={handleSubmitQuiz}
+                    disabled={quizAnswers.some(a => a === -1)}
+                    className="flex-1 bg-[#065F46] hover:bg-[#064E3B] text-white font-bold py-3.5 rounded-xl disabled:opacity-50"
+                  >
+                    {l('Submit Quiz', 'Wasilisha Jaribio')}
+                  </Button>
+                ) : quizScore >= 3 ? (
+                  <Button
+                    onClick={() => setCurrentStep('selfie')}
+                    className="flex-1 bg-[#065F46] hover:bg-[#064E3B] text-white font-bold py-3.5 rounded-xl"
+                  >
+                    {l('Continue', 'Endelea')}
+                    <ChevronRight className="w-4 h-4 ml-1" />
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={() => { setQuizAnswers([-1, -1, -1, -1, -1]); setQuizSubmitted(false); }}
+                    className="flex-1 bg-[#F59E0B] hover:bg-[#D97706] text-white font-bold py-3.5 rounded-xl"
+                  >
+                    <RefreshCw className="w-4 h-4 mr-1" />
+                    {l('Retry Quiz', 'Jaribu Tena')}
+                  </Button>
+                )}
+              </div>
+            </motion.div>
+          )}
+
+          {/* ── Step 3: Selfie Verification ── */}
+          {currentStep === 'selfie' && (
+            <motion.div key="selfie" variants={containerVariants} initial="hidden" animate="visible" exit="hidden">
+              <Card className="border-0 shadow-lg">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2 text-[#065F46] dark:text-[#34D399]">
+                    <Camera className="w-5 h-5" />
+                    {l('Selfie Verification', 'Uthibitisho Wa Picha')}
+                  </CardTitle>
+                  <p className="text-xs text-[#64748B]">
+                    {l('Take a clear photo of your face for identity verification', 'Piga picha ya wazi ya uso wako kwa uthibitisho')}
+                  </p>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {selfiePreview ? (
+                    <div className="relative">
+                      <img
+                        src={selfiePreview}
+                        alt="Selfie preview"
+                        className="w-full max-h-64 object-contain rounded-xl border-2 border-[#E2E8F0] dark:border-[#334155]"
+                      />
+                      <button
+                        onClick={() => { setSelfiePreview(null); setSelfieBase64(null); }}
+                        className="absolute top-2 right-2 w-8 h-8 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600 transition-colors"
+                      >
+                        <XCircle className="w-4 h-4" />
+                      </button>
+                      <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-[#065F46] text-white px-2 py-1 rounded-lg text-xs font-medium">
+                        <CheckCircle2 className="w-3 h-3" />
+                        {l('Photo captured', 'Picha imechukuliwa')}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="border-2 border-dashed border-[#E2E8F0] dark:border-[#334155] rounded-xl p-8 text-center">
+                      <div className="w-16 h-16 rounded-full bg-[#ECFDF5] dark:bg-[#064E3B] flex items-center justify-center mx-auto mb-3">
+                        <Camera className="w-8 h-8 text-[#065F46] dark:text-[#34D399]" />
+                      </div>
+                      <p className="text-sm text-[#64748B] mb-4">
+                        {l('Take a selfie or upload a photo', 'Piga picha ya kibinafsi au pakia picha')}
+                      </p>
+                      <div className="flex gap-3 justify-center">
+                        <button
+                          onClick={() => selfieRef.current?.click()}
+                          className="px-4 py-2 bg-[#065F46] text-white text-sm font-bold rounded-xl hover:bg-[#064E3B] transition-colors flex items-center gap-2"
+                        >
+                          <Camera className="w-4 h-4" />
+                          {l('Take Photo', 'Piga Picha')}
+                        </button>
+                        <button
+                          onClick={() => { if (selfieRef.current) { selfieRef.current.removeAttribute('capture'); selfieRef.current.click(); } }}
+                          className="px-4 py-2 border border-[#065F46] text-[#065F46] dark:text-[#34D399] dark:border-[#34D399] text-sm font-bold rounded-xl hover:bg-[#ECFDF5] dark:hover:bg-[#064E3B] transition-colors flex items-center gap-2"
+                        >
+                          <Upload className="w-4 h-4" />
+                          {l('Upload', 'Pakia')}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  <input
+                    ref={selfieRef}
+                    type="file"
+                    accept="image/*"
+                    capture="user"
+                    onChange={e => handleImageSelect(e, setSelfiePreview, setSelfieBase64)}
+                    className="hidden"
+                  />
+
+                  <div className="flex gap-3">
+                    <Button
+                      variant="outline"
+                      onClick={() => setCurrentStep('quiz')}
+                      className="flex-1 py-3.5 rounded-xl"
+                    >
+                      <ChevronLeft className="w-4 h-4 mr-1" />
+                      {l('Back', 'Rudi')}
+                    </Button>
+                    <Button
+                      onClick={() => setCurrentStep('documents')}
+                      disabled={!selfieBase64}
+                      className="flex-1 bg-[#065F46] hover:bg-[#064E3B] text-white font-bold py-3.5 rounded-xl disabled:opacity-50"
+                    >
+                      {l('Continue', 'Endelea')}
+                      <ChevronRight className="w-4 h-4 ml-1" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+
+          {/* ── Step 4: Documents Upload ── */}
+          {currentStep === 'documents' && (
+            <motion.div key="documents" variants={containerVariants} initial="hidden" animate="visible" exit="hidden">
+              <Card className="border-0 shadow-lg">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2 text-[#065F46] dark:text-[#34D399]">
+                    <FileText className="w-5 h-5" />
+                    {l('ID Document Upload', 'Pakia Nyaraka Za Kitambulisho')}
+                  </CardTitle>
+                  <p className="text-xs text-[#64748B]">
+                    {l('Upload front and back of your national ID', 'Pakia mbele na nyuma ya kitambulisho chako')}
+                  </p>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* ID Front */}
+                  <div>
+                    <label className="text-xs font-medium text-[#64748B] mb-2 block">
+                      {l('ID Front', 'Mbele Ya Kitambulisho')}
+                    </label>
+                    {docFrontPreview ? (
+                      <div className="relative">
+                        <img src={docFrontPreview} alt="ID Front" className="w-full max-h-40 object-contain rounded-xl border border-[#E2E8F0] dark:border-[#334155]" />
+                        <button onClick={() => { setDocFrontPreview(null); setDocFrontBase64(null); }} className="absolute top-1 right-1 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center">
+                          <XCircle className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ) : (
+                      <button onClick={() => docFrontRef.current?.click()} className="w-full border-2 border-dashed border-[#E2E8F0] dark:border-[#334155] rounded-xl p-6 text-center hover:border-[#065F46] dark:hover:border-[#34D399] transition-colors">
+                        <Upload className="w-6 h-6 text-[#64748B] mx-auto mb-2" />
+                        <p className="text-xs text-[#64748B]">{l('Upload ID front', 'Pakia mbele ya kitambulisho')}</p>
+                      </button>
+                    )}
+                    <input ref={docFrontRef} type="file" accept="image/*" onChange={e => handleImageSelect(e, setDocFrontPreview, setDocFrontBase64)} className="hidden" />
+                  </div>
+
+                  {/* ID Back */}
+                  <div>
+                    <label className="text-xs font-medium text-[#64748B] mb-2 block">
+                      {l('ID Back', 'Nyuma Ya Kitambulisho')}
+                    </label>
+                    {docBackPreview ? (
+                      <div className="relative">
+                        <img src={docBackPreview} alt="ID Back" className="w-full max-h-40 object-contain rounded-xl border border-[#E2E8F0] dark:border-[#334155]" />
+                        <button onClick={() => { setDocBackPreview(null); setDocBackBase64(null); }} className="absolute top-1 right-1 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center">
+                          <XCircle className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ) : (
+                      <button onClick={() => docBackRef.current?.click()} className="w-full border-2 border-dashed border-[#E2E8F0] dark:border-[#334155] rounded-xl p-6 text-center hover:border-[#065F46] dark:hover:border-[#34D399] transition-colors">
+                        <Upload className="w-6 h-6 text-[#64748B] mx-auto mb-2" />
+                        <p className="text-xs text-[#64748B]">{l('Upload ID back', 'Pakia nyuma ya kitambulisho')}</p>
+                      </button>
+                    )}
+                    <input ref={docBackRef} type="file" accept="image/*" onChange={e => handleImageSelect(e, setDocBackPreview, setDocBackBase64)} className="hidden" />
+                  </div>
+
+                  {/* Info note */}
+                  <div className="p-3 rounded-xl bg-[#ECFDF5] dark:bg-[#064E3B] flex items-start gap-2">
+                    <Info className="w-4 h-4 text-[#065F46] dark:text-[#34D399] shrink-0 mt-0.5" />
+                    <p className="text-xs text-[#065F46] dark:text-[#34D399]">
+                      {l('Your documents are encrypted and stored securely. They will only be used for verification purposes.', 'Nyaraka zako zimesimbwa na kuhifadhiwa kwa usalama. Zitatumiwa tu kwa ajili ya uthibitisho.')}
+                    </p>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <Button
+                      variant="outline"
+                      onClick={() => setCurrentStep('selfie')}
+                      className="flex-1 py-3.5 rounded-xl"
+                    >
+                      <ChevronLeft className="w-4 h-4 mr-1" />
+                      {l('Back', 'Rudi')}
+                    </Button>
+                    <Button
+                      onClick={handleSubmitVerification}
+                      disabled={!canSubmit || isSubmitting}
+                      className="flex-1 bg-[#065F46] hover:bg-[#064E3B] text-white font-bold py-3.5 rounded-xl disabled:opacity-50"
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                          {l('Submitting...', 'Inawasilisha...')}
+                        </>
+                      ) : (
+                        <>
+                          <Shield className="w-4 h-4 mr-2" />
+                          {l('Submit Verification', 'Wasilisha Uthibitisho')}
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+
+          {/* ── Step 5: Status ── */}
+          {currentStep === 'status' && verification && (
+            <motion.div key="status" variants={containerVariants} initial="hidden" animate="visible" exit="hidden" className="space-y-4">
+              <Card className="border-0 shadow-lg overflow-hidden">
+                <div className={`p-6 text-center ${
+                  verification.status === 'approved' ? 'bg-gradient-to-b from-[#065F46] to-[#064E3B]' :
+                  verification.status === 'rejected' ? 'bg-gradient-to-b from-red-600 to-red-700' :
+                  'bg-gradient-to-b from-[#F59E0B] to-[#D97706]'
+                }`}>
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+                    className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-3"
+                  >
+                    {verification.status === 'approved' ? (
+                      <CheckCircle2 className="w-10 h-10 text-[#34D399]" />
+                    ) : verification.status === 'rejected' ? (
+                      <XCircle className="w-10 h-10 text-white" />
+                    ) : (
+                      <Clock className="w-10 h-10 text-white animate-pulse" />
+                    )}
+                  </motion.div>
+                  <h2 className="text-xl font-bold text-white mb-1">
+                    {verification.status === 'approved'
+                      ? l('Verified!', 'Imethibitishwa!')
+                      : verification.status === 'rejected'
+                        ? l('Not Approved', 'Hakijathibitishwa')
+                        : l('Under Review', 'Inakaguliwa')
+                    }
+                  </h2>
+                  <p className="text-white/80 text-sm">
+                    {verification.status === 'approved'
+                      ? l('You are now a verified guide!', 'Sasa uko mwongozo aliye thibitishwa!')
+                      : verification.status === 'rejected'
+                        ? l('Your verification was not approved', 'Uthibitisho wako haukukubaliwa')
+                        : l('Your documents are being reviewed', 'Nyaraka zako zinakaguliwa')
+                    }
+                  </p>
+                </div>
+
+                <CardContent className="p-5 space-y-4">
+                  {verification.submittedAt && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Clock className="w-4 h-4 text-[#64748B]" />
+                      <span className="text-[#64748B]">
+                        {l('Submitted:', 'Iliwasilishwa:')} {new Date(verification.submittedAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                  )}
+
+                  {verification.rejectionReason && (
+                    <div className="p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                      <p className="text-sm font-semibold text-red-700 dark:text-red-400 mb-1">
+                        {l('Reason:', 'Sababu:')}
+                      </p>
+                      <p className="text-sm text-red-600 dark:text-red-400/80">
+                        {verification.rejectionReason}
+                      </p>
+                    </div>
+                  )}
+
+                  {verification.quizScore !== null && (
+                    <div className="flex items-center justify-between p-3 rounded-xl bg-[#F8FAFC] dark:bg-[#1E293B]">
+                      <span className="text-sm text-[#64748B]">{l('Quiz Score', 'Alama Ya Jaribio')}</span>
+                      <Badge className={`${
+                        (verification.quizScore || 0) >= 3
+                          ? 'bg-[#ECFDF5] dark:bg-[#064E3B] text-[#065F46] dark:text-[#34D399]'
+                          : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400'
+                      } border-0`}>
+                        {verification.quizScore}/{verification.quizTotal}
+                      </Badge>
+                    </div>
+                  )}
+
+                  <Button
+                    onClick={refreshStatus}
+                    variant="outline"
+                    className="w-full py-3 rounded-xl"
+                  >
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    {l('Refresh Status', 'Pakia Upya Hali')}
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {verification.status === 'rejected' && (
+                <Button
+                  onClick={() => {
+                    setQuizAnswers([-1, -1, -1, -1, -1]);
+                    setQuizSubmitted(false);
+                    setSelfiePreview(null);
+                    setSelfieBase64(null);
+                    setDocFrontPreview(null);
+                    setDocFrontBase64(null);
+                    setDocBackPreview(null);
+                    setDocBackBase64(null);
+                    setCurrentStep('personal');
+                  }}
+                  className="w-full bg-[#065F46] hover:bg-[#064E3B] text-white font-bold py-3.5 rounded-xl"
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  {l('Reapply for Verification', 'Omba Uthibitisho Tena')}
+                </Button>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

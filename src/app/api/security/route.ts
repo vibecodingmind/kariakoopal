@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { authRateLimit } from '@/lib/rate-limit';
-import { isValidEmail } from '@/lib/sanitize';
+import { rateLimiters } from '@/lib/rate-limit';
+import { sanitizeEmail } from '@/lib/sanitize';
 
 // ── GET /api/security - Return security settings ──
 export async function GET(req: NextRequest) {
   try {
     // Rate limit
     const clientId = req.headers.get('x-forwarded-for') || 'unknown';
-    const limit = authRateLimit(clientId);
+    const limit = rateLimiters.auth(clientId);
     if (!limit.allowed) {
       return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
     }
@@ -44,7 +44,7 @@ export async function PUT(req: NextRequest) {
   try {
     // Rate limit
     const clientId = req.headers.get('x-forwarded-for') || 'unknown';
-    const limit = authRateLimit(clientId);
+    const limit = rateLimiters.auth(clientId);
     if (!limit.allowed) {
       return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
     }
@@ -53,7 +53,7 @@ export async function PUT(req: NextRequest) {
     const { twoFactorEnabled, pinEnabled, sessionTimeout, email } = body;
 
     // Validate email if provided
-    if (email && !isValidEmail(email)) {
+    if (email && !sanitizeEmail(email)) {
       return NextResponse.json({ error: 'Invalid email format' }, { status: 400 });
     }
 
@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
   try {
     // Rate limit
     const clientId = req.headers.get('x-forwarded-for') || 'unknown';
-    const limit = authRateLimit(clientId);
+    const limit = rateLimiters.auth(clientId);
     if (!limit.allowed) {
       return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
     }

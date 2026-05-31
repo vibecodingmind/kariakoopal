@@ -1,42 +1,87 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function POST(req: NextRequest) {
+/**
+ * M-Pesa Daraja Callback Handler
+ * Called by Safaricom after STK Push completes
+ * Parses the callback body and extracts the transaction result
+ */
+export async function POST(request: NextRequest) {
   try {
-    const body = await req.json();
-    
-    // Log the callback for debugging
-    console.log('M-Pesa Callback received:', JSON.stringify(body, null, 2));
-    
-    const { Body } = body;
-    if (Body?.stkCallback) {
-      const { MerchantRequestID, CheckoutRequestID, ResultCode, ResultDesc, CallbackMetadata } = Body.stkCallback;
-      
-      if (ResultCode === 0 && CallbackMetadata) {
-        // Payment successful - extract details
-        const metadata = CallbackMetadata.Item.reduce((acc: Record<string, unknown>, item: { Name: string; Value: unknown }) => {
-          acc[item.Name] = item.Value;
-          return acc;
-        }, {} as Record<string, unknown>);
-        
-        console.log('Payment successful:', {
-          MerchantRequestID,
-          CheckoutRequestID,
-          Amount: metadata.Amount,
-          MpesaReceiptNumber: metadata.MpesaReceiptNumber,
-          PhoneNumber: metadata.PhoneNumber,
-        });
-        
-        // TODO: Update database with transaction
-        // await db.transaction.create({ ... });
-      } else {
-        console.log('Payment failed:', { ResultCode, ResultDesc });
-      }
+    const body = await request.json();
+
+    // Extract the STK Push callback result
+    const stkCallback = body?.Body?.stkCallback;
+
+    if (!stkCallback) {
+      console.error('Invalid M-Pesa callback: missing stkCallback', body);
+      return NextResponse.json({ ResultCode: 1, ResultDesc: 'Invalid callback' });
     }
-    
-    return NextResponse.json({ success: true });
-  } catch (error: unknown) {
-    console.error('M-Pesa callback error:', error);
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    return NextResponse.json({ success: false, error: message }, { status: 500 });
+
+    const {
+      MerchantRequestID,
+      CheckoutRequestID,
+      ResultCode,
+      ResultDesc,
+    } = stkCallback;
+
+    const resultCode = String(ResultCode);
+
+    if (resultCode === '0') {
+      // Transaction successful - extract callback metadata
+      const callbackMetadata = stkCallback.CallbackMetadata?.Item || [];
+      const metadata: Record<string, unknown> = {};
+
+      for (const item of callbackMetadata) {
+        switch (item.Name) {
+          case 'Amount':
+            metadata.amount = item.Value;
+            break;
+          case 'MpesaReceiptNumber':
+            metadata.mpesaReceipt = item.Value;
+            break;
+          case 'TransactionDate':
+            metadata.transactionDate = item.Value;
+            break;
+          case 'PhoneNumber':
+            metadata.phoneNumber = item.Value;
+            break;
+        }
+      }
+
+      console.log('M-Pesa payment successful:', {
+        MerchantRequestID,
+        CheckoutRequestID,
+        ...metadata,
+      });
+
+      // In a production app, you would:
+      // 1. Update the transaction in the database
+      // 2. Credit the user's wallet
+      // 3. Send a notification to the user
+    } else {
+      console.log('M-Pesa payment failed:', {
+        MerchantRequestID,
+        CheckoutRequestID,
+        ResultCode: resultCode,
+        ResultDesc,
+      });
+
+      // In a production app, you would:
+      // 1. Update the transaction status to failed
+      // 2. Notify the user
+    }
+
+    // Always return success to Safaricom
+    return NextResponse.json({
+      ResultCode: 0,
+      ResultDesc: 'Accepted',
+    });
+  } catch (error) {
+    console.error('M-Pesa callback processing error:', error);
+    // Still return success to Safaricom to prevent retries
+    return NextResponse.json({
+      ResultCode: 0,
+      ResultDesc: 'Accepted',
+    });
   }
 }

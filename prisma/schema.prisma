@@ -435,3 +435,50 @@ model CalendarReminder {
 
   @@unique([userId, eventId])
 }
+
+// ── Feature: Real-time Chat ──
+model Conversation {
+  id           String   @id @default(cuid())
+  bookingId    String?  // optional link to a booking/session
+  lastMessageAt DateTime @default(now())
+  lastMessageContent String @default("")
+  lastMessageSender  String @default("")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  participants ConversationParticipant[]
+  chatMessages ChatMessage[]
+}
+
+model ConversationParticipant {
+  id             String   @id @default(cuid())
+  conversationId String
+  userId         String
+  unreadCount    Int      @default(0)
+  lastReadAt     DateTime @default(now())
+  createdAt      DateTime @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+  @@index([userId])
+}
+
+model ChatMessage {
+  id               String   @id @default(cuid())
+  conversationId   String
+  senderId         String
+  messageType      String   @default("text") // text, image, location, system
+  content          String
+  imageUrl         String?
+  latitude         Float?
+  longitude        Float?
+  translatedContent String?
+  isRead           Boolean  @default(false)
+  createdAt        DateTime @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([createdAt])
+}

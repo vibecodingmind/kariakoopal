@@ -6,14 +6,17 @@ import {
   Wallet as WalletIcon, ArrowUpRight, ArrowDownLeft, Plus, Send,
   Clock, CheckCircle2, XCircle, Smartphone, Shield, CreditCard,
   QrCode, X, TrendingUp, Receipt, ChevronRight, Zap,
+  Loader2, Phone, AlertCircle,
 } from 'lucide-react';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { useNotificationStore } from '@/lib/stores/notification-store';
+import { toast } from 'sonner';
 
 // ── Types ──
 
 type FilterTab = 'all' | 'deposits' | 'withdrawals' | 'payments';
 type PaymentProvider = 'mpesa' | 'tigo' | 'airtel';
+type MpesaState = 'idle' | 'processing' | 'success' | 'failed';
 
 interface Transaction {
   id: string;
@@ -73,8 +76,10 @@ const itemVariants = {
 // ── Main Component ──
 
 export default function WalletPage() {
-  const { user, walletBalance, setWalletBalance } = useAuthStore();
+  const { user, walletBalance, setWalletBalance, language } = useAuthStore();
   const { addNotification } = useNotificationStore();
+  const sw = language === 'sw';
+  const l = (en: string, swText: string) => (sw ? swText : en);
 
   const [filter, setFilter] = useState<FilterTab>('all');
   const [showTopUp, setShowTopUp] = useState(false);
@@ -86,9 +91,15 @@ export default function WalletPage() {
   const [success, setSuccess] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState<PaymentProvider>('mpesa');
 
+  // M-Pesa STK Push states
+  const [mpesaState, setMpesaState] = useState<MpesaState>('idle');
+  const [mpesaCheckoutId, setMpesaCheckoutId] = useState<string>('');
+  const [mpesaReceipt, setMpesaReceipt] = useState<string>('');
+  const [mpesaPollTimer, setMpesaPollTimer] = useState<NodeJS.Timeout | null>(null);
+
   const pendingBalance = 75000;
   const availableBalance = walletBalance - pendingBalance;
-  const usdEquivalent = (walletBalance / 2600).toFixed(2); // Approximate TZS to USD
+  const usdEquivalent = (walletBalance / 2600).toFixed(2);
 
   const filtered = DEMO_TRANSACTIONS.filter(t => {
     if (filter === 'all') return true;
@@ -97,6 +108,126 @@ export default function WalletPage() {
     if (filter === 'payments') return t.type === 'payment' || t.type === 'subscription';
     return true;
   });
+
+  // ── M-Pesa STK Push Handler ──
+  const handleMpesaTopUp = async () => {
+    if (topUpAmount <= 0 || !phoneNumber) return;
+
+    setMpesaState('processing');
+    setProcessing(true);
+
+    try {
+      const res = await fetch('/api/payments/mpesa/stk-push', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone: phoneNumber,
+          amount: topUpAmount,
+          accountRef: `KARIKO_${user?.id || 'demo'}`,
+          transactionDesc: 'Wallet Top Up',
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.success && data.ResponseCode === '0') {
+        setMpesaCheckoutId(data.CheckoutRequestID);
+
+        if (data.demoMode) {
+          // Demo mode: simulate success after a short delay
+          setTimeout(() => {
+            setMpesaState('success');
+            setMpesaReceipt(data.mockMpesaReceipt || data.mockReceipt);
+            setWalletBalance(walletBalance + topUpAmount);
+            addNotification({
+              userId: user?.id || '',
+              type: 'payment',
+              title: l('Top Up Successful', 'Kupakia Imefanikiwa'),
+              message: `TZS ${topUpAmount.toLocaleString()} ${l('added to your wallet', 'imeongezwa kwenye mkoba wako')}. ${l('Receipt', 'Risiti')}: ${data.mockMpesaReceipt}`,
+              read: false,
+            });
+            setProcessing(false);
+
+            // Auto-close after showing success
+            setTimeout(() => {
+              setMpesaState('idle');
+              setShowTopUp(false);
+              setTopUpAmount(0);
+              setMpesaReceipt('');
+            }, 2500);
+          }, 3000);
+
+          // Poll status
+          const timer = setInterval(async () => {
+            try {
+              const statusRes = await fetch(`/api/payments/mpesa/status?CheckoutRequestID=${encodeURIComponent(data.CheckoutRequestID)}`);
+              const statusData = await statusRes.json();
+              if (statusData.ResultCode === '0' && mpesaState === 'processing') {
+                // Already handled by the timeout above in demo mode
+              }
+            } catch {
+              // Ignore polling errors
+            }
+          }, 5000);
+          setMpesaPollTimer(timer);
+        } else {
+          // Production: poll for status
+          const pollInterval = setInterval(async () => {
+            try {
+              const statusRes = await fetch(`/api/payments/mpesa/status?CheckoutRequestID=${encodeURIComponent(data.CheckoutRequestID)}`);
+              const statusData = await statusRes.json();
+
+              if (statusData.ResultCode === '0') {
+                clearInterval(pollInterval);
+                setMpesaState('success');
+                setWalletBalance(walletBalance + topUpAmount);
+                addNotification({
+                  userId: user?.id || '',
+                  type: 'payment',
+                  title: l('Top Up Successful', 'Kupakia Imefanikiwa'),
+                  message: `TZS ${topUpAmount.toLocaleString()} ${l('added to your wallet', 'imeongezwa kwenye mkoba wako')}`,
+                  read: false,
+                });
+                setProcessing(false);
+                setTimeout(() => {
+                  setMpesaState('idle');
+                  setShowTopUp(false);
+                  setTopUpAmount(0);
+                }, 2500);
+              } else if (statusData.ResultCode && statusData.ResultCode !== '0') {
+                clearInterval(pollInterval);
+                setMpesaState('failed');
+                setProcessing(false);
+                toast.error(l('M-Pesa payment failed', 'Malipo ya M-Pesa yameshindwa'));
+              }
+            } catch {
+              // Continue polling
+            }
+          }, 5000);
+
+          setMpesaPollTimer(pollInterval);
+
+          // Timeout after 2 minutes
+          setTimeout(() => {
+            clearInterval(pollInterval);
+            if (mpesaState === 'processing') {
+              setMpesaState('failed');
+              setProcessing(false);
+              toast.error(l('M-Pesa request timed out', 'Ombi la M-Pesa limeishiwa wakati'));
+            }
+          }, 120000);
+        }
+      } else {
+        setMpesaState('failed');
+        setProcessing(false);
+        toast.error(data.error || l('M-Pesa request failed', 'Ombi la M-Pesa limefeli'));
+      }
+    } catch {
+      setMpesaState('failed');
+      setProcessing(false);
+      toast.error(l('Failed to initiate M-Pesa payment', 'Imeshindwa kuanzisha malipo ya M-Pesa'));
+    }
+  };
 
   const handleTopUp = () => {
     if (topUpAmount <= 0) return;
@@ -187,8 +318,12 @@ export default function WalletPage() {
     >
       {/* Header */}
       <motion.div variants={itemVariants}>
-        <h1 className="text-2xl font-bold text-[#065F46] dark:text-[#34D399]">Wallet</h1>
-        <p className="text-sm text-[#64748B] mt-1">Manage your funds and mobile payments</p>
+        <h1 className="text-2xl font-bold text-[#065F46] dark:text-[#34D399]">
+          {l('Wallet', 'Mkoba')}
+        </h1>
+        <p className="text-sm text-[#64748B] mt-1">
+          {l('Manage your funds and mobile payments', 'Dhibiti pesa zako na malipo ya simu')}
+        </p>
       </motion.div>
 
       {/* Balance Card */}
@@ -198,7 +333,7 @@ export default function WalletPage() {
       >
         <div className="relative z-10">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-sm text-white/70">Total Balance</span>
+            <span className="text-sm text-white/70">{l('Total Balance', 'Salio Jumla')}</span>
             <Shield className="w-4 h-4 text-[#F59E0B]" />
           </div>
           <p className="text-4xl font-bold text-white tracking-tight">TZS {walletBalance.toLocaleString()}</p>
@@ -206,11 +341,11 @@ export default function WalletPage() {
 
           <div className="grid grid-cols-2 gap-3 mt-5">
             <div className="p-3 rounded-xl bg-white/10 backdrop-blur-sm">
-              <p className="text-xs text-white/60">Available</p>
+              <p className="text-xs text-white/60">{l('Available', 'Inayopatikana')}</p>
               <p className="text-lg font-bold text-[#F59E0B]">TZS {availableBalance.toLocaleString()}</p>
             </div>
             <div className="p-3 rounded-xl bg-white/10 backdrop-blur-sm">
-              <p className="text-xs text-white/60">Pending</p>
+              <p className="text-xs text-white/60">{l('Pending', 'Inasubiri')}</p>
               <p className="text-lg font-bold text-white">TZS {pendingBalance.toLocaleString()}</p>
             </div>
           </div>
@@ -220,10 +355,10 @@ export default function WalletPage() {
       {/* Quick Actions */}
       <motion.div variants={itemVariants} className="grid grid-cols-4 gap-3">
         {[
-          { icon: Plus, label: 'Top Up', color: '#10B981', onClick: () => setShowTopUp(true) },
-          { icon: ArrowUpRight, label: 'Withdraw', color: '#F59E0B', onClick: () => setShowWithdraw(true) },
-          { icon: Send, label: 'Send', color: '#0891B2', onClick: () => {} },
-          { icon: QrCode, label: 'Receive', color: '#7C3AED', onClick: () => {} },
+          { icon: Plus, label: l('Top Up', 'Weka'), color: '#10B981', onClick: () => { setMpesaState('idle'); setShowTopUp(true); } },
+          { icon: ArrowUpRight, label: l('Withdraw', 'Toa'), color: '#F59E0B', onClick: () => setShowWithdraw(true) },
+          { icon: Send, label: l('Send', 'Tuma'), color: '#0891B2', onClick: () => {} },
+          { icon: QrCode, label: l('Receive', 'Pokea'), color: '#7C3AED', onClick: () => {} },
         ].map((action, i) => (
           <button
             key={i}
@@ -241,37 +376,44 @@ export default function WalletPage() {
         ))}
       </motion.div>
 
-      {/* M-Pesa Integration Section */}
+      {/* M-Pesa Top Up Section */}
       <motion.div variants={itemVariants} className="kcard-glass p-5 space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Smartphone className="w-5 h-5 text-[#4CAF50]" />
-            <h3 className="font-bold text-sm">Mobile Money</h3>
+            <h3 className="font-bold text-sm">{l('M-Pesa Top Up', 'Weka Pesa M-Pesa')}</h3>
           </div>
-          <span className="kbadge kbadge-verified text-[8px]">Instant</span>
+          <span className="kbadge kbadge-verified text-[8px]">{l('Instant', 'Papo Hapo')}</span>
         </div>
 
         <div className="space-y-3">
           <div>
-            <label className="text-xs font-medium text-[#64748B] mb-1.5 block">Phone Number</label>
-            <input
-              value={phoneNumber}
-              onChange={e => setPhoneNumber(e.target.value)}
-              className="kinput w-full"
-              placeholder="0712 345 678"
-            />
+            <label className="text-xs font-medium text-[#64748B] mb-1.5 block">
+              {l('Phone Number', 'Nambari ya Simu')}
+            </label>
+            <div className="relative">
+              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#64748B]" />
+              <input
+                value={phoneNumber}
+                onChange={e => setPhoneNumber(e.target.value)}
+                className="kinput w-full pl-10"
+                placeholder="0712 345 678"
+              />
+            </div>
           </div>
 
           <div>
-            <label className="text-xs font-medium text-[#64748B] mb-2 block">Quick Amount (TZS)</label>
+            <label className="text-xs font-medium text-[#64748B] mb-2 block">
+              {l('Quick Amount (TZS)', 'Kiasi Haraka (TZS)')}
+            </label>
             <div className="grid grid-cols-4 gap-2">
               {MPESA_PRESETS.map(amt => (
                 <button
                   key={amt}
                   onClick={() => setTopUpAmount(amt)}
-                  className={`py-2 rounded-xl text-xs font-semibold transition-all ${
+                  className={`py-2.5 rounded-xl text-xs font-semibold transition-all ${
                     topUpAmount === amt
-                      ? 'bg-[#065F46] text-white dark:bg-[#34D399] dark:text-[#022C22]'
+                      ? 'bg-[#065F46] text-white dark:bg-[#34D399] dark:text-[#022C22] shadow-sm'
                       : 'bg-[#F1F5F9] dark:bg-[#334155] text-[#64748B] dark:text-[#94A3B8] hover:bg-[#E2E8F0] dark:hover:bg-[#475569]'
                   }`}
                 >
@@ -281,37 +423,24 @@ export default function WalletPage() {
             </div>
           </div>
 
-          <div>
-            <label className="text-xs font-medium text-[#64748B] mb-2 block">Payment Provider</label>
-            <div className="grid grid-cols-3 gap-2">
-              {(['mpesa', 'tigo', 'airtel'] as PaymentProvider[]).map(provider => (
-                <button
-                  key={provider}
-                  onClick={() => setSelectedProvider(provider)}
-                  className={`p-3 rounded-xl text-center transition-all border-2 ${
-                    selectedProvider === provider
-                      ? 'border-current bg-opacity-10'
-                      : 'border-transparent bg-[#F1F5F9] dark:bg-[#334155]'
-                  }`}
-                  style={selectedProvider === provider ? { borderColor: getProviderColor(provider), backgroundColor: `${getProviderColor(provider)}15` } : {}}
-                >
-                  <Smartphone className="w-5 h-5 mx-auto mb-1" style={{ color: getProviderColor(provider) }} />
-                  <span className="text-xs font-semibold" style={{ color: selectedProvider === provider ? getProviderColor(provider) : undefined }}>
-                    {getProviderName(provider)}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-
           <button
-            onClick={() => { if (topUpAmount > 0) setShowTopUp(true); }}
-            disabled={topUpAmount <= 0}
-            className="w-full py-3 rounded-xl font-bold text-sm text-white transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
-            style={{ backgroundColor: getProviderColor(selectedProvider) }}
+            onClick={() => {
+              if (topUpAmount <= 0) {
+                toast.error(l('Please select an amount', 'Tafadhali chagua kiasi'));
+                return;
+              }
+              if (!phoneNumber) {
+                toast.error(l('Please enter phone number', 'Tafadhali ingiza nambari ya simu'));
+                return;
+              }
+              setMpesaState('idle');
+              setShowTopUp(true);
+            }}
+            disabled={topUpAmount <= 0 || !phoneNumber}
+            className="w-full py-3 rounded-xl font-bold text-sm text-white transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2 bg-[#4CAF50] hover:bg-[#43A047]"
           >
             <Zap className="w-4 h-4" />
-            Pay with {getProviderName(selectedProvider)}
+            {l('Top Up via M-Pesa', 'Weka kupitia M-Pesa')}
           </button>
         </div>
       </motion.div>
@@ -319,8 +448,8 @@ export default function WalletPage() {
       {/* Payment Methods */}
       <motion.div variants={itemVariants}>
         <div className="flex items-center justify-between mb-3">
-          <h3 className="font-bold text-sm">Saved Payment Methods</h3>
-          <button className="text-xs text-[#065F46] dark:text-[#34D399] font-semibold">+ Add New</button>
+          <h3 className="font-bold text-sm">{l('Saved Payment Methods', 'Njia za Malipo Zilizohifadhiwa')}</h3>
+          <button className="text-xs text-[#065F46] dark:text-[#34D399] font-semibold">{l('+ Add New', '+ Ongeza')}</button>
         </div>
         <div className="space-y-2">
           {SAVED_PAYMENT_METHODS.map((method) => (
@@ -346,22 +475,24 @@ export default function WalletPage() {
       {/* Transaction History */}
       <motion.div variants={itemVariants}>
         <div className="flex items-center justify-between mb-3">
-          <h3 className="font-bold text-sm">Transaction History</h3>
+          <h3 className="font-bold text-sm">{l('Transaction History', 'Historia ya Miamala')}</h3>
           <Receipt className="w-4 h-4 text-[#64748B]" />
         </div>
         <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2">
-          {(['all', 'deposits', 'withdrawals', 'payments'] as FilterTab[]).map(tab => (
+          {([
+            { key: 'all', label: l('All', 'Zote') },
+            { key: 'deposits', label: l('Deposits', 'Amana') },
+            { key: 'withdrawals', label: l('Withdrawals', 'Utoaji') },
+            { key: 'payments', label: l('Payments', 'Malipo') },
+          ] as { key: FilterTab; label: string }[]).map(tab => (
             <button
-              key={tab}
-              onClick={() => setFilter(tab)}
+              key={tab.key}
+              onClick={() => setFilter(tab.key)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
-                filter === tab ? 'bg-[#065F46] text-white' : 'bg-[#F1F5F9] dark:bg-[#334155] text-[#64748B]'
+                filter === tab.key ? 'bg-[#065F46] text-white' : 'bg-[#F1F5F9] dark:bg-[#334155] text-[#64748B]'
               }`}
             >
-              {tab === 'all' ? 'All' :
-               tab === 'deposits' ? 'Deposits' :
-               tab === 'withdrawals' ? 'Withdrawals' :
-               'Payments'}
+              {tab.label}
             </button>
           ))}
         </div>
@@ -399,7 +530,7 @@ export default function WalletPage() {
         ))}
       </div>
 
-      {/* Top Up Modal */}
+      {/* ── M-Pesa Top Up Modal ── */}
       <AnimatePresence>
         {showTopUp && (
           <motion.div
@@ -407,7 +538,13 @@ export default function WalletPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 bg-black/50 flex items-end justify-center"
-            onClick={() => !processing && setShowTopUp(false)}
+            onClick={() => {
+              if (!processing && mpesaState !== 'processing') {
+                if (mpesaPollTimer) clearInterval(mpesaPollTimer);
+                setShowTopUp(false);
+                setMpesaState('idle');
+              }
+            }}
           >
             <motion.div
               initial={{ y: 300 }}
@@ -418,24 +555,100 @@ export default function WalletPage() {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-bold">Top Up Wallet</h3>
-                <button onClick={() => !processing && setShowTopUp(false)} className="w-8 h-8 rounded-full bg-[#F1F5F9] dark:bg-[#334155] flex items-center justify-center">
+                <h3 className="text-lg font-bold flex items-center gap-2">
+                  <Smartphone className="w-5 h-5 text-[#4CAF50]" />
+                  {l('M-Pesa Top Up', 'Weka Pesa M-Pesa')}
+                </h3>
+                <button
+                  onClick={() => {
+                    if (!processing && mpesaState !== 'processing') {
+                      if (mpesaPollTimer) clearInterval(mpesaPollTimer);
+                      setShowTopUp(false);
+                      setMpesaState('idle');
+                    }
+                  }}
+                  className="w-8 h-8 rounded-full bg-[#F1F5F9] dark:bg-[#334155] flex items-center justify-center"
+                >
                   <X className="w-4 h-4" />
                 </button>
               </div>
 
-              {success ? (
+              {/* Success State */}
+              {mpesaState === 'success' && (
                 <div className="text-center py-8">
-                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-16 h-16 rounded-full bg-[#ECFDF5] flex items-center justify-center mx-auto mb-3">
+                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-16 h-16 rounded-full bg-[#ECFDF5] dark:bg-[#064E3B] flex items-center justify-center mx-auto mb-3">
                     <CheckCircle2 className="w-8 h-8 text-[#10B981]" />
                   </motion.div>
-                  <p className="font-bold text-lg">Top Up Successful!</p>
-                  <p className="text-sm text-[#64748B]">TZS {topUpAmount.toLocaleString()} added to your wallet</p>
+                  <p className="font-bold text-lg text-[#10B981]">{l('Top Up Successful!', 'Kupakia Imefanikiwa!')}</p>
+                  <p className="text-sm text-[#64748B] mt-1">
+                    TZS {topUpAmount.toLocaleString()} {l('added to your wallet', 'imeongezwa kwenye mkoba wako')}
+                  </p>
+                  {mpesaReceipt && (
+                    <p className="text-xs text-[#64748B] mt-2">
+                      {l('M-Pesa Receipt', 'Risiti ya M-Pesa')}: <span className="font-mono font-semibold">{mpesaReceipt}</span>
+                    </p>
+                  )}
                 </div>
-              ) : (
+              )}
+
+              {/* Failed State */}
+              {mpesaState === 'failed' && (
+                <div className="text-center py-8">
+                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-16 h-16 rounded-full bg-[#FEE2E2] dark:bg-[#2D1B1B] flex items-center justify-center mx-auto mb-3">
+                    <XCircle className="w-8 h-8 text-[#DC2626]" />
+                  </motion.div>
+                  <p className="font-bold text-lg text-[#DC2626]">{l('Top Up Failed', 'Kupakia Kumefeli')}</p>
+                  <p className="text-sm text-[#64748B] mt-1">
+                    {l('Please check your phone number and try again', 'Tafadhali angalia nambari yako ya simu na jaribu tena')}
+                  </p>
+                  <button
+                    onClick={() => setMpesaState('idle')}
+                    className="mt-4 px-6 py-2 rounded-xl bg-[#065F46] text-white text-sm font-semibold"
+                  >
+                    {l('Try Again', 'Jaribu Tena')}
+                  </button>
+                </div>
+              )}
+
+              {/* Processing State */}
+              {mpesaState === 'processing' && (
+                <div className="text-center py-8">
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ repeat: Infinity, duration: 2, ease: 'linear' }}
+                    className="w-16 h-16 rounded-full bg-[#ECFDF5] dark:bg-[#064E3B] flex items-center justify-center mx-auto mb-3"
+                  >
+                    <Smartphone className="w-8 h-8 text-[#4CAF50]" />
+                  </motion.div>
+                  <p className="font-bold text-lg">{l('Check Your Phone', 'Angalia Simu Yako')}</p>
+                  <p className="text-sm text-[#64748B] mt-1">
+                    {l('An M-Pesa prompt has been sent to your phone. Enter your PIN to confirm.', 'Ombi la M-Pesa limetumwa kwenye simu yako. Ingiza PIN yako kuthibitisha.')}
+                  </p>
+                  <div className="flex items-center justify-center gap-2 mt-3 text-[#4CAF50]">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span className="text-sm font-medium">{l('Waiting for confirmation...', 'Inasubiri uthibitisho...')}</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Idle State - Form */}
+              {mpesaState === 'idle' && (
                 <>
+                  {/* Summary Card */}
+                  <div className="p-4 rounded-xl bg-[#ECFDF5] dark:bg-[#064E3B]/30 border border-[#065F46]/20 dark:border-[#34D399]/20">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-medium text-[#065F46] dark:text-[#34D399]">{l('Amount', 'Kiasi')}</span>
+                      <span className="text-2xl font-bold text-[#065F46] dark:text-[#34D399]">TZS {topUpAmount.toLocaleString()}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs text-[#64748B]">
+                      <span>{l('Phone', 'Simu')}: {phoneNumber}</span>
+                      <span className="flex items-center gap-1"><Shield className="w-3 h-3" />{l('Secured', 'Imelindwa')}</span>
+                    </div>
+                  </div>
+
+                  {/* Amount Selection */}
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Select Amount (TZS)</label>
+                    <label className="text-sm font-medium mb-2 block">{l('Select Amount (TZS)', 'Chagua Kiasi (TZS)')}</label>
                     <div className="grid grid-cols-4 gap-2">
                       {[5000, 10000, 25000, 50000, 100000, 200000, 500000, 1000000].map(amt => (
                         <button
@@ -450,8 +663,10 @@ export default function WalletPage() {
                       ))}
                     </div>
                   </div>
+
+                  {/* Custom Amount */}
                   <div>
-                    <label className="text-sm font-medium mb-1 block">Custom Amount</label>
+                    <label className="text-sm font-medium mb-1 block">{l('Custom Amount', 'Kiasi Maalum')}</label>
                     <input
                       type="number"
                       value={topUpAmount || ''}
@@ -460,20 +675,32 @@ export default function WalletPage() {
                       className="kinput w-full"
                     />
                   </div>
+
+                  {/* Phone Number */}
                   <div>
-                    <label className="text-sm font-medium mb-1 block">Phone Number</label>
+                    <label className="text-sm font-medium mb-1 block">{l('Phone Number', 'Nambari ya Simu')}</label>
                     <input value={phoneNumber} onChange={e => setPhoneNumber(e.target.value)} className="kinput w-full" placeholder="0712 345 678" />
                   </div>
+
+                  {/* M-Pesa Info */}
+                  <div className="flex items-start gap-2 p-3 rounded-xl bg-[#F1F5F9] dark:bg-[#334155] text-xs text-[#64748B]">
+                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                    <span>
+                      {l(
+                        'You will receive an M-Pesa push notification on your phone. Enter your PIN to complete the transaction.',
+                        'Utapokea arifa la M-Pesa kwenye simu yako. Ingiza PIN yako kukamilisha muamala.'
+                      )}
+                    </span>
+                  </div>
+
+                  {/* Submit Button */}
                   <button
-                    onClick={handleTopUp}
-                    disabled={topUpAmount <= 0 || processing}
-                    className="kbtn w-full text-sm h-11 disabled:opacity-50"
+                    onClick={handleMpesaTopUp}
+                    disabled={topUpAmount <= 0 || !phoneNumber || processing}
+                    className="w-full py-3 rounded-xl font-bold text-sm text-white transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2 bg-[#4CAF50] hover:bg-[#43A047]"
                   >
-                    {processing ? (
-                      <span className="flex items-center gap-2"><Clock className="w-4 h-4 animate-spin" />Processing...</span>
-                    ) : (
-                      <span className="flex items-center gap-2"><Plus className="w-4 h-4" />Top Up TZS {topUpAmount.toLocaleString()}</span>
-                    )}
+                    <Zap className="w-4 h-4" />
+                    {l('Top Up via M-Pesa', 'Weka kupitia M-Pesa')}
                   </button>
                 </>
               )}
@@ -501,7 +728,7 @@ export default function WalletPage() {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-bold">Withdraw Funds</h3>
+                <h3 className="text-lg font-bold">{l('Withdraw Funds', 'Toa Pesa')}</h3>
                 <button onClick={() => !processing && setShowWithdraw(false)} className="w-8 h-8 rounded-full bg-[#F1F5F9] dark:bg-[#334155] flex items-center justify-center">
                   <X className="w-4 h-4" />
                 </button>
@@ -512,27 +739,27 @@ export default function WalletPage() {
                   <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-16 h-16 rounded-full bg-[#ECFDF5] flex items-center justify-center mx-auto mb-3">
                     <CheckCircle2 className="w-8 h-8 text-[#10B981]" />
                   </motion.div>
-                  <p className="font-bold text-lg">Withdrawal Initiated!</p>
-                  <p className="text-sm text-[#64748B]">TZS {withdrawAmount.toLocaleString()} being sent to {getProviderName(selectedProvider)}</p>
+                  <p className="font-bold text-lg">{l('Withdrawal Initiated!', 'Utoaji Umeanza!')}</p>
+                  <p className="text-sm text-[#64748B]">TZS {withdrawAmount.toLocaleString()} {l('being sent to', 'inatumwa kwa')} {getProviderName(selectedProvider)}</p>
                 </div>
               ) : (
                 <>
                   <div className="p-3 rounded-xl bg-[#FEF3C7] dark:bg-[#422006] text-[#F59E0B] text-xs flex items-center gap-2">
                     <Shield className="w-4 h-4 shrink-0" />
-                    Available for withdrawal: TZS {availableBalance.toLocaleString()}
+                    {l('Available for withdrawal', 'Inayopatikana kwa utoaji')}: TZS {availableBalance.toLocaleString()}
                   </div>
                   <div>
-                    <label className="text-sm font-medium mb-1 block">Amount (TZS)</label>
+                    <label className="text-sm font-medium mb-1 block">{l('Amount (TZS)', 'Kiasi (TZS)')}</label>
                     <input
                       type="number"
                       value={withdrawAmount || ''}
                       onChange={e => setWithdrawAmount(Number(e.target.value))}
-                      placeholder="Enter amount"
+                      placeholder={l('Enter amount', 'Ingiza kiasi')}
                       className="kinput w-full"
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Withdrawal Method</label>
+                    <label className="text-sm font-medium mb-2 block">{l('Withdrawal Method', 'Njia ya Utoaji')}</label>
                     <div className="grid grid-cols-3 gap-2">
                       {(['mpesa', 'tigo', 'airtel'] as PaymentProvider[]).map(provider => (
                         <button
@@ -550,7 +777,7 @@ export default function WalletPage() {
                     </div>
                   </div>
                   <div>
-                    <label className="text-sm font-medium mb-1 block">Phone Number</label>
+                    <label className="text-sm font-medium mb-1 block">{l('Phone Number', 'Nambari ya Simu')}</label>
                     <input value={phoneNumber} onChange={e => setPhoneNumber(e.target.value)} className="kinput w-full" placeholder="0712 345 678" />
                   </div>
                   <button
@@ -559,9 +786,9 @@ export default function WalletPage() {
                     className="kbtn-yellow w-full text-sm h-11 disabled:opacity-50"
                   >
                     {processing ? (
-                      <span className="flex items-center gap-2"><Clock className="w-4 h-4 animate-spin" />Processing...</span>
+                      <span className="flex items-center gap-2"><Clock className="w-4 h-4 animate-spin" />{l('Processing...', 'Inachakata...')}</span>
                     ) : (
-                      <span className="flex items-center gap-2"><ArrowUpRight className="w-4 h-4" />Withdraw TZS {withdrawAmount.toLocaleString()}</span>
+                      <span className="flex items-center gap-2"><ArrowUpRight className="w-4 h-4" />{l('Withdraw', 'Toa')} TZS {withdrawAmount.toLocaleString()}</span>
                     )}
                   </button>
                 </>

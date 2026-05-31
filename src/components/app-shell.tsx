@@ -23,6 +23,7 @@ import {
   Settings,
   ShoppingBag,
   Clock,
+  MessageCircle,
 } from 'lucide-react';
 import { AIChatAssistant } from '@/components/ai-chat-assistant';
 import { useRealtime } from '@/hooks/use-realtime';
@@ -263,6 +264,14 @@ function TopHeader() {
                 <span className="text-[10px] font-bold text-[#065F46] dark:text-[#34D399]">{(walletBalance / 1000).toFixed(0)}K</span>
               </button>
 
+              {/* Chat Button */}
+              <button
+                onClick={() => router.push('/chat')}
+                className="w-9 h-9 rounded-xl flex items-center justify-center border border-[#E2E8F0] dark:border-[#334155] hover:bg-[#F1F5F9] dark:hover:bg-[#334155] transition-all active:scale-90 relative"
+              >
+                <MessageCircle className="w-4 h-4" />
+              </button>
+
               {/* Notification Bell */}
               <button
                 onClick={() => router.push('/notifications')}
@@ -304,6 +313,7 @@ function TopHeader() {
                       <div className="p-1.5">
                         {[
                           { icon: UserCircle2, label: sw ? 'Wasifu Wangu' : 'My Profile', href: profileHref },
+                          { icon: MessageCircle, label: sw ? 'Ujumbe' : 'Messages', href: '/chat' },
                           { icon: Wallet, label: sw ? 'Mkoba' : 'Wallet', href: '/wallet' },
                           { icon: Bell, label: sw ? 'Arifa' : 'Notifications', href: '/notifications', badge: unreadCount },
                           { icon: Settings, label: sw ? 'Mipangilio' : 'Settings', href: '/settings' },
@@ -348,6 +358,63 @@ function TopHeader() {
   );
 }
 
+// ── Admin Top Header (simplified dark header) ──
+function AdminTopHeader() {
+  const { user, language, logout, walletBalance } = useAuthStore();
+  const unreadCount = useNotificationStore(s => s.unreadCount);
+  const router = useRouter();
+  const sw = language === 'sw';
+
+  const handleLogout = useCallback(async () => {
+    try { await signOut({ redirect: false }); } catch {}
+    logout(); router.replace('/auth');
+  }, [logout, router]);
+
+  return (
+    <header className="sticky top-0 z-50 bg-[#0F172A] border-b border-[#334155]/50">
+      <div className="flex items-center justify-between px-4 h-14 max-w-[1600px] mx-auto">
+        <div className="flex items-center gap-3">
+          {/* Mobile menu is handled by AdminSidebar */}
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-600 to-emerald-400 flex items-center justify-center shadow-sm lg:hidden">
+            <Compass className="w-4.5 h-4.5 text-white" strokeWidth={2.5} />
+          </div>
+          <span className="text-sm font-bold text-white hidden lg:block">
+            Kariako<span className="text-[#34D399]">Guide</span>{' '}
+            <span className="text-white/30 font-normal">Admin</span>
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => router.push('/wallet')}
+            className="h-8 px-2.5 rounded-xl flex items-center gap-1.5 bg-[#064E3B] border border-[#34D399]/20 hover:shadow-sm transition-all active:scale-95"
+          >
+            <Wallet className="w-3.5 h-3.5 text-[#34D399]" />
+            <span className="text-[10px] font-bold text-[#34D399]">{(walletBalance / 1000).toFixed(0)}K</span>
+          </button>
+          <button
+            onClick={() => router.push('/notifications')}
+            className="w-9 h-9 rounded-xl flex items-center justify-center border border-[#334155] hover:bg-[#334155] transition-all active:scale-90 relative"
+          >
+            <Bell className="w-4 h-4 text-white/60" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#DC2626] text-white text-[8px] font-bold flex items-center justify-center">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
+          </button>
+          <div className="flex items-center gap-2 pl-2 border-l border-[#334155]">
+            <UserAvatar user={user || {}} size="sm" />
+            <div className="hidden sm:block">
+              <p className="text-xs font-semibold text-white truncate max-w-[100px]">{user?.name || 'Admin'}</p>
+              <p className="text-[10px] text-white/40">Super Admin</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+}
+
 // ── Main App Shell ──
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -367,8 +434,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <>
       <NextAuthSessionSync />
       <NavProgress />
-      <div className="min-h-screen flex flex-col bg-[#F8FAFC] dark:bg-[#0F172A]">
-        <TopHeader />
+      <div className={`min-h-screen flex flex-col ${isAdminRoute ? 'bg-[#0F172A]' : 'bg-[#F8FAFC] dark:bg-[#0F172A]'}`}>
+        {isAdminRoute ? <AdminTopHeader /> : <TopHeader />}
         <main className={`flex-1 ${isAdminRoute ? '' : 'pb-20 max-w-4xl mx-auto'} w-full`}>
           {children}
         </main>

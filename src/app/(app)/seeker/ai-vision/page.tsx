@@ -30,6 +30,14 @@ interface VisionResult {
   culturalNote?: string;
   alternatives?: string[];
   rawText?: string;
+  // New fields from enhanced API
+  identified_item?: string;
+  english_name?: string;
+  swahili_name?: string;
+  estimated_price_range?: string;
+  zone?: string;
+  description?: string;
+  haggling_tips?: string[];
 }
 
 interface ScanHistoryItem {
@@ -81,6 +89,7 @@ export default function AIVisionPage() {
   const [result, setResult] = useState<VisionResult | null>(null);
   const [history, setHistory] = useState<ScanHistoryItem[]>([]);
   const [language, setLanguage] = useState('English');
+  const [isDemo, setIsDemo] = useState(false);
 
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -134,6 +143,7 @@ export default function AIVisionPage() {
       if (!data.success) throw new Error(data.error || 'Analysis failed');
 
       const visionResult: VisionResult = data.result;
+      setIsDemo(!!data.demo);
 
       // Try to extract JSON from rawText if needed
       if (visionResult.rawText && !visionResult.name) {
@@ -235,6 +245,11 @@ export default function AIVisionPage() {
               <h3 className="text-base font-bold text-[#0F172A] dark:text-[#F1F5F9] flex items-center gap-2">
                 <Camera className="w-5 h-5 text-[#F59E0B]" />
                 Scan an Item
+                {isDemo && (
+                  <Badge className="bg-[#FEF3C7] dark:bg-[#422006] text-[#92400E] dark:text-[#FCD34D] border-0 text-[10px] ml-2">
+                    DEMO
+                  </Badge>
+                )}
               </h3>
               <div className="flex items-center gap-2">
                 <span className="text-xs text-[#64748B] dark:text-[#94A3B8]">Language:</span>
@@ -398,22 +413,53 @@ export default function AIVisionPage() {
             >
               {/* Item Name */}
               <motion.div variants={itemVariants}>
-                <div className="flex items-center gap-3 mb-1">
+                <div className="flex items-center gap-3 mb-1 flex-wrap">
                   <h2 className="text-2xl sm:text-3xl font-extrabold text-[#0F172A] dark:text-[#F1F5F9]">
-                    {result.name || 'Unknown Item'}
+                    {result.name || result.identified_item || 'Unknown Item'}
                   </h2>
                   {result.category && (
                     <Badge className="bg-[#ECFDF5] dark:bg-[#064E3B] text-[#065F46] dark:text-[#34D399] border-0 text-xs font-semibold">
                       {result.category}
                     </Badge>
                   )}
+                  {isDemo && (
+                    <Badge className="bg-[#FEF3C7] dark:bg-[#422006] text-[#92400E] dark:text-[#FCD34D] border-0 text-[10px]">
+                      DEMO RESULT
+                    </Badge>
+                  )}
                 </div>
-                {result.nameSwahili && (
+                {(result.nameSwahili || result.swahili_name) && (
                   <p className="text-base text-[#065F46] dark:text-[#34D399] font-semibold">
-                    {result.nameSwahili}
+                    {result.nameSwahili || result.swahili_name}
+                  </p>
+                )}
+                {(result.english_name && result.english_name !== result.name) && (
+                  <p className="text-sm text-[#64748B] dark:text-[#94A3B8]">
+                    English: {result.english_name}
                   </p>
                 )}
               </motion.div>
+
+              {/* Description */}
+              {result.description && (
+                <motion.div variants={itemVariants}>
+                  <div className="kcard p-4">
+                    <p className="text-sm text-[#64748B] dark:text-[#94A3B8] leading-relaxed">
+                      {result.description}
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Zone */}
+              {result.zone && (
+                <motion.div variants={itemVariants}>
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-[#065F46] dark:text-[#34D399]" />
+                    <span className="text-sm font-medium text-[#065F46] dark:text-[#34D399]">{result.zone}</span>
+                  </div>
+                </motion.div>
+              )}
 
               {/* Fair Price Range - Large Green Card */}
               <motion.div variants={itemVariants}>

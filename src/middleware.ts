@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { rateLimit, getClientIp } from '@/lib/rate-limit';
 
 // Role-based route protection middleware
 const ROLE_ROUTES: Record<string, string[]> = {
@@ -17,22 +18,127 @@ const ROLE_DASHBOARD: Record<string, string> = {
   admin: '/admin',
 };
 
+/**
+ * Apply security headers to any response object.
+ * Ensures ALL responses include security headers consistently.
+ */
+function withSecurityHeaders(response: NextResponse): NextResponse {
+  // X-Content-Type-Options: Prevent MIME-type sniffing
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+
+  // X-Frame-Options: Prevent clickjacking
+  response.headers.set('X-Frame-Options', 'DENY');
+
+  // X-XSS-Protection: Enable XSS filtering
+  response.headers.set('X-XSS-Protection', '1; mode=block');
+
+  // Referrer-Policy: Control referrer information
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+
+  // Permissions-Policy: Restrict browser features
+  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(self)');
+
+  return response;
+}
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Allow public routes
-  if (PUBLIC_ROUTES.some(route => pathname === route || pathname.startsWith(`${route}/`))) {
-    return NextResponse.next();
+  // ── CSRF Protection ──
+  // Validate Origin header for ALL state-changing methods (POST, PUT, DELETE, PATCH)
+  if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(request.method)) {
+    const origin = request.headers.get('origin');
+    const host = request.headers.get('host');
+
+    // If origin is present and doesn't match host, reject
+    if (origin && host) {
+      const originHost = origin.replace(/^https?:\/\//, '');
+      if (originHost !== host) {
+        // For API routes, return JSON error; for page routes, redirect
+        if (pathname.startsWith('/api/')) {
+          return withSecurityHeaders(
+            NextResponse.json(
+              { error: 'Invalid origin. CSRF check failed.', success: false },
+              { status: 403 }
+            )
+          );
+        }
+        // For non-API routes with wrong origin, return 403
+        return withSecurityHeaders(
+          new NextResponse('Forbidden: CSRF check failed', { status: 403 })
+        );
+      }
+    }
   }
 
-  // Allow API routes, static files, and Next.js internals
+  // ── API Route Security ──
+  if (pathname.startsWith('/api/')) {
+    // Rate limiting for API routes
+    const clientIp = getClientIp(request);
+
+    // Auth routes get stricter rate limiting
+    if (pathname.startsWith('/api/auth')) {
+      const rateResult = rateLimit(clientIp, 5, 60 * 1000); // 5 per minute for auth
+      if (!rateResult.allowed) {
+        return withSecurityHeaders(
+          NextResponse.json(
+            { error: 'Too many requests. Please try again later.', success: false },
+            { status: 429 }
+          )
+        );
+      }
+      const response = withSecurityHeaders(NextResponse.next());
+      response.headers.set('X-RateLimit-Limit', String(rateResult.total));
+      response.headers.set('X-RateLimit-Remaining', String(rateResult.remaining));
+      response.headers.set('X-RateLimit-Reset', String(rateResult.resetTime));
+      return response;
+    }
+    // Payment routes get stricter rate limiting
+    else if (pathname.startsWith('/api/payments')) {
+      const rateResult = rateLimit(clientIp, 5, 60 * 1000); // 5 per minute for payments
+      if (!rateResult.allowed) {
+        return withSecurityHeaders(
+          NextResponse.json(
+            { error: 'Too many payment requests. Please try again later.', success: false },
+            { status: 429 }
+          )
+        );
+      }
+      const response = withSecurityHeaders(NextResponse.next());
+      response.headers.set('X-RateLimit-Limit', String(rateResult.total));
+      response.headers.set('X-RateLimit-Remaining', String(rateResult.remaining));
+      return response;
+    }
+    // General API rate limiting
+    else {
+      const rateResult = rateLimit(clientIp, 100, 60 * 1000); // 100 per minute
+      if (!rateResult.allowed) {
+        return withSecurityHeaders(
+          NextResponse.json(
+            { error: 'Too many requests. Please try again later.', success: false },
+            { status: 429 }
+          )
+        );
+      }
+      const response = withSecurityHeaders(NextResponse.next());
+      response.headers.set('X-RateLimit-Limit', String(rateResult.total));
+      response.headers.set('X-RateLimit-Remaining', String(rateResult.remaining));
+      return response;
+    }
+  }
+
+  // Allow public routes
+  if (PUBLIC_ROUTES.some(route => pathname === route || pathname.startsWith(`${route}/`))) {
+    return withSecurityHeaders(NextResponse.next());
+  }
+
+  // Allow static files and Next.js internals
   if (
-    pathname.startsWith('/api/') ||
     pathname.startsWith('/_next/') ||
     pathname.startsWith('/favicon') ||
     pathname.includes('.')
   ) {
-    return NextResponse.next();
+    return withSecurityHeaders(NextResponse.next());
   }
 
   // Check for auth token cookie
@@ -43,7 +149,7 @@ export function middleware(request: NextRequest) {
   if (!authToken && !sessionToken) {
     const loginUrl = new URL('/auth', request.url);
     loginUrl.searchParams.set('callbackUrl', pathname);
-    return NextResponse.redirect(loginUrl);
+    return withSecurityHeaders(NextResponse.redirect(loginUrl));
   }
 
   // Role-specific route protection
@@ -55,42 +161,38 @@ export function middleware(request: NextRequest) {
 
     // If seeker tries to access /guide/* or /admin/*, redirect to /seeker
     if (pathname.startsWith('/guide') && roleFromCookie === 'seeker') {
-      return NextResponse.redirect(new URL('/seeker', request.url));
+      return withSecurityHeaders(NextResponse.redirect(new URL('/seeker', request.url)));
     }
     if (pathname.startsWith('/admin') && roleFromCookie === 'seeker') {
-      return NextResponse.redirect(new URL('/seeker', request.url));
+      return withSecurityHeaders(NextResponse.redirect(new URL('/seeker', request.url)));
     }
 
     // If guide tries to access /seeker/* or /admin/*, redirect to /guide
     if (pathname.startsWith('/seeker') && roleFromCookie === 'guide') {
-      return NextResponse.redirect(new URL('/guide', request.url));
+      return withSecurityHeaders(NextResponse.redirect(new URL('/guide', request.url)));
     }
     if (pathname.startsWith('/admin') && roleFromCookie === 'guide') {
-      return NextResponse.redirect(new URL('/guide', request.url));
+      return withSecurityHeaders(NextResponse.redirect(new URL('/guide', request.url)));
     }
 
     // If admin tries to access /seeker/* or /guide/*, redirect to /admin
     if (pathname.startsWith('/seeker') && roleFromCookie === 'admin') {
-      return NextResponse.redirect(new URL('/admin', request.url));
+      return withSecurityHeaders(NextResponse.redirect(new URL('/admin', request.url)));
     }
     if (pathname.startsWith('/guide') && roleFromCookie === 'admin') {
-      return NextResponse.redirect(new URL('/admin', request.url));
+      return withSecurityHeaders(NextResponse.redirect(new URL('/admin', request.url)));
     }
   }
 
-  return NextResponse.next();
+  return withSecurityHeaders(NextResponse.next());
 }
 
 export const config = {
   matcher: [
     /*
-     * Match all request paths except:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public files (images, etc.)
+     * Match all request paths including API routes for security headers and rate limiting
      */
-    '/((?!api|_next/static|_next/image|favicon.ico|.*\\..*$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|.*\\..*$).*)',
+    '/api/(.*)',
   ],
 };
