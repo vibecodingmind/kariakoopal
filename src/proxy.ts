@@ -2,7 +2,12 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { rateLimit, getClientIp } from '@/lib/rate-limit';
 
-// Edge-compatible UUID v4 generator (no Node.js crypto needed)
+// ── Chimbo Direct - Proxy (Network Boundary) ──
+// Next.js 16.1: middleware.ts → proxy.ts
+// This file handles routing, redirects, rewrites, and header modifications.
+// Heavy application logic (DB queries, JWT validation) should live in Route Handlers or Server Components.
+
+// UUID v4 generator (Node.js runtime compatible)
 function generateRequestId(): string {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0;
@@ -11,7 +16,7 @@ function generateRequestId(): string {
   });
 }
 
-// Role-based route protection middleware
+// Role-based route protection
 const ROLE_ROUTES: Record<string, string[]> = {
   seeker: ['/seeker', '/wallet', '/notifications', '/settings', '/market', '/prices', '/events', '/vendors', '/guides'],
   guide: ['/guide', '/wallet', '/notifications', '/settings', '/market', '/prices', '/events', '/vendors', '/guides'],
@@ -32,27 +37,17 @@ const ROLE_DASHBOARD: Record<string, string> = {
  * Ensures ALL responses include security headers consistently.
  */
 function withSecurityHeaders(response: NextResponse): NextResponse {
-  // X-Content-Type-Options: Prevent MIME-type sniffing
   response.headers.set('X-Content-Type-Options', 'nosniff');
-
-  // X-Frame-Options: Prevent clickjacking
   response.headers.set('X-Frame-Options', 'DENY');
-
-  // X-XSS-Protection: Enable XSS filtering
   response.headers.set('X-XSS-Protection', '1; mode=block');
-
-  // Referrer-Policy: Control referrer information
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-
-  // Permissions-Policy: Restrict browser features
   response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(self)');
-
   return response;
 }
 
 // ── Suspicious Activity Detection ──
 const failedLoginAttempts = new Map<string, { count: number; lastAttempt: number }>();
-const SUSPICIOUS_THRESHOLD = 5; // 5 failed logins within 10 minutes
+const SUSPICIOUS_THRESHOLD = 5;
 const SUSPICIOUS_WINDOW = 10 * 60 * 1000;
 
 function trackFailedLogin(ip: string) {
@@ -66,11 +61,6 @@ function trackFailedLogin(ip: string) {
   return (failedLoginAttempts.get(ip)?.count || 0) >= SUSPICIOUS_THRESHOLD;
 }
 
-function clearFailedLogins(ip: string) {
-  failedLoginAttempts.delete(ip);
-}
-
-// Periodic cleanup of old entries (lazy cleanup on each request instead of setInterval)
 function cleanupOldEntries() {
   const now = Date.now();
   for (const [ip, data] of failedLoginAttempts.entries()) {
@@ -80,27 +70,24 @@ function cleanupOldEntries() {
   }
 }
 
-export function middleware(request: NextRequest) {
+// ── Proxy (formerly middleware) ──
+// Next.js 16.1: renamed from `middleware` to `proxy`
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const clientIp = getClientIp(request);
-
-  // ── Request ID for tracing ──
   const requestId = generateRequestId();
 
   // Lazy cleanup of old failed login entries
   if (failedLoginAttempts.size > 100) cleanupOldEntries();
 
   // ── CSRF Protection ──
-  // Validate Origin header for ALL state-changing methods (POST, PUT, DELETE, PATCH)
   if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(request.method)) {
     const origin = request.headers.get('origin');
     const host = request.headers.get('host');
 
-    // If origin is present and doesn't match host, reject
     if (origin && host) {
       const originHost = origin.replace(/^https?:\/\//, '');
       if (originHost !== host) {
-        // For API routes, return JSON error; for page routes, redirect
         if (pathname.startsWith('/api/')) {
           return withSecurityHeaders(
             NextResponse.json(
@@ -109,7 +96,6 @@ export function middleware(request: NextRequest) {
             )
           );
         }
-        // For non-API routes with wrong origin, return 403
         return withSecurityHeaders(
           new NextResponse('Forbidden: CSRF check failed', { status: 403 })
         );
@@ -119,12 +105,8 @@ export function middleware(request: NextRequest) {
 
   // ── API Route Security ──
   if (pathname.startsWith('/api/')) {
-    // Rate limiting for API routes
-    const clientIp = getClientIp(request);
-
-    // Auth routes get stricter rate limiting
+    // Auth routes — stricter rate limiting
     if (pathname.startsWith('/api/auth')) {
-      // Check for suspicious activity (too many failed logins)
       if (trackFailedLogin(clientIp) && request.method === 'POST') {
         return withSecurityHeaders(
           NextResponse.json(
@@ -134,7 +116,7 @@ export function middleware(request: NextRequest) {
         );
       }
 
-      const rateResult = rateLimit(clientIp, 5, 60 * 1000); // 5 per minute for auth
+      const rateResult = rateLimit(clientIp, 5, 60 * 1000);
       if (!rateResult.allowed) {
         return withSecurityHeaders(
           NextResponse.json(
@@ -150,9 +132,9 @@ export function middleware(request: NextRequest) {
       response.headers.set('X-RateLimit-Reset', String(rateResult.resetTime));
       return response;
     }
-    // Payment routes get stricter rate limiting
+    // Payment routes — stricter rate limiting
     else if (pathname.startsWith('/api/payments')) {
-      const rateResult = rateLimit(clientIp, 5, 60 * 1000); // 5 per minute for payments
+      const rateResult = rateLimit(clientIp, 5, 60 * 1000);
       if (!rateResult.allowed) {
         return withSecurityHeaders(
           NextResponse.json(
@@ -169,7 +151,7 @@ export function middleware(request: NextRequest) {
     }
     // General API rate limiting
     else {
-      const rateResult = rateLimit(clientIp, 100, 60 * 1000); // 100 per minute
+      const rateResult = rateLimit(clientIp, 100, 60 * 1000);
       if (!rateResult.allowed) {
         return withSecurityHeaders(
           NextResponse.json(
@@ -200,41 +182,32 @@ export function middleware(request: NextRequest) {
     return withSecurityHeaders(NextResponse.next());
   }
 
-  // Check for auth token cookie
+  // Check for auth token cookie (thin proxy pattern — existence check only)
   const authToken = request.cookies.get('auth_token')?.value;
   const sessionToken = request.cookies.get('next-auth.session-token')?.value;
 
-  // If no auth token, redirect to login
   if (!authToken && !sessionToken) {
     const loginUrl = new URL('/auth', request.url);
     loginUrl.searchParams.set('callbackUrl', pathname);
     return withSecurityHeaders(NextResponse.redirect(loginUrl));
   }
 
-  // Role-specific route protection
+  // Role-specific route protection (redirect only — no DB calls)
   const roleFromCookie = request.cookies.get('user_role')?.value;
 
   if (roleFromCookie) {
-    const allowedRoutes = ROLE_ROUTES[roleFromCookie];
-    const dashboard = ROLE_DASHBOARD[roleFromCookie];
-
-    // If seeker tries to access /guide/* or /admin/*, redirect to /seeker
     if (pathname.startsWith('/guide') && roleFromCookie === 'seeker') {
       return withSecurityHeaders(NextResponse.redirect(new URL('/seeker', request.url)));
     }
     if (pathname.startsWith('/admin') && roleFromCookie === 'seeker') {
       return withSecurityHeaders(NextResponse.redirect(new URL('/seeker', request.url)));
     }
-
-    // If guide tries to access /seeker/* or /admin/*, redirect to /guide
     if (pathname.startsWith('/seeker') && roleFromCookie === 'guide') {
       return withSecurityHeaders(NextResponse.redirect(new URL('/guide', request.url)));
     }
     if (pathname.startsWith('/admin') && roleFromCookie === 'guide') {
       return withSecurityHeaders(NextResponse.redirect(new URL('/guide', request.url)));
     }
-
-    // If admin tries to access /seeker/* or /guide/*, redirect to /admin
     if (pathname.startsWith('/seeker') && roleFromCookie === 'admin') {
       return withSecurityHeaders(NextResponse.redirect(new URL('/admin', request.url)));
     }
@@ -248,9 +221,6 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths including API routes for security headers and rate limiting
-     */
     '/((?!_next/static|_next/image|favicon.ico|.*\\..*$).*)',
     '/api/(.*)',
   ],
