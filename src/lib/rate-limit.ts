@@ -9,16 +9,14 @@ interface RateLimitEntry {
 
 const rateLimitStore = new Map<string, RateLimitEntry>();
 
-// Clean up expired entries every 5 minutes
-if (typeof setInterval !== 'undefined') {
-  setInterval(() => {
-    const now = Date.now();
-    for (const [key, entry] of rateLimitStore.entries()) {
-      if (now > entry.resetTime) {
-        rateLimitStore.delete(key);
-      }
+// Clean up expired entries lazily (Edge runtime compatible - no setInterval)
+function cleanupExpired() {
+  const now = Date.now();
+  for (const [key, entry] of rateLimitStore.entries()) {
+    if (now > entry.resetTime) {
+      rateLimitStore.delete(key);
     }
-  }, 5 * 60 * 1000);
+  }
 }
 
 /**
@@ -33,6 +31,9 @@ export function rateLimit(
   limit: number = 100,
   windowMs: number = 60 * 1000
 ): { allowed: boolean; remaining: number; resetTime: number; total: number } {
+  // Lazy cleanup
+  if (rateLimitStore.size > 500) cleanupExpired();
+
   const key = identifier;
   const now = Date.now();
 

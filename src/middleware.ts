@@ -2,6 +2,15 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { rateLimit, getClientIp } from '@/lib/rate-limit';
 
+// Edge-compatible UUID v4 generator (no Node.js crypto needed)
+function generateRequestId(): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
 // Role-based route protection middleware
 const ROLE_ROUTES: Record<string, string[]> = {
   seeker: ['/seeker', '/wallet', '/notifications', '/settings', '/market', '/prices', '/events', '/vendors', '/guides'],
@@ -41,8 +50,45 @@ function withSecurityHeaders(response: NextResponse): NextResponse {
   return response;
 }
 
+// ── Suspicious Activity Detection ──
+const failedLoginAttempts = new Map<string, { count: number; lastAttempt: number }>();
+const SUSPICIOUS_THRESHOLD = 5; // 5 failed logins within 10 minutes
+const SUSPICIOUS_WINDOW = 10 * 60 * 1000;
+
+function trackFailedLogin(ip: string) {
+  const existing = failedLoginAttempts.get(ip);
+  if (existing && Date.now() - existing.lastAttempt < SUSPICIOUS_WINDOW) {
+    existing.count++;
+    existing.lastAttempt = Date.now();
+  } else {
+    failedLoginAttempts.set(ip, { count: 1, lastAttempt: Date.now() });
+  }
+  return (failedLoginAttempts.get(ip)?.count || 0) >= SUSPICIOUS_THRESHOLD;
+}
+
+function clearFailedLogins(ip: string) {
+  failedLoginAttempts.delete(ip);
+}
+
+// Periodic cleanup of old entries (lazy cleanup on each request instead of setInterval)
+function cleanupOldEntries() {
+  const now = Date.now();
+  for (const [ip, data] of failedLoginAttempts.entries()) {
+    if (now - data.lastAttempt > SUSPICIOUS_WINDOW) {
+      failedLoginAttempts.delete(ip);
+    }
+  }
+}
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const clientIp = getClientIp(request);
+
+  // ── Request ID for tracing ──
+  const requestId = generateRequestId();
+
+  // Lazy cleanup of old failed login entries
+  if (failedLoginAttempts.size > 100) cleanupOldEntries();
 
   // ── CSRF Protection ──
   // Validate Origin header for ALL state-changing methods (POST, PUT, DELETE, PATCH)
@@ -78,6 +124,16 @@ export function middleware(request: NextRequest) {
 
     // Auth routes get stricter rate limiting
     if (pathname.startsWith('/api/auth')) {
+      // Check for suspicious activity (too many failed logins)
+      if (trackFailedLogin(clientIp) && request.method === 'POST') {
+        return withSecurityHeaders(
+          NextResponse.json(
+            { error: 'Account temporarily locked due to too many failed attempts. Please try again later.', success: false },
+            { status: 429 }
+          )
+        );
+      }
+
       const rateResult = rateLimit(clientIp, 5, 60 * 1000); // 5 per minute for auth
       if (!rateResult.allowed) {
         return withSecurityHeaders(
@@ -88,6 +144,7 @@ export function middleware(request: NextRequest) {
         );
       }
       const response = withSecurityHeaders(NextResponse.next());
+      response.headers.set('X-Request-ID', requestId);
       response.headers.set('X-RateLimit-Limit', String(rateResult.total));
       response.headers.set('X-RateLimit-Remaining', String(rateResult.remaining));
       response.headers.set('X-RateLimit-Reset', String(rateResult.resetTime));
@@ -105,6 +162,7 @@ export function middleware(request: NextRequest) {
         );
       }
       const response = withSecurityHeaders(NextResponse.next());
+      response.headers.set('X-Request-ID', requestId);
       response.headers.set('X-RateLimit-Limit', String(rateResult.total));
       response.headers.set('X-RateLimit-Remaining', String(rateResult.remaining));
       return response;
@@ -121,6 +179,7 @@ export function middleware(request: NextRequest) {
         );
       }
       const response = withSecurityHeaders(NextResponse.next());
+      response.headers.set('X-Request-ID', requestId);
       response.headers.set('X-RateLimit-Limit', String(rateResult.total));
       response.headers.set('X-RateLimit-Remaining', String(rateResult.remaining));
       return response;

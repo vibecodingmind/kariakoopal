@@ -403,6 +403,7 @@ model UserSecurity {
   userId          String    @unique
   twoFactorEnabled Boolean  @default(false)
   twoFactorSecret  String?
+  twoFactorBackupCodes String? // JSON array of backup code hashes
   pinEnabled       Boolean  @default(false)
   pinHash          String?
   loginAttempts    Int      @default(0)
@@ -415,16 +416,19 @@ model UserSecurity {
 
 // ── Feature: Reviews ──
 model Review {
-  id        String   @id @default(cuid())
-  sessionId String
-  reviewerId String
-  revieweeId String
-  rating    Float
-  comment   String   @default("")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(cuid())
+  sessionId   String
+  reviewerId  String
+  revieweeId  String
+  rating      Float
+  comment     String   @default("")
+  response    String?  // Guide's response to the review
+  respondedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@index([revieweeId])
+  @@index([reviewerId])
 }
 
 // ── Feature: Calendar Reminders ──
@@ -482,4 +486,19 @@ model ChatMessage {
 
   @@index([conversationId])
   @@index([createdAt])
+}
+
+// ── Feature: Payment Methods ──
+model PaymentMethod {
+  id         String   @id @default(cuid())
+  userId     String
+  provider   String   // pesapal, stripe, paypal
+  providerId String?  // Stripe payment method ID, PayPal email, etc.
+  label      String   // "Visa ****4242", "PayPal (john@example.com)", "M-Pesa 0712***678"
+  isDefault  Boolean  @default(false)
+  metadata   String   @default("{}") // JSON: last4, brand, etc.
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId])
 }

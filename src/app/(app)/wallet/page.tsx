@@ -5,18 +5,19 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Wallet as WalletIcon, ArrowUpRight, ArrowDownLeft, Plus, Send,
   Clock, CheckCircle2, XCircle, Smartphone, Shield, CreditCard,
-  QrCode, X, TrendingUp, Receipt, ChevronRight, Zap,
-  Loader2, Phone, AlertCircle,
+  QrCode, X, Receipt, ChevronRight, Zap,
+  Loader2, Phone, AlertCircle, Globe, Building2,
 } from 'lucide-react';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { useNotificationStore } from '@/lib/stores/notification-store';
+import { usePayments } from '@/hooks/use-payments';
 import { toast } from 'sonner';
 
 // ── Types ──
 
 type FilterTab = 'all' | 'deposits' | 'withdrawals' | 'payments';
-type PaymentProvider = 'mpesa' | 'tigo' | 'airtel';
-type MpesaState = 'idle' | 'processing' | 'success' | 'failed';
+type PaymentProvider = 'pesapal' | 'stripe' | 'paypal';
+type PaymentState = 'idle' | 'processing' | 'success' | 'failed';
 
 interface Transaction {
   id: string;
@@ -25,41 +26,49 @@ interface Transaction {
   status: 'completed' | 'pending' | 'failed';
   description: string;
   reference: string;
+  provider: string;
   date: string;
   time: string;
 }
 
-interface PaymentMethod {
+interface SavedPaymentMethod {
   id: string;
   provider: PaymentProvider;
-  phone: string;
   label: string;
+  detail: string;
   color: string;
+  icon: string;
   lastUsed: string;
 }
 
 // ── Demo Data ──
 
 const DEMO_TRANSACTIONS: Transaction[] = [
-  { id: 't1', type: 'deposit', amount: 50000, status: 'completed', description: 'M-Pesa Top Up', reference: 'MPESA2543', date: 'May 30, 2026', time: '2:45 PM' },
-  { id: 't2', type: 'payment', amount: -35000, status: 'completed', description: 'Session Payment - Mwanaildi J.', reference: 'SES-001', date: 'May 30, 2026', time: '3:15 PM' },
-  { id: 't3', type: 'refund', amount: 15000, status: 'completed', description: 'Session Refund - Cancelled', reference: 'REF-042', date: 'May 28, 2026', time: '11:00 AM' },
-  { id: 't4', type: 'deposit', amount: 100000, status: 'completed', description: 'M-Pesa Top Up', reference: 'MPESA2540', date: 'May 27, 2026', time: '9:30 AM' },
-  { id: 't5', type: 'payment', amount: -25000, status: 'completed', description: 'Session Payment - Asha M.', reference: 'SES-015', date: 'May 26, 2026', time: '4:20 PM' },
-  { id: 't6', type: 'withdrawal', amount: -125000, status: 'completed', description: 'M-Pesa Withdrawal', reference: 'WD-088', date: 'May 25, 2026', time: '10:00 AM' },
-  { id: 't7', type: 'subscription', amount: -15000, status: 'completed', description: 'Pro Subscription - Monthly', reference: 'SUB-PRO', date: 'May 22, 2026', time: '8:00 AM' },
-  { id: 't8', type: 'payment', amount: -75000, status: 'pending', description: 'Session Payment - Bulk Order', reference: 'SES-022', date: 'May 30, 2026', time: '5:00 PM' },
-  { id: 't9', type: 'deposit', amount: 25000, status: 'failed', description: 'M-Pesa Top Up (Failed)', reference: 'MPESA2539', date: 'May 21, 2026', time: '3:45 PM' },
-  { id: 't10', type: 'payment', amount: -45000, status: 'completed', description: 'Session Payment - Fatma H.', reference: 'SES-010', date: 'May 20, 2026', time: '1:30 PM' },
+  { id: 't1', type: 'deposit', amount: 50000, status: 'completed', description: 'Pesapal Top Up', reference: 'PSPL2543', provider: 'pesapal', date: 'May 30, 2026', time: '2:45 PM' },
+  { id: 't2', type: 'payment', amount: -35000, status: 'completed', description: 'Session Payment - Mwanaildi J.', reference: 'SES-001', provider: 'pesapal', date: 'May 30, 2026', time: '3:15 PM' },
+  { id: 't3', type: 'refund', amount: 15000, status: 'completed', description: 'Session Refund - Cancelled', reference: 'REF-042', provider: 'stripe', date: 'May 28, 2026', time: '11:00 AM' },
+  { id: 't4', type: 'deposit', amount: 100000, status: 'completed', description: 'Stripe Card Top Up', reference: 'STRIPE2540', provider: 'stripe', date: 'May 27, 2026', time: '9:30 AM' },
+  { id: 't5', type: 'payment', amount: -25000, status: 'completed', description: 'Session Payment - Asha M.', reference: 'SES-015', provider: 'pesapal', date: 'May 26, 2026', time: '4:20 PM' },
+  { id: 't6', type: 'withdrawal', amount: -125000, status: 'completed', description: 'Pesapal Withdrawal', reference: 'WD-088', provider: 'pesapal', date: 'May 25, 2026', time: '10:00 AM' },
+  { id: 't7', type: 'subscription', amount: -15000, status: 'completed', description: 'Pro Subscription - Monthly', reference: 'SUB-PRO', provider: 'paypal', date: 'May 22, 2026', time: '8:00 AM' },
+  { id: 't8', type: 'deposit', amount: 75000, status: 'completed', description: 'PayPal Top Up', reference: 'PP-9921', provider: 'paypal', date: 'May 21, 2026', time: '6:15 PM' },
+  { id: 't9', type: 'deposit', amount: 25000, status: 'failed', description: 'Pesapal Top Up (Failed)', reference: 'PSPL2539', provider: 'pesapal', date: 'May 21, 2026', time: '3:45 PM' },
+  { id: 't10', type: 'payment', amount: -45000, status: 'completed', description: 'Session Payment - Fatma H.', reference: 'SES-010', provider: 'pesapal', date: 'May 20, 2026', time: '1:30 PM' },
 ];
 
-const SAVED_PAYMENT_METHODS: PaymentMethod[] = [
-  { id: 'pm1', provider: 'mpesa', phone: '0712 *** 678', label: 'M-Pesa', color: '#4CAF50', lastUsed: 'Today' },
-  { id: 'pm2', provider: 'tigo', phone: '0655 *** 234', label: 'Tigo Pesa', color: '#E4002B', lastUsed: '3 days ago' },
-  { id: 'pm3', provider: 'airtel', phone: '0788 *** 901', label: 'Airtel Money', color: '#ED1C24', lastUsed: '1 week ago' },
+const SAVED_METHODS: SavedPaymentMethod[] = [
+  { id: 'pm1', provider: 'pesapal', label: 'M-Pesa via Pesapal', detail: '0712 *** 678', color: '#4CAF50', icon: 'phone', lastUsed: 'Today' },
+  { id: 'pm2', provider: 'stripe', label: 'Visa ****4242', detail: 'Card ending 4242', color: '#635BFF', icon: 'card', lastUsed: '3 days ago' },
+  { id: 'pm3', provider: 'paypal', label: 'PayPal', detail: 'j***@gmail.com', color: '#003087', icon: 'globe', lastUsed: '1 week ago' },
 ];
 
-const MPESA_PRESETS = [5000, 10000, 25000, 50000];
+const TOP_UP_PRESETS = [5000, 10000, 25000, 50000, 100000, 200000, 500000, 1000000];
+
+const PROVIDER_CONFIG: Record<PaymentProvider, { name: string; nameSw: string; icon: typeof Smartphone; color: string; description: string; descriptionSw: string }> = {
+  pesapal: { name: 'Pesapal', nameSw: 'Pesapal', icon: Smartphone, color: '#4CAF50', description: 'Mobile Money (M-Pesa, Tigo, Airtel)', descriptionSw: 'Pesa ya Simu (M-Pesa, Tigo, Airtel)' },
+  stripe: { name: 'Stripe', nameSw: 'Stripe', icon: CreditCard, color: '#635BFF', description: 'Credit / Debit Card', descriptionSw: 'Kadi ya Mkopo / Debiti' },
+  paypal: { name: 'PayPal', nameSw: 'PayPal', icon: Globe, color: '#003087', description: 'PayPal Balance or Linked Card', descriptionSw: 'Salio la PayPal au Kadi' },
+};
 
 // ── Animation variants ──
 
@@ -78,6 +87,7 @@ const itemVariants = {
 export default function WalletPage() {
   const { user, walletBalance, setWalletBalance, language } = useAuthStore();
   const { addNotification } = useNotificationStore();
+  const payments = usePayments();
   const sw = language === 'sw';
   const l = (en: string, swText: string) => (sw ? swText : en);
 
@@ -87,15 +97,11 @@ export default function WalletPage() {
   const [topUpAmount, setTopUpAmount] = useState(0);
   const [withdrawAmount, setWithdrawAmount] = useState(0);
   const [phoneNumber, setPhoneNumber] = useState(user?.phone || '');
+  const [emailAddress, setEmailAddress] = useState(user?.email || '');
   const [processing, setProcessing] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [selectedProvider, setSelectedProvider] = useState<PaymentProvider>('mpesa');
-
-  // M-Pesa STK Push states
-  const [mpesaState, setMpesaState] = useState<MpesaState>('idle');
-  const [mpesaCheckoutId, setMpesaCheckoutId] = useState<string>('');
-  const [mpesaReceipt, setMpesaReceipt] = useState<string>('');
-  const [mpesaPollTimer, setMpesaPollTimer] = useState<NodeJS.Timeout | null>(null);
+  const [paymentState, setPaymentState] = useState<PaymentState>('idle');
+  const [paymentReceipt, setPaymentReceipt] = useState('');
+  const [selectedProvider, setSelectedProvider] = useState<PaymentProvider>('pesapal');
 
   const pendingBalance = 75000;
   const availableBalance = walletBalance - pendingBalance;
@@ -109,168 +115,60 @@ export default function WalletPage() {
     return true;
   });
 
-  // ── M-Pesa STK Push Handler ──
-  const handleMpesaTopUp = async () => {
-    if (topUpAmount <= 0 || !phoneNumber) return;
-
-    setMpesaState('processing');
+  // ── Top Up Handler ──
+  const handleTopUp = async () => {
+    if (topUpAmount <= 0) return;
+    setPaymentState('processing');
     setProcessing(true);
 
     try {
-      const res = await fetch('/api/payments/mpesa/stk-push', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          phone: phoneNumber,
-          amount: topUpAmount,
-          accountRef: `KARIKO_${user?.id || 'demo'}`,
-          transactionDesc: 'Wallet Top Up',
-        }),
-      });
-
-      const data = await res.json();
-
-      if (data.success && data.ResponseCode === '0') {
-        setMpesaCheckoutId(data.CheckoutRequestID);
-
-        if (data.demoMode) {
-          // Demo mode: simulate success after a short delay
-          setTimeout(() => {
-            setMpesaState('success');
-            setMpesaReceipt(data.mockMpesaReceipt || data.mockReceipt);
-            setWalletBalance(walletBalance + topUpAmount);
-            addNotification({
-              userId: user?.id || '',
-              type: 'payment',
-              title: l('Top Up Successful', 'Kupakia Imefanikiwa'),
-              message: `TZS ${topUpAmount.toLocaleString()} ${l('added to your wallet', 'imeongezwa kwenye mkoba wako')}. ${l('Receipt', 'Risiti')}: ${data.mockMpesaReceipt}`,
-              read: false,
-            });
-            setProcessing(false);
-
-            // Auto-close after showing success
-            setTimeout(() => {
-              setMpesaState('idle');
-              setShowTopUp(false);
-              setTopUpAmount(0);
-              setMpesaReceipt('');
-            }, 2500);
-          }, 3000);
-
-          // Poll status
-          const timer = setInterval(async () => {
-            try {
-              const statusRes = await fetch(`/api/payments/mpesa/status?CheckoutRequestID=${encodeURIComponent(data.CheckoutRequestID)}`);
-              const statusData = await statusRes.json();
-              if (statusData.ResultCode === '0' && mpesaState === 'processing') {
-                // Already handled by the timeout above in demo mode
-              }
-            } catch {
-              // Ignore polling errors
-            }
-          }, 5000);
-          setMpesaPollTimer(timer);
-        } else {
-          // Production: poll for status
-          const pollInterval = setInterval(async () => {
-            try {
-              const statusRes = await fetch(`/api/payments/mpesa/status?CheckoutRequestID=${encodeURIComponent(data.CheckoutRequestID)}`);
-              const statusData = await statusRes.json();
-
-              if (statusData.ResultCode === '0') {
-                clearInterval(pollInterval);
-                setMpesaState('success');
-                setWalletBalance(walletBalance + topUpAmount);
-                addNotification({
-                  userId: user?.id || '',
-                  type: 'payment',
-                  title: l('Top Up Successful', 'Kupakia Imefanikiwa'),
-                  message: `TZS ${topUpAmount.toLocaleString()} ${l('added to your wallet', 'imeongezwa kwenye mkoba wako')}`,
-                  read: false,
-                });
-                setProcessing(false);
-                setTimeout(() => {
-                  setMpesaState('idle');
-                  setShowTopUp(false);
-                  setTopUpAmount(0);
-                }, 2500);
-              } else if (statusData.ResultCode && statusData.ResultCode !== '0') {
-                clearInterval(pollInterval);
-                setMpesaState('failed');
-                setProcessing(false);
-                toast.error(l('M-Pesa payment failed', 'Malipo ya M-Pesa yameshindwa'));
-              }
-            } catch {
-              // Continue polling
-            }
-          }, 5000);
-
-          setMpesaPollTimer(pollInterval);
-
-          // Timeout after 2 minutes
-          setTimeout(() => {
-            clearInterval(pollInterval);
-            if (mpesaState === 'processing') {
-              setMpesaState('failed');
-              setProcessing(false);
-              toast.error(l('M-Pesa request timed out', 'Ombi la M-Pesa limeishiwa wakati'));
-            }
-          }, 120000);
-        }
+      let result;
+      if (selectedProvider === 'pesapal') {
+        if (!phoneNumber) { toast.error(l('Enter phone number', 'Ingiza nambari ya simu')); setPaymentState('idle'); setProcessing(false); return; }
+        result = await payments.topUpPesapal(phoneNumber, topUpAmount);
+      } else if (selectedProvider === 'stripe') {
+        if (!emailAddress) { toast.error(l('Enter email address', 'Ingiza barua pepe')); setPaymentState('idle'); setProcessing(false); return; }
+        result = await payments.topUpStripe(emailAddress, topUpAmount);
       } else {
-        setMpesaState('failed');
-        setProcessing(false);
-        toast.error(data.error || l('M-Pesa request failed', 'Ombi la M-Pesa limefeli'));
+        if (!emailAddress) { toast.error(l('Enter email address', 'Ingiza barua pepe')); setPaymentState('idle'); setProcessing(false); return; }
+        result = await payments.topUpPayPal(emailAddress, topUpAmount);
+      }
+
+      if (result.success) {
+        setPaymentState('success');
+        setPaymentReceipt(result.reference);
+        setWalletBalance(walletBalance + topUpAmount);
+        setTimeout(() => {
+          setPaymentState('idle');
+          setShowTopUp(false);
+          setTopUpAmount(0);
+          setPaymentReceipt('');
+        }, 2500);
+      } else {
+        setPaymentState('failed');
       }
     } catch {
-      setMpesaState('failed');
-      setProcessing(false);
-      toast.error(l('Failed to initiate M-Pesa payment', 'Imeshindwa kuanzisha malipo ya M-Pesa'));
+      setPaymentState('failed');
     }
+    setProcessing(false);
   };
 
-  const handleTopUp = () => {
-    if (topUpAmount <= 0) return;
-    setProcessing(true);
-    setTimeout(() => {
-      setWalletBalance(walletBalance + topUpAmount);
-      setProcessing(false);
-      setSuccess(true);
-      addNotification({
-        userId: user?.id || '',
-        type: 'payment',
-        title: 'Top Up Successful',
-        message: `TZS ${topUpAmount.toLocaleString()} added to your wallet`,
-        read: false,
-      });
-      setTimeout(() => {
-        setSuccess(false);
-        setShowTopUp(false);
-        setTopUpAmount(0);
-      }, 1500);
-    }, 2000);
-  };
-
-  const handleWithdraw = () => {
+  // ── Withdraw Handler ──
+  const handleWithdraw = async () => {
     if (withdrawAmount <= 0 || withdrawAmount > availableBalance) return;
     setProcessing(true);
-    setTimeout(() => {
-      setWalletBalance(walletBalance - withdrawAmount);
-      setProcessing(false);
-      setSuccess(true);
-      addNotification({
-        userId: user?.id || '',
-        type: 'payment',
-        title: 'Withdrawal Initiated',
-        message: `TZS ${withdrawAmount.toLocaleString()} being sent to ${selectedProvider === 'mpesa' ? 'M-Pesa' : selectedProvider === 'tigo' ? 'Tigo Pesa' : 'Airtel Money'}`,
-        read: false,
-      });
-      setTimeout(() => {
-        setSuccess(false);
-        setShowWithdraw(false);
-        setWithdrawAmount(0);
-      }, 1500);
-    }, 2000);
+    try {
+      const result = await payments.withdraw(withdrawAmount, phoneNumber, 'pesapal');
+      if (result.success) {
+        setPaymentState('success');
+        setTimeout(() => {
+          setPaymentState('idle');
+          setShowWithdraw(false);
+          setWithdrawAmount(0);
+        }, 2000);
+      }
+    } catch { /* handled in hook */ }
+    setProcessing(false);
   };
 
   const getTypeIcon = (type: string) => {
@@ -286,51 +184,29 @@ export default function WalletPage() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'completed': return <span className="kbadge kbadge-verified text-[8px]">Done</span>;
-      case 'pending': return <span className="kbadge kbadge-pending text-[8px]">Pending</span>;
-      case 'failed': return <span className="kbadge kbadge-urgent text-[8px]">Failed</span>;
+      case 'completed': return <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-[#ECFDF5] text-[#065F46] font-semibold">Done</span>;
+      case 'pending': return <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-[#FEF3C7] text-[#92400E] font-semibold">Pending</span>;
+      case 'failed': return <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-[#FEE2E2] text-[#991B1B] font-semibold">Failed</span>;
       default: return null;
     }
   };
 
-  const getProviderColor = (provider: PaymentProvider) => {
-    switch (provider) {
-      case 'mpesa': return '#4CAF50';
-      case 'tigo': return '#E4002B';
-      case 'airtel': return '#ED1C24';
-    }
-  };
-
-  const getProviderName = (provider: PaymentProvider) => {
-    switch (provider) {
-      case 'mpesa': return 'M-Pesa';
-      case 'tigo': return 'Tigo Pesa';
-      case 'airtel': return 'Airtel Money';
-    }
+  const getProviderBadge = (provider: string) => {
+    const config = PROVIDER_CONFIG[provider as PaymentProvider];
+    if (!config) return null;
+    return <span className="text-[8px] px-1.5 py-0.5 rounded-full font-semibold" style={{ backgroundColor: `${config.color}15`, color: config.color }}>{config.name}</span>;
   };
 
   return (
-    <motion.div
-      variants={containerVariants}
-      initial="hidden"
-      animate="show"
-      className="px-4 py-4 space-y-5"
-    >
+    <motion.div variants={containerVariants} initial="hidden" animate="show" className="px-4 py-4 space-y-5">
       {/* Header */}
       <motion.div variants={itemVariants}>
-        <h1 className="text-2xl font-bold text-[#065F46] dark:text-[#34D399]">
-          {l('Wallet', 'Mkoba')}
-        </h1>
-        <p className="text-sm text-[#64748B] mt-1">
-          {l('Manage your funds and mobile payments', 'Dhibiti pesa zako na malipo ya simu')}
-        </p>
+        <h1 className="text-2xl font-bold text-[#065F46] dark:text-[#34D399]">{l('Wallet', 'Mkoba')}</h1>
+        <p className="text-sm text-[#64748B] mt-1">{l('Manage your funds and payments', 'Dhibiti pesa zako na malipo')}</p>
       </motion.div>
 
       {/* Balance Card */}
-      <motion.div
-        variants={itemVariants}
-        className="kcard-green p-6 relative overflow-hidden"
-      >
+      <motion.div variants={itemVariants} className="kcard-green p-6 relative overflow-hidden">
         <div className="relative z-10">
           <div className="flex items-center justify-between mb-1">
             <span className="text-sm text-white/70">{l('Total Balance', 'Salio Jumla')}</span>
@@ -338,7 +214,6 @@ export default function WalletPage() {
           </div>
           <p className="text-4xl font-bold text-white tracking-tight">TZS {walletBalance.toLocaleString()}</p>
           <p className="text-sm text-white/50 mt-1">≈ USD {usdEquivalent}</p>
-
           <div className="grid grid-cols-2 gap-3 mt-5">
             <div className="p-3 rounded-xl bg-white/10 backdrop-blur-sm">
               <p className="text-xs text-white/60">{l('Available', 'Inayopatikana')}</p>
@@ -355,20 +230,13 @@ export default function WalletPage() {
       {/* Quick Actions */}
       <motion.div variants={itemVariants} className="grid grid-cols-4 gap-3">
         {[
-          { icon: Plus, label: l('Top Up', 'Weka'), color: '#10B981', onClick: () => { setMpesaState('idle'); setShowTopUp(true); } },
-          { icon: ArrowUpRight, label: l('Withdraw', 'Toa'), color: '#F59E0B', onClick: () => setShowWithdraw(true) },
-          { icon: Send, label: l('Send', 'Tuma'), color: '#0891B2', onClick: () => {} },
-          { icon: QrCode, label: l('Receive', 'Pokea'), color: '#7C3AED', onClick: () => {} },
+          { icon: Plus, label: l('Top Up', 'Weka'), color: '#10B981', onClick: () => { setPaymentState('idle'); setShowTopUp(true); } },
+          { icon: ArrowUpRight, label: l('Withdraw', 'Toa'), color: '#F59E0B', onClick: () => { setPaymentState('idle'); setShowWithdraw(true); } },
+          { icon: Send, label: l('Send', 'Tuma'), color: '#0891B2', onClick: () => toast.info(l('Coming soon', 'Inakuja hivi karibuni')) },
+          { icon: QrCode, label: l('Receive', 'Pokea'), color: '#7C3AED', onClick: () => toast.info(l('Coming soon', 'Inakuja hivi karibuni')) },
         ].map((action, i) => (
-          <button
-            key={i}
-            onClick={action.onClick}
-            className="kcard p-3 text-center hover:shadow-md transition-all active:scale-95"
-          >
-            <div
-              className="w-10 h-10 rounded-xl mx-auto mb-1.5 flex items-center justify-center"
-              style={{ backgroundColor: `${action.color}15` }}
-            >
+          <button key={i} onClick={action.onClick} className="kcard p-3 text-center hover:shadow-md transition-all active:scale-95">
+            <div className="w-10 h-10 rounded-xl mx-auto mb-1.5 flex items-center justify-center" style={{ backgroundColor: `${action.color}15` }}>
               <action.icon className="w-5 h-5" style={{ color: action.color }} />
             </div>
             <span className="text-xs font-medium">{action.label}</span>
@@ -376,99 +244,67 @@ export default function WalletPage() {
         ))}
       </motion.div>
 
-      {/* M-Pesa Top Up Section */}
+      {/* Payment Providers Quick Top Up */}
       <motion.div variants={itemVariants} className="kcard-glass p-5 space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Smartphone className="w-5 h-5 text-[#4CAF50]" />
-            <h3 className="font-bold text-sm">{l('M-Pesa Top Up', 'Weka Pesa M-Pesa')}</h3>
+            <Building2 className="w-5 h-5 text-[#065F46] dark:text-[#34D399]" />
+            <h3 className="font-bold text-sm">{l('Top Up Wallet', 'Weka Pesa Mkobani')}</h3>
           </div>
-          <span className="kbadge kbadge-verified text-[8px]">{l('Instant', 'Papo Hapo')}</span>
+          <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-[#ECFDF5] text-[#065F46] font-semibold">{l('3 Methods', 'Njia 3')}</span>
         </div>
 
-        <div className="space-y-3">
-          <div>
-            <label className="text-xs font-medium text-[#64748B] mb-1.5 block">
-              {l('Phone Number', 'Nambari ya Simu')}
-            </label>
-            <div className="relative">
-              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#64748B]" />
-              <input
-                value={phoneNumber}
-                onChange={e => setPhoneNumber(e.target.value)}
-                className="kinput w-full pl-10"
-                placeholder="0712 345 678"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="text-xs font-medium text-[#64748B] mb-2 block">
-              {l('Quick Amount (TZS)', 'Kiasi Haraka (TZS)')}
-            </label>
-            <div className="grid grid-cols-4 gap-2">
-              {MPESA_PRESETS.map(amt => (
-                <button
-                  key={amt}
-                  onClick={() => setTopUpAmount(amt)}
-                  className={`py-2.5 rounded-xl text-xs font-semibold transition-all ${
-                    topUpAmount === amt
-                      ? 'bg-[#065F46] text-white dark:bg-[#34D399] dark:text-[#022C22] shadow-sm'
-                      : 'bg-[#F1F5F9] dark:bg-[#334155] text-[#64748B] dark:text-[#94A3B8] hover:bg-[#E2E8F0] dark:hover:bg-[#475569]'
-                  }`}
-                >
-                  {(amt / 1000).toFixed(0)}K
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <button
-            onClick={() => {
-              if (topUpAmount <= 0) {
-                toast.error(l('Please select an amount', 'Tafadhali chagua kiasi'));
-                return;
-              }
-              if (!phoneNumber) {
-                toast.error(l('Please enter phone number', 'Tafadhali ingiza nambari ya simu'));
-                return;
-              }
-              setMpesaState('idle');
-              setShowTopUp(true);
-            }}
-            disabled={topUpAmount <= 0 || !phoneNumber}
-            className="w-full py-3 rounded-xl font-bold text-sm text-white transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2 bg-[#4CAF50] hover:bg-[#43A047]"
-          >
-            <Zap className="w-4 h-4" />
-            {l('Top Up via M-Pesa', 'Weka kupitia M-Pesa')}
-          </button>
+        {/* Provider Cards */}
+        <div className="space-y-2">
+          {(Object.entries(PROVIDER_CONFIG) as [PaymentProvider, typeof PROVIDER_CONFIG[PaymentProvider]][]).map(([key, config]) => {
+            const Icon = config.icon;
+            return (
+              <button
+                key={key}
+                onClick={() => { setSelectedProvider(key); setTopUpAmount(0); setPaymentState('idle'); setShowTopUp(true); }}
+                className="w-full kcard p-3.5 flex items-center justify-between hover:shadow-md transition-all active:scale-[0.98]"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${config.color}15` }}>
+                    <Icon className="w-5 h-5" style={{ color: config.color }} />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-sm font-medium">{sw ? config.nameSw : config.name}</p>
+                    <p className="text-xs text-[#64748B]">{sw ? config.descriptionSw : config.description}</p>
+                  </div>
+                </div>
+                <ChevronRight className="w-4 h-4 text-[#64748B]" />
+              </button>
+            );
+          })}
         </div>
       </motion.div>
 
-      {/* Payment Methods */}
+      {/* Saved Payment Methods */}
       <motion.div variants={itemVariants}>
         <div className="flex items-center justify-between mb-3">
           <h3 className="font-bold text-sm">{l('Saved Payment Methods', 'Njia za Malipo Zilizohifadhiwa')}</h3>
           <button className="text-xs text-[#065F46] dark:text-[#34D399] font-semibold">{l('+ Add New', '+ Ongeza')}</button>
         </div>
         <div className="space-y-2">
-          {SAVED_PAYMENT_METHODS.map((method) => (
-            <div key={method.id} className="kcard p-3.5 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center"
-                  style={{ backgroundColor: `${method.color}15` }}
-                >
-                  <Smartphone className="w-5 h-5" style={{ color: method.color }} />
+          {SAVED_METHODS.map((method) => {
+            const config = PROVIDER_CONFIG[method.provider];
+            const Icon = config?.icon || Smartphone;
+            return (
+              <div key={method.id} className="kcard p-3.5 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${method.color}15` }}>
+                    <Icon className="w-5 h-5" style={{ color: method.color }} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">{method.label}</p>
+                    <p className="text-xs text-[#64748B]">{method.detail} · {method.lastUsed}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-medium">{method.label}</p>
-                  <p className="text-xs text-[#64748B]">{method.phone} · {method.lastUsed}</p>
-                </div>
+                <ChevronRight className="w-4 h-4 text-[#64748B]" />
               </div>
-              <ChevronRight className="w-4 h-4 text-[#64748B]" />
-            </div>
-          ))}
+            );
+          })}
         </div>
       </motion.div>
 
@@ -516,7 +352,10 @@ export default function WalletPage() {
                 {getTypeIcon(tx.type)}
               </div>
               <div>
-                <p className="text-sm font-medium">{tx.description}</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium">{tx.description}</p>
+                  {getProviderBadge(tx.provider)}
+                </div>
                 <p className="text-[10px] text-[#64748B]">{tx.date} · {tx.time}</p>
               </div>
             </div>
@@ -530,7 +369,7 @@ export default function WalletPage() {
         ))}
       </div>
 
-      {/* ── M-Pesa Top Up Modal ── */}
+      {/* ── Top Up Modal ── */}
       <AnimatePresence>
         {showTopUp && (
           <motion.div
@@ -538,43 +377,56 @@ export default function WalletPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 bg-black/50 flex items-end justify-center"
-            onClick={() => {
-              if (!processing && mpesaState !== 'processing') {
-                if (mpesaPollTimer) clearInterval(mpesaPollTimer);
-                setShowTopUp(false);
-                setMpesaState('idle');
-              }
-            }}
+            onClick={() => { if (!processing && paymentState !== 'processing') { setShowTopUp(false); setPaymentState('idle'); } }}
           >
             <motion.div
               initial={{ y: 300 }}
               animate={{ y: 0 }}
               exit={{ y: 300 }}
               transition={{ type: 'spring', damping: 25 }}
-              className="w-full max-w-lg bg-white dark:bg-[#1E293B] rounded-t-3xl p-6 space-y-4"
+              className="w-full max-w-lg bg-white dark:bg-[#1E293B] rounded-t-3xl p-6 space-y-4 max-h-[90vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
+              {/* Header */}
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-bold flex items-center gap-2">
-                  <Smartphone className="w-5 h-5 text-[#4CAF50]" />
-                  {l('M-Pesa Top Up', 'Weka Pesa M-Pesa')}
+                  {(() => { const Icon = PROVIDER_CONFIG[selectedProvider].icon; return <Icon className="w-5 h-5" style={{ color: PROVIDER_CONFIG[selectedProvider].color }} />; })()}
+                  {l('Top Up Wallet', 'Weka Pesa Mkobani')}
                 </h3>
                 <button
-                  onClick={() => {
-                    if (!processing && mpesaState !== 'processing') {
-                      if (mpesaPollTimer) clearInterval(mpesaPollTimer);
-                      setShowTopUp(false);
-                      setMpesaState('idle');
-                    }
-                  }}
+                  onClick={() => { if (!processing && paymentState !== 'processing') { setShowTopUp(false); setPaymentState('idle'); } }}
                   className="w-8 h-8 rounded-full bg-[#F1F5F9] dark:bg-[#334155] flex items-center justify-center"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
 
+              {/* Provider Tabs */}
+              {paymentState === 'idle' && (
+                <div className="flex gap-2">
+                  {(Object.entries(PROVIDER_CONFIG) as [PaymentProvider, typeof PROVIDER_CONFIG[PaymentProvider]][]).map(([key, config]) => {
+                    const Icon = config.icon;
+                    return (
+                      <button
+                        key={key}
+                        onClick={() => setSelectedProvider(key)}
+                        className={`flex-1 p-2.5 rounded-xl text-center transition-all border-2 ${
+                          selectedProvider === key ? 'border-current bg-opacity-5' : 'border-transparent bg-[#F1F5F9] dark:bg-[#334155]'
+                        }`}
+                        style={selectedProvider === key ? { borderColor: config.color, backgroundColor: `${config.color}08` } : {}}
+                      >
+                        <Icon className="w-4 h-4 mx-auto mb-1" style={{ color: config.color }} />
+                        <span className="text-[10px] font-semibold" style={{ color: selectedProvider === key ? config.color : '#64748B' }}>
+                          {sw ? config.nameSw : config.name}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
               {/* Success State */}
-              {mpesaState === 'success' && (
+              {paymentState === 'success' && (
                 <div className="text-center py-8">
                   <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-16 h-16 rounded-full bg-[#ECFDF5] dark:bg-[#064E3B] flex items-center justify-center mx-auto mb-3">
                     <CheckCircle2 className="w-8 h-8 text-[#10B981]" />
@@ -583,65 +435,62 @@ export default function WalletPage() {
                   <p className="text-sm text-[#64748B] mt-1">
                     TZS {topUpAmount.toLocaleString()} {l('added to your wallet', 'imeongezwa kwenye mkoba wako')}
                   </p>
-                  {mpesaReceipt && (
+                  {paymentReceipt && (
                     <p className="text-xs text-[#64748B] mt-2">
-                      {l('M-Pesa Receipt', 'Risiti ya M-Pesa')}: <span className="font-mono font-semibold">{mpesaReceipt}</span>
+                      {l('Reference', 'Rejea')}: <span className="font-mono font-semibold">{paymentReceipt}</span>
                     </p>
                   )}
                 </div>
               )}
 
               {/* Failed State */}
-              {mpesaState === 'failed' && (
+              {paymentState === 'failed' && (
                 <div className="text-center py-8">
                   <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-16 h-16 rounded-full bg-[#FEE2E2] dark:bg-[#2D1B1B] flex items-center justify-center mx-auto mb-3">
                     <XCircle className="w-8 h-8 text-[#DC2626]" />
                   </motion.div>
-                  <p className="font-bold text-lg text-[#DC2626]">{l('Top Up Failed', 'Kupakia Kumefeli')}</p>
-                  <p className="text-sm text-[#64748B] mt-1">
-                    {l('Please check your phone number and try again', 'Tafadhali angalia nambari yako ya simu na jaribu tena')}
-                  </p>
-                  <button
-                    onClick={() => setMpesaState('idle')}
-                    className="mt-4 px-6 py-2 rounded-xl bg-[#065F46] text-white text-sm font-semibold"
-                  >
-                    {l('Try Again', 'Jaribu Tena')}
-                  </button>
+                  <p className="font-bold text-lg text-[#DC2626]">{l('Top Up Failed', 'Kupakika Kumefeli')}</p>
+                  <p className="text-sm text-[#64748B] mt-1">{l('Please try again', 'Tafadhali jaribu tena')}</p>
+                  <button onClick={() => setPaymentState('idle')} className="mt-4 px-6 py-2 rounded-xl bg-[#065F46] text-white text-sm font-semibold">{l('Try Again', 'Jaribu Tena')}</button>
                 </div>
               )}
 
               {/* Processing State */}
-              {mpesaState === 'processing' && (
+              {paymentState === 'processing' && (
                 <div className="text-center py-8">
                   <motion.div
                     animate={{ rotate: 360 }}
                     transition={{ repeat: Infinity, duration: 2, ease: 'linear' }}
                     className="w-16 h-16 rounded-full bg-[#ECFDF5] dark:bg-[#064E3B] flex items-center justify-center mx-auto mb-3"
                   >
-                    <Smartphone className="w-8 h-8 text-[#4CAF50]" />
+                    {(() => { const Icon = PROVIDER_CONFIG[selectedProvider].icon; return <Icon className="w-8 h-8" style={{ color: PROVIDER_CONFIG[selectedProvider].color }} />; })()}
                   </motion.div>
-                  <p className="font-bold text-lg">{l('Check Your Phone', 'Angalia Simu Yako')}</p>
+                  <p className="font-bold text-lg">{l('Processing Payment...', 'Inachakata Malipo...')}</p>
                   <p className="text-sm text-[#64748B] mt-1">
-                    {l('An M-Pesa prompt has been sent to your phone. Enter your PIN to confirm.', 'Ombi la M-Pesa limetumwa kwenye simu yako. Ingiza PIN yako kuthibitisha.')}
+                    {selectedProvider === 'pesapal'
+                      ? l('Check your phone for the mobile money prompt', 'Angalia simu yako kwa ombi la pesa ya simu')
+                      : selectedProvider === 'stripe'
+                      ? l('Redirecting to Stripe checkout...', 'Inaelekeza kwenye Stripe...')
+                      : l('Redirecting to PayPal...', 'Inaelekeza kwenye PayPal...')}
                   </p>
-                  <div className="flex items-center justify-center gap-2 mt-3 text-[#4CAF50]">
+                  <div className="flex items-center justify-center gap-2 mt-3" style={{ color: PROVIDER_CONFIG[selectedProvider].color }}>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span className="text-sm font-medium">{l('Waiting for confirmation...', 'Inasubiri uthibitisho...')}</span>
+                    <span className="text-sm font-medium">{l('Please wait...', 'Tafadhali subiri...')}</span>
                   </div>
                 </div>
               )}
 
               {/* Idle State - Form */}
-              {mpesaState === 'idle' && (
+              {paymentState === 'idle' && (
                 <>
-                  {/* Summary Card */}
+                  {/* Summary */}
                   <div className="p-4 rounded-xl bg-[#ECFDF5] dark:bg-[#064E3B]/30 border border-[#065F46]/20 dark:border-[#34D399]/20">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-xs font-medium text-[#065F46] dark:text-[#34D399]">{l('Amount', 'Kiasi')}</span>
                       <span className="text-2xl font-bold text-[#065F46] dark:text-[#34D399]">TZS {topUpAmount.toLocaleString()}</span>
                     </div>
                     <div className="flex items-center justify-between text-xs text-[#64748B]">
-                      <span>{l('Phone', 'Simu')}: {phoneNumber}</span>
+                      <span>{l('Via', 'Kupitia')}: {PROVIDER_CONFIG[selectedProvider].name}</span>
                       <span className="flex items-center gap-1"><Shield className="w-3 h-3" />{l('Secured', 'Imelindwa')}</span>
                     </div>
                   </div>
@@ -650,7 +499,7 @@ export default function WalletPage() {
                   <div>
                     <label className="text-sm font-medium mb-2 block">{l('Select Amount (TZS)', 'Chagua Kiasi (TZS)')}</label>
                     <div className="grid grid-cols-4 gap-2">
-                      {[5000, 10000, 25000, 50000, 100000, 200000, 500000, 1000000].map(amt => (
+                      {TOP_UP_PRESETS.map(amt => (
                         <button
                           key={amt}
                           onClick={() => setTopUpAmount(amt)}
@@ -676,31 +525,46 @@ export default function WalletPage() {
                     />
                   </div>
 
-                  {/* Phone Number */}
-                  <div>
-                    <label className="text-sm font-medium mb-1 block">{l('Phone Number', 'Nambari ya Simu')}</label>
-                    <input value={phoneNumber} onChange={e => setPhoneNumber(e.target.value)} className="kinput w-full" placeholder="0712 345 678" />
-                  </div>
+                  {/* Phone Number (Pesapal) */}
+                  {selectedProvider === 'pesapal' && (
+                    <div>
+                      <label className="text-sm font-medium mb-1 block">{l('Phone Number', 'Nambari ya Simu')}</label>
+                      <div className="relative">
+                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#64748B]" />
+                        <input value={phoneNumber} onChange={e => setPhoneNumber(e.target.value)} className="kinput w-full pl-10" placeholder="0712 345 678" />
+                      </div>
+                    </div>
+                  )}
 
-                  {/* M-Pesa Info */}
+                  {/* Email (Stripe / PayPal) */}
+                  {(selectedProvider === 'stripe' || selectedProvider === 'paypal') && (
+                    <div>
+                      <label className="text-sm font-medium mb-1 block">{l('Email Address', 'Barua Pepe')}</label>
+                      <input value={emailAddress} onChange={e => setEmailAddress(e.target.value)} className="kinput w-full" placeholder="you@example.com" />
+                    </div>
+                  )}
+
+                  {/* Info Box */}
                   <div className="flex items-start gap-2 p-3 rounded-xl bg-[#F1F5F9] dark:bg-[#334155] text-xs text-[#64748B]">
                     <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                     <span>
-                      {l(
-                        'You will receive an M-Pesa push notification on your phone. Enter your PIN to complete the transaction.',
-                        'Utapokea arifa la M-Pesa kwenye simu yako. Ingiza PIN yako kukamilisha muamala.'
-                      )}
+                      {selectedProvider === 'pesapal'
+                        ? l('You will receive a mobile money push notification. Enter your PIN to confirm.', 'Utapokea arifa la pesa ya simu. Ingiza PIN yako kuthibitisha.')
+                        : selectedProvider === 'stripe'
+                        ? l('You will be redirected to Stripe secure checkout to complete payment.', 'Utaelekezwa kwenye Stripe kulipia kwa usalama.')
+                        : l('You will be redirected to PayPal to authorize the payment.', 'Utaelekezwa kwenye PayPal kuidhinisha malipo.')}
                     </span>
                   </div>
 
                   {/* Submit Button */}
                   <button
-                    onClick={handleMpesaTopUp}
-                    disabled={topUpAmount <= 0 || !phoneNumber || processing}
-                    className="w-full py-3 rounded-xl font-bold text-sm text-white transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2 bg-[#4CAF50] hover:bg-[#43A047]"
+                    onClick={handleTopUp}
+                    disabled={topUpAmount <= 0 || processing || (selectedProvider === 'pesapal' && !phoneNumber) || ((selectedProvider === 'stripe' || selectedProvider === 'paypal') && !emailAddress)}
+                    className="w-full py-3 rounded-xl font-bold text-sm text-white transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+                    style={{ backgroundColor: PROVIDER_CONFIG[selectedProvider].color }}
                   >
                     <Zap className="w-4 h-4" />
-                    {l('Top Up via M-Pesa', 'Weka kupitia M-Pesa')}
+                    {l('Top Up via', 'Weka kupitia')} {PROVIDER_CONFIG[selectedProvider].name}
                   </button>
                 </>
               )}
@@ -709,7 +573,7 @@ export default function WalletPage() {
         )}
       </AnimatePresence>
 
-      {/* Withdraw Modal */}
+      {/* ── Withdraw Modal ── */}
       <AnimatePresence>
         {showWithdraw && (
           <motion.div
@@ -734,13 +598,13 @@ export default function WalletPage() {
                 </button>
               </div>
 
-              {success ? (
+              {paymentState === 'success' ? (
                 <div className="text-center py-8">
                   <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-16 h-16 rounded-full bg-[#ECFDF5] flex items-center justify-center mx-auto mb-3">
                     <CheckCircle2 className="w-8 h-8 text-[#10B981]" />
                   </motion.div>
                   <p className="font-bold text-lg">{l('Withdrawal Initiated!', 'Utoaji Umeanza!')}</p>
-                  <p className="text-sm text-[#64748B]">TZS {withdrawAmount.toLocaleString()} {l('being sent to', 'inatumwa kwa')} {getProviderName(selectedProvider)}</p>
+                  <p className="text-sm text-[#64748B]">TZS {withdrawAmount.toLocaleString()} {l('being sent via Pesapal', 'inatumwa kupitia Pesapal')}</p>
                 </div>
               ) : (
                 <>
@@ -750,35 +614,18 @@ export default function WalletPage() {
                   </div>
                   <div>
                     <label className="text-sm font-medium mb-1 block">{l('Amount (TZS)', 'Kiasi (TZS)')}</label>
-                    <input
-                      type="number"
-                      value={withdrawAmount || ''}
-                      onChange={e => setWithdrawAmount(Number(e.target.value))}
-                      placeholder={l('Enter amount', 'Ingiza kiasi')}
-                      className="kinput w-full"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">{l('Withdrawal Method', 'Njia ya Utoaji')}</label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {(['mpesa', 'tigo', 'airtel'] as PaymentProvider[]).map(provider => (
-                        <button
-                          key={provider}
-                          onClick={() => setSelectedProvider(provider)}
-                          className={`p-3 rounded-xl text-center transition-all border-2 ${
-                            selectedProvider === provider ? 'border-current' : 'border-transparent bg-[#F1F5F9] dark:bg-[#334155]'
-                          }`}
-                          style={selectedProvider === provider ? { borderColor: getProviderColor(provider) } : {}}
-                        >
-                          <Smartphone className="w-5 h-5 mx-auto mb-1" style={{ color: getProviderColor(provider) }} />
-                          <span className="text-xs font-medium">{getProviderName(provider)}</span>
-                        </button>
-                      ))}
-                    </div>
+                    <input type="number" value={withdrawAmount || ''} onChange={e => setWithdrawAmount(Number(e.target.value))} placeholder={l('Enter amount', 'Ingiza kiasi')} className="kinput w-full" />
                   </div>
                   <div>
                     <label className="text-sm font-medium mb-1 block">{l('Phone Number', 'Nambari ya Simu')}</label>
-                    <input value={phoneNumber} onChange={e => setPhoneNumber(e.target.value)} className="kinput w-full" placeholder="0712 345 678" />
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#64748B]" />
+                      <input value={phoneNumber} onChange={e => setPhoneNumber(e.target.value)} className="kinput w-full pl-10" placeholder="0712 345 678" />
+                    </div>
+                  </div>
+                  <div className="p-3 rounded-xl bg-[#F1F5F9] dark:bg-[#334155] text-xs text-[#64748B] flex items-center gap-2">
+                    <Smartphone className="w-4 h-4 shrink-0" style={{ color: '#4CAF50' }} />
+                    {l('Withdraws via Pesapal (M-Pesa, Tigo, Airtel)', 'Utoaji kupitia Pesapal (M-Pesa, Tigo, Airtel)')}
                   </div>
                   <button
                     onClick={handleWithdraw}
