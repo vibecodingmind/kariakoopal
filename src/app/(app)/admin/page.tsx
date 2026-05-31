@@ -1,14 +1,18 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import {
   Users, ShieldCheck, AlertTriangle, DollarSign, TrendingUp, Store,
   Compass, BarChart3, Sparkles, Brain, Zap, Activity, Eye, Bot,
-  Megaphone, FileText, Settings
+  Megaphone, FileText, Settings, ArrowUpRight, ArrowDownRight, Calendar
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import {
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  BarChart, Bar, Line, ComposedChart
+} from 'recharts';
 
 const AI_INSIGHTS = [
   { label: 'Revenue Forecast', value: '+22%', desc: 'Next 30 days', icon: TrendingUp, color: 'text-[#10B981]' },
@@ -16,6 +20,51 @@ const AI_INSIGHTS = [
   { label: 'Fraud Score', value: '2.1/10', desc: 'Low risk today', icon: ShieldCheck, color: 'text-[#10B981]' },
   { label: 'AI Confidence', value: '94%', desc: 'Prediction accuracy', icon: Brain, color: 'text-[#065F46]' },
 ];
+
+type RevPeriod = '7D' | '30D' | '90D' | '1Y';
+
+const REVENUE_DATA: Record<RevPeriod, { name: string; revenue: number; forecast: number; bookings: number }[]> = {
+  '7D': [
+    { name: 'Mon', revenue: 320000, forecast: 340000, bookings: 18 },
+    { name: 'Tue', revenue: 450000, forecast: 420000, bookings: 24 },
+    { name: 'Wed', revenue: 380000, forecast: 400000, bookings: 21 },
+    { name: 'Thu', revenue: 520000, forecast: 490000, bookings: 28 },
+    { name: 'Fri', revenue: 680000, forecast: 620000, bookings: 35 },
+    { name: 'Sat', revenue: 890000, forecast: 810000, bookings: 48 },
+    { name: 'Sun', revenue: 750000, forecast: 780000, bookings: 41 },
+  ],
+  '30D': [
+    { name: 'W1', revenue: 2800000, forecast: 2600000, bookings: 124 },
+    { name: 'W2', revenue: 3200000, forecast: 3000000, bookings: 142 },
+    { name: 'W3', revenue: 3500000, forecast: 3300000, bookings: 156 },
+    { name: 'W4', revenue: 3900000, forecast: 3600000, bookings: 168 },
+  ],
+  '90D': [
+    { name: 'Jan', revenue: 7200000, forecast: 6800000, bookings: 320 },
+    { name: 'Feb', revenue: 8900000, forecast: 8200000, bookings: 385 },
+    { name: 'Mar', revenue: 10500000, forecast: 9800000, bookings: 448 },
+  ],
+  '1Y': [
+    { name: 'Jan', revenue: 7200000, forecast: 6500000, bookings: 320 },
+    { name: 'Feb', revenue: 8900000, forecast: 8000000, bookings: 385 },
+    { name: 'Mar', revenue: 10500000, forecast: 9500000, bookings: 448 },
+    { name: 'Apr', revenue: 9800000, forecast: 9200000, bookings: 420 },
+    { name: 'May', revenue: 12400000, forecast: 11000000, bookings: 530 },
+    { name: 'Jun', revenue: 11500000, forecast: 10800000, bookings: 492 },
+    { name: 'Jul', revenue: 13800000, forecast: 12500000, bookings: 590 },
+    { name: 'Aug', revenue: 11200000, forecast: 10500000, bookings: 480 },
+    { name: 'Sep', revenue: 14500000, forecast: 13200000, bookings: 620 },
+    { name: 'Oct', revenue: 12900000, forecast: 12000000, bookings: 552 },
+    { name: 'Nov', revenue: 15800000, forecast: 14500000, bookings: 675 },
+    { name: 'Dec', revenue: 17200000, forecast: 15800000, bookings: 735 },
+  ],
+};
+
+const formatTZS = (v: number) => {
+  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M`;
+  if (v >= 1_000) return `${(v / 1_000).toFixed(0)}K`;
+  return v.toString();
+};
 
 const MANAGEMENT_ACTIONS = [
   { icon: Users, label: 'Users', href: '/admin/users', count: '12.4K' },
@@ -36,12 +85,20 @@ export default function AdminDashboard() {
   const router = useRouter();
   const sw = language === 'sw';
   const l = (en: string, swText: string) => (sw ? swText : en);
+  const [revPeriod, setRevPeriod] = useState<RevPeriod>('1Y');
 
   useEffect(() => {
     if (!isAuthenticated || user?.role !== 'admin') router.replace('/auth');
   }, [isAuthenticated, user, router]);
 
   if (!isAuthenticated) return null;
+
+  const currentData = REVENUE_DATA[revPeriod];
+  const totalRevenue = currentData.reduce((s, d) => s + d.revenue, 0);
+  const totalForecast = currentData.reduce((s, d) => s + d.forecast, 0);
+  const totalBookings = currentData.reduce((s, d) => s + d.bookings, 0);
+  const growthPct = ((totalRevenue - totalForecast) / totalForecast * 100).toFixed(1);
+  const peakMonth = currentData.reduce((max, d) => d.revenue > max.revenue ? d : max, currentData[0]);
 
   return (
     <div className="space-y-6">
@@ -115,33 +172,214 @@ export default function AdminDashboard() {
         ))}
       </motion.div>
 
-      {/* Revenue Chart */}
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-[#1E293B] border border-[#334155] p-5 rounded-2xl">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold text-sm text-[#F1F5F9] flex items-center gap-1">
-            <BarChart3 className="w-4 h-4 text-[#34D399]" />
-            {l('Revenue Trend', 'Mwelekeo wa Mapato')}
-          </h3>
-          <div className="flex items-center gap-3">
-            <span className="text-xs text-[#34D399] flex items-center gap-1"><TrendingUp className="w-3 h-3" />+18%</span>
-            <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#34D399]/10 text-[9px] font-bold text-[#34D399]">
-              <Sparkles className="w-3 h-3" /> AI Forecast
-            </span>
+      {/* Revenue Trend — Modern Chart */}
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-[#1E293B] border border-[#334155] rounded-2xl overflow-hidden">
+        {/* Header Row */}
+        <div className="p-5 pb-0">
+          <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-[#065F46]/50 flex items-center justify-center">
+                <BarChart3 className="w-4 h-4 text-[#34D399]" />
+              </div>
+              <div>
+                <h3 className="font-bold text-sm text-[#F1F5F9]">{l('Revenue Trend', 'Mwelekeo wa Mapato')}</h3>
+                <p className="text-[10px] text-[#64748B]">{l('Platform revenue vs AI forecast', 'Mapato ya jukwaa dhidi ya utabiri wa AI')}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-[#34D399] font-semibold flex items-center gap-1">
+                <ArrowUpRight className="w-3 h-3" />+{growthPct}%
+              </span>
+              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#FBBF24]/10 text-[9px] font-bold text-[#FBBF24]">
+                <Sparkles className="w-3 h-3" /> AI
+              </span>
+            </div>
+          </div>
+
+          {/* Period Toggle */}
+          <div className="flex items-center gap-1 mt-3 mb-4">
+            {(['7D', '30D', '90D', '1Y'] as RevPeriod[]).map((p) => (
+              <button
+                key={p}
+                onClick={() => setRevPeriod(p)}
+                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all duration-200 ${
+                  revPeriod === p
+                    ? 'bg-[#065F46] text-[#34D399] shadow-lg shadow-[#065F46]/30'
+                    : 'bg-[#0F172A] text-[#64748B] hover:text-[#94A3B8] hover:bg-[#1E293B]'
+                }`}
+              >
+                {p}
+              </button>
+            ))}
+            <div className="flex-1" />
+            <button
+              onClick={() => router.push('/admin/revenue')}
+              className="text-[10px] text-[#64748B] hover:text-[#34D399] transition-colors flex items-center gap-1"
+            >
+              {l('View Details', 'Tazama Maelezo')} →
+            </button>
           </div>
         </div>
-        <div className="h-32 flex items-end gap-1.5">
-          {[40, 65, 55, 80, 70, 90, 85, 95, 75, 88, 92, 100].map((h, i) => (
-            <div key={i} className="flex-1 rounded-t-sm bg-[#065F46] hover:bg-[#34D399] transition-colors cursor-pointer" style={{ height: `${h}%` }} />
+
+        {/* Chart Area */}
+        <div className="px-2">
+          <ResponsiveContainer width="100%" height={260}>
+            <ComposedChart data={currentData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+              <defs>
+                {/* Revenue gradient */}
+                <linearGradient id="revGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#34D399" stopOpacity={0.4} />
+                  <stop offset="50%" stopColor="#065F46" stopOpacity={0.2} />
+                  <stop offset="100%" stopColor="#065F46" stopOpacity={0.02} />
+                </linearGradient>
+                {/* Forecast gradient */}
+                <linearGradient id="forecastGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#FBBF24" stopOpacity={0.15} />
+                  <stop offset="100%" stopColor="#FBBF24" stopOpacity={0.01} />
+                </linearGradient>
+                {/* Bar gradient */}
+                <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#34D399" stopOpacity={0.9} />
+                  <stop offset="100%" stopColor="#065F46" stopOpacity={0.7} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#334155" strokeOpacity={0.4} vertical={false} />
+              <XAxis
+                dataKey="name"
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: '#64748B', fontSize: 10 }}
+                dy={8}
+              />
+              <YAxis
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: '#475569', fontSize: 9 }}
+                tickFormatter={formatTZS}
+                width={45}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: '#0F172A',
+                  border: '1px solid #334155',
+                  borderRadius: '12px',
+                  padding: '10px 14px',
+                  boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+                }}
+                labelStyle={{ color: '#94A3B8', fontSize: 11, fontWeight: 600, marginBottom: 6 }}
+                itemStyle={{ padding: '2px 0' }}
+                formatter={(value: number, name: string) => {
+                  const label = name === 'revenue' ? 'Revenue' : name === 'forecast' ? 'AI Forecast' : 'Bookings';
+                  const formatted = name === 'bookings' ? value.toString() : `TZS ${formatTZS(value)}`;
+                  return [formatted, label];
+                }}
+                cursor={{ fill: '#34D399', opacity: 0.05 }}
+              />
+              {/* Forecast area (behind) */}
+              <Area
+                type="monotone"
+                dataKey="forecast"
+                stroke="#FBBF24"
+                strokeWidth={2}
+                strokeDasharray="6 4"
+                fill="url(#forecastGradient)"
+                dot={false}
+                activeDot={{ r: 4, fill: '#FBBF24', stroke: '#0F172A', strokeWidth: 2 }}
+              />
+              {/* Revenue bars */}
+              <Bar
+                dataKey="revenue"
+                fill="url(#barGradient)"
+                radius={[4, 4, 0, 0]}
+                barSize={revPeriod === '1Y' ? 28 : revPeriod === '90D' ? 40 : 36}
+                opacity={0.85}
+              />
+              {/* Revenue line overlay */}
+              <Line
+                type="monotone"
+                dataKey="revenue"
+                stroke="#34D399"
+                strokeWidth={2.5}
+                dot={false}
+                activeDot={{ r: 5, fill: '#34D399', stroke: '#0F172A', strokeWidth: 2 }}
+              />
+            </ComposedChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Chart Legend */}
+        <div className="px-5 py-2 flex items-center gap-5">
+          <div className="flex items-center gap-1.5">
+            <div className="w-3 h-3 rounded-sm bg-gradient-to-t from-[#065F46] to-[#34D399]" />
+            <span className="text-[10px] text-[#94A3B8]">{l('Revenue', 'Mapato')}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-5 h-0 border-t-2 border-dashed border-[#FBBF24]" />
+            <span className="text-[10px] text-[#94A3B8]">{l('AI Forecast', 'Utabiri wa AI')}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-2.5 h-2.5 rounded-full bg-[#34D399] border-2 border-[#0F172A]" />
+            <span className="text-[10px] text-[#94A3B8]">{l('Trend Line', 'Mstari wa Mwelekeo')}</span>
+          </div>
+        </div>
+
+        {/* Mini Metrics Row */}
+        <div className="px-5 pb-5 pt-2 grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {[
+            {
+              icon: DollarSign,
+              label: l('Total Revenue', 'Jumla'),
+              value: `TZS ${formatTZS(totalRevenue)}`,
+              sub: l('This period', 'Kipindi hiki'),
+              color: '#34D399',
+            },
+            {
+              icon: TrendingUp,
+              label: l('vs Forecast', 'dhidi ya Utabiri'),
+              value: `+${growthPct}%`,
+              sub: Number(growthPct) > 0 ? l('Above forecast', 'Juu ya utabiri') : l('Below forecast', 'Chini ya utabiri'),
+              color: Number(growthPct) > 0 ? '#34D399' : '#F87171',
+            },
+            {
+              icon: Calendar,
+              label: l('Peak Period', 'Kipindi cha Juu'),
+              value: peakMonth?.name || '-',
+              sub: `TZS ${formatTZS(peakMonth?.revenue || 0)}`,
+              color: '#FBBF24',
+            },
+            {
+              icon: Activity,
+              label: l('Bookings', 'Maazimio'),
+              value: totalBookings.toLocaleString(),
+              sub: l('Total sessions', 'Jumla ya vikao'),
+              color: '#22D3EE',
+            },
+          ].map((m, i) => (
+            <div key={i} className="bg-[#0F172A] rounded-xl p-3">
+              <m.icon className="w-3.5 h-3.5 mb-1" style={{ color: m.color }} />
+              <p className="text-sm font-bold text-[#F1F5F9]">{m.value}</p>
+              <p className="text-[9px] text-[#64748B]">{m.label}</p>
+              <p className="text-[8px] text-[#475569]">{m.sub}</p>
+            </div>
           ))}
         </div>
-        <div className="flex justify-between mt-2 text-[9px] text-[#64748B]">
-          <span>Jan</span><span>Mar</span><span>Jun</span><span>Sep</span><span>Dec</span>
-        </div>
-        {/* AI Forecast line */}
-        <div className="mt-3 p-2 rounded-lg bg-[#065F46]/20 border border-[#065F46]/30">
-          <p className="text-[10px] text-[#34D399] flex items-center gap-1">
-            <Sparkles className="w-3 h-3" /> AI predicts 22% revenue growth next month based on seasonal patterns and user activity trends.
-          </p>
+
+        {/* AI Forecast Insight */}
+        <div className="mx-5 mb-5 p-3 rounded-xl bg-gradient-to-r from-[#065F46]/30 to-[#059669]/10 border border-[#065F46]/40">
+          <div className="flex items-start gap-2">
+            <div className="w-6 h-6 rounded-lg bg-[#FBBF24]/10 flex items-center justify-center shrink-0 mt-0.5">
+              <Sparkles className="w-3.5 h-3.5 text-[#FBBF24]" />
+            </div>
+            <div>
+              <p className="text-[11px] font-semibold text-[#34D399]">{l('AI Revenue Forecast', 'Utabiri wa Mapato wa AI')}</p>
+              <p className="text-[10px] text-[#94A3B8] mt-0.5">
+                {l(
+                  `Revenue is trending ${growthPct}% above forecast. AI predicts 22% growth next month based on seasonal patterns, user activity, and Kariakoo market trends.`,
+                  `Mapato yanaenda ${growthPct}% juu ya utabiri. AI inatabiri ukuaji wa 22% mwezi ujao kulingana na mifumo ya msimu na shughuli za watumiaji.`
+                )}
+              </p>
+            </div>
+          </div>
         </div>
       </motion.div>
 
