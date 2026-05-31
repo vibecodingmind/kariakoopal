@@ -33,7 +33,7 @@ interface ReferredPerson {
 
 // ── Demo Data ──
 
-const REFERRAL_CODE = 'KARIAKO-2026-X7K9';
+const REFERRAL_CODE = 'CHIMBO-2026-X7K9';
 
 const REFERRAL_TIERS: ReferralTier[] = [
   { name: 'Bronze', range: '1-5', icon: Medal, color: '#CD7F32', bgColor: '#FDF2E9', reward: '500 TZS per referral', current: true },
@@ -82,7 +82,7 @@ export default function ReferralsPage() {
   };
 
   const handleShare = (platform: string) => {
-    const text = `Join me on KariakoGuide! Use my referral code: ${REFERRAL_CODE}`;
+    const text = `Join me on ChimboDirect! Use my referral code: ${REFERRAL_CODE}`;
     switch (platform) {
       case 'whatsapp':
         window.open(`https://wa.me/?text=${encodeURIComponent(text)}`);

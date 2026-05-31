@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Production: Register IPN URL
-    const ipnUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://kariako.guide'}/api/payments/pesapal/callback`;
+    const ipnUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://chimbo.direct'}/api/payments/pesapal/callback`;
     const ipnRes = await fetch(`${getBaseUrl()}/api/URLSetup/RegisterIPN`, {
       method: 'POST',
       headers: {
@@ -110,14 +110,14 @@ export async function POST(req: NextRequest) {
         id: accountRef || `KARIKO_${Date.now()}`,
         currency: 'TZS',
         amount: Number(amount),
-        description: description || 'Kariako Guide Wallet Top Up',
-        callback_url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://kariako.guide'}/wallet?payment=pesapal`,
+        description: description || 'Chimbo Direct Wallet Top Up',
+        callback_url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://chimbo.direct'}/wallet?payment=pesapal`,
         notification_id: ipnData?.ipn_id || '',
         billing_address: {
-          email_address: email || 'user@kariako.com',
+          email_address: email || 'user@chimbo.direct',
           phone_number: phone || '',
           country_code: 'TZ',
-          first_name: 'Kariako',
+          first_name: 'Chimbo',
           last_name: 'User',
         },
       }),

@@ -322,7 +322,7 @@ export default function LiveLocationPage() {
                   { icon: Phone, label: 'Call Emergency (112)', desc: 'Contact local emergency services' },
                   { icon: MessageSquare, label: 'Alert Trusted Contacts', desc: 'Send your location to saved contacts' },
                   { icon: Cross, label: 'Nearest Hospital', desc: 'Get directions to closest medical facility' },
-                  { icon: Shield, label: 'Report Incident', desc: 'File a safety report with KariakoGuide' },
+                  { icon: Shield, label: 'Report Incident', desc: 'File a safety report with ChimboDirect' },
                 ].map((option, i) => (
                   <button
                     key={i}

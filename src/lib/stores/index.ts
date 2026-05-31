@@ -1,4 +1,4 @@
-// Kariako Guide - Zustand Stores Index
+// Chimbo Direct - Zustand Stores Index
 export { useAuthStore } from './auth-store';
 export type { User, GuideProfile, Badge } from './auth-store';
 

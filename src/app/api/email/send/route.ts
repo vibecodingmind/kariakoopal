@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
         sessionCode: 'KG-2024-001',
         transactionId: 'TXN-DEMO-001',
         status: 'pending',
-        resetUrl: 'https://kariako.guide/reset?token=demo',
+        resetUrl: 'https://chimbo.direct/reset?token=demo',
       });
 
       if (!preview) {

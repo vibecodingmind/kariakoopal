@@ -63,13 +63,13 @@ export async function POST(req: NextRequest) {
       body: new URLSearchParams({
         'payment_method_types[0]': 'card',
         'mode': 'payment',
-        'customer_email': email || 'user@kariako.com',
+        'customer_email': email || 'user@chimbo.direct',
         'line_items[0][price_data][currency]': 'tzs',
-        'line_items[0][price_data][product_data][name]': 'Kariako Guide Wallet Top Up',
+        'line_items[0][price_data][product_data][name]': 'Chimbo Direct Wallet Top Up',
         'line_items[0][price_data][unit_amount]': String(Math.round(amount)), // TZS has no decimals
         'line_items[0][quantity]': '1',
-        'success_url': `${process.env.NEXT_PUBLIC_APP_URL || 'https://kariako.guide'}/wallet?payment=stripe&status=success`,
-        'cancel_url': `${process.env.NEXT_PUBLIC_APP_URL || 'https://kariako.guide'}/wallet?payment=stripe&status=cancelled`,
+        'success_url': `${process.env.NEXT_PUBLIC_APP_URL || 'https://chimbo.direct'}/wallet?payment=stripe&status=success`,
+        'cancel_url': `${process.env.NEXT_PUBLIC_APP_URL || 'https://chimbo.direct'}/wallet?payment=stripe&status=cancelled`,
         'metadata[user_id]': userId || 'demo',
         'metadata[amount]': String(amount),
       }),

@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const sanitizedAccountRef = sanitizeString(accountRef || 'KariakoWallet', 50);
+    const sanitizedAccountRef = sanitizeString(accountRef || 'ChimboWallet', 50);
     const sanitizedDesc = sanitizeString(transactionDesc || 'Wallet Top Up', 100);
 
     const sanitizedAmount = Number(amount);

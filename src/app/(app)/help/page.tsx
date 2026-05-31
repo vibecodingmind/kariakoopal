@@ -104,8 +104,8 @@ const FAQ_ITEMS: FAQItem[] = [
   {
     id: '9',
     category: 'safety',
-    question: 'Is it safe to use Kariako Guide?',
-    questionSw: 'Je, ni salama kutumia Kariako Guide?',
+    question: 'Is it safe to use Chimbo Direct?',
+    questionSw: 'Je, ni salama kutumia Chimbo Direct?',
     answer: 'All guides are verified with ID documents and pass a zone knowledge quiz. Sessions are tracked with GPS, and there is an emergency button for immediate help. Your payments are protected by escrow.',
     answerSw: 'Waongozaji wote wame thibitishwa kwa nyaraka za kitambulisho na wanapita jaribio la ujuzi wa eneo. Vikao vinafuatiliwa kwa GPS, na kuna kitufe cha dharura kwa msaada wa haraka. Malipo yako yanalindwa na escrow.',
   },
@@ -313,7 +313,7 @@ export default function HelpPage() {
                 </div>
                 <div className="text-left">
                   <p className="text-sm font-semibold text-[#0F172A] dark:text-[#F1F5F9]">{l('Email Support', 'Msaada Wa Barua')}</p>
-                  <p className="text-xs text-[#64748B]">support@kariako.guide</p>
+                  <p className="text-xs text-[#64748B]">support@chimbo.direct</p>
                 </div>
               </button>
 

@@ -1,4 +1,4 @@
-# Kariako Guide — API Reference
+# Chimbo Direct — API Reference
 
 Base URL: `http://localhost:3000/api`
 

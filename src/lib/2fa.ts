@@ -1,7 +1,7 @@
 import { createHmac, randomBytes } from 'crypto';
 
 /**
- * Two-Factor Authentication utility for Kariako Guide
+ * Two-Factor Authentication utility for Chimbo Direct
  * Uses TOTP (Time-based One-Time Password) algorithm
  */
 
@@ -119,6 +119,6 @@ export function generateBackupCodes(count: number = 8): string[] {
  * Generate an otpauth:// URI for QR code generation
  */
 export function getOTPAuthURI(secret: string, email: string): string {
-  const issuer = 'Kariako Guide';
+  const issuer = 'Chimbo Direct';
   return `otpauth://totp/${encodeURIComponent(issuer)}:${encodeURIComponent(email)}?secret=${secret}&issuer=${encodeURIComponent(issuer)}&algorithm=SHA1&digits=6&period=30`;
 }

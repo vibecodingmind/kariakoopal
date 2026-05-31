@@ -7,14 +7,14 @@ export default function RootLoading() {
         <div className="w-16 h-16 rounded-2xl overflow-hidden mx-auto animate-pulse ring-2 ring-[#065F46]/10">
           <Image
             src="/logo-mark.png"
-            alt="Kariako Guide"
+            alt="Chimbo Direct"
             width={64}
             height={64}
             className="w-full h-full object-cover"
             priority
           />
         </div>
-        <p className="text-sm text-[#78716C] dark:text-[#A1A1AA] font-medium">Loading Kariako Guide...</p>
+        <p className="text-sm text-[#78716C] dark:text-[#A1A1AA] font-medium">Loading Chimbo Direct...</p>
       </div>
     </div>
   );

@@ -277,7 +277,7 @@ export default function AdminSettingsPage() {
         <div className="flex-1">
           <h1 className="text-2xl font-bold gradient-text-green">Platform Settings</h1>
           <p className="text-xs text-[#94A3B8] mt-0.5">
-            Configure your Kariako Guide platform
+            Configure your Chimbo Direct platform
           </p>
         </div>
         <div className="flex items-center gap-2">

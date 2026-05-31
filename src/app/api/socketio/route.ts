@@ -15,7 +15,7 @@ export async function GET() {
     if (isReachable) {
       return NextResponse.json({
         status: 'ok',
-        service: 'kariako-guide-realtime',
+        service: 'chimbo-direct-realtime',
         port: REALTIME_SERVICE_PORT,
         timestamp: new Date().toISOString(),
         message: 'Socket.io realtime service is running and accepting connections',
@@ -24,7 +24,7 @@ export async function GET() {
       return NextResponse.json(
         {
           status: 'offline',
-          service: 'kariako-guide-realtime',
+          service: 'chimbo-direct-realtime',
           port: REALTIME_SERVICE_PORT,
           timestamp: new Date().toISOString(),
           message: 'Realtime service is not reachable on port ' + REALTIME_SERVICE_PORT,

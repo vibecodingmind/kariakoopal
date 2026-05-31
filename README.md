@@ -1,10 +1,10 @@
-# Kariako Guide
+# Chimbo Direct
 
 **Connect with verified local market guides in Kariakoo, Dar es Salaam.**
 
-_Kariako Guide — Ungana na miongozo wa soko wa Kariakoo, Dar es Salaam._
+_Chimbo Direct — Ungana na miongozo wa soko wa Kariakoo, Dar es Salaam._
 
-> Kariako Guide is a marketplace platform that connects tourists and buyers to trusted, verified local guides in Kariakoo — East Africa's largest open market. Navigate the market like a local, find fair prices, and explore with confidence.
+> Chimbo Direct is a marketplace platform that connects tourists and buyers to trusted, verified local guides in Kariakoo — East Africa's largest open market. Navigate the market like a local, find fair prices, and explore with confidence.
 
 ## Screenshots
 
@@ -320,8 +320,8 @@ MIT License. See [LICENSE](./LICENSE) for details.
 
 ## Contact
 
-**Kariako Guide Team**
+**Chimbo Direct Team**
 
-- Project: [GitHub Repository](https://github.com/kariako-guide)
+- Project: [GitHub Repository](https://github.com/chimbo-direct)
 - Location: Kariakoo, Dar es Salaam, Tanzania
-- Email: hello@kariako.guide
+- Email: hello@chimbo.direct

@@ -48,7 +48,7 @@ const demoMessages: Record<string, Array<{
   ],
   'conv-3': [
     { id: 'msg-3-1', conversationId: 'conv-3', senderId: 'guide-3', senderName: 'Asha Mohamed', messageType: 'text', content: 'Asante kwa kutembelea nami! Umeipata bei nzuri?', translatedContent: 'Thanks for visiting with me! Did you get a good price?', isRead: true, createdAt: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString() },
-    { id: 'msg-3-2', conversationId: 'conv-3', senderId: 'demo-seeker', senderName: 'James K.', messageType: 'text', content: 'Asante kwa kutumia Kariako Guide! ⭐', translatedContent: 'Thanks for using Kariako Guide!', isRead: true, createdAt: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString() },
+    { id: 'msg-3-2', conversationId: 'conv-3', senderId: 'demo-seeker', senderName: 'James K.', messageType: 'text', content: 'Asante kwa kutumia Chimbo Direct! ⭐', translatedContent: 'Thanks for using Chimbo Direct!', isRead: true, createdAt: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString() },
     { id: 'msg-3-3', conversationId: 'conv-3', senderId: 'guide-3', senderName: 'Asha Mohamed', messageType: 'system', content: 'Session completed. Please leave a review!', isRead: true, createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2.5).toISOString() },
   ],
   'conv-4': [

@@ -41,10 +41,10 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
-  --color-kariako-primary: var(--kariako-primary);
-  --color-kariako-accent: var(--kariako-accent);
-  --color-kariako-primary-light: var(--kariako-primary-light);
-  --color-kariako-primary-dark: var(--kariako-primary-dark);
+  --color-chimbo-primary: var(--chimbo-primary);
+  --color-chimbo-accent: var(--chimbo-accent);
+  --color-chimbo-primary-light: var(--chimbo-primary-light);
+  --color-chimbo-primary-dark: var(--chimbo-primary-dark);
 }
 
 :root {
@@ -73,16 +73,16 @@
   --chart-3: #0891B2;
   --chart-4: #E11D48;
   --chart-5: #7C3AED;
-  /* Kariako brand - Emerald Night & Warm Amber */
-  --kariako-primary: #065F46;
-  --kariako-accent: #F59E0B;
-  --kariako-primary-light: #ECFDF5;
-  --kariako-primary-dark: #022C22;
+  /* Chimbo brand - Emerald Night & Warm Amber */
+  --chimbo-primary: #065F46;
+  --chimbo-accent: #F59E0B;
+  --chimbo-primary-light: #ECFDF5;
+  --chimbo-primary-dark: #022C22;
   /* Legacy aliases (kept for compat) */
-  --kariako-green: #065F46;
-  --kariako-yellow: #F59E0B;
-  --kariako-green-light: #ECFDF5;
-  --kariako-green-dark: #022C22;
+  --chimbo-green: #065F46;
+  --chimbo-yellow: #F59E0B;
+  --chimbo-green-light: #ECFDF5;
+  --chimbo-green-dark: #022C22;
   /* Sidebar */
   --sidebar: #FFFFFF;
   --sidebar-foreground: #0F172A;
@@ -118,16 +118,16 @@
   --chart-3: #22D3EE;
   --chart-4: #FB7185;
   --chart-5: #A78BFA;
-  /* Kariako brand - dark */
-  --kariako-primary: #34D399;
-  --kariako-accent: #FBBF24;
-  --kariako-primary-light: #064E3B;
-  --kariako-primary-dark: #022C22;
+  /* Chimbo brand - dark */
+  --chimbo-primary: #34D399;
+  --chimbo-accent: #FBBF24;
+  --chimbo-primary-light: #064E3B;
+  --chimbo-primary-dark: #022C22;
   /* Legacy aliases */
-  --kariako-green: #34D399;
-  --kariako-yellow: #FBBF24;
-  --kariako-green-light: #064E3B;
-  --kariako-green-dark: #022C22;
+  --chimbo-green: #34D399;
+  --chimbo-yellow: #FBBF24;
+  --chimbo-green-light: #064E3B;
+  --chimbo-green-dark: #022C22;
   /* Sidebar */
   --sidebar: #0F172A;
   --sidebar-foreground: #F1F5F9;
@@ -160,7 +160,7 @@
 }
 
 /* ═══════════════════════════════════════════════════
-   KARIAKO PREMIUM DESIGN SYSTEM v4
+   CHIMBO PREMIUM DESIGN SYSTEM v4
    Emerald Night & Warm Amber
    Modern, Professional Marketplace UI
    ═══════════════════════════════════════════════════ */
@@ -339,13 +339,13 @@
 
 .kbtn-outline {
   background: transparent;
-  color: var(--kariako-primary);
+  color: var(--chimbo-primary);
   font-weight: 600;
   border-radius: 12px;
   padding: 0.625rem 1.5rem;
   font-size: 0.875rem;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 2px solid var(--kariako-primary);
+  border: 2px solid var(--chimbo-primary);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -354,7 +354,7 @@
 }
 
 .kbtn-outline:hover {
-  background: var(--kariako-primary-light);
+  background: var(--chimbo-primary-light);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(6, 95, 70, 0.12);
 }
@@ -488,13 +488,13 @@
 
 .knav-link:hover {
   color: var(--foreground);
-  background: var(--kariako-primary-light);
+  background: var(--chimbo-primary-light);
 }
 
 .knav-link-active {
-  color: var(--kariako-primary);
+  color: var(--chimbo-primary);
   font-weight: 600;
-  background: var(--kariako-primary-light);
+  background: var(--chimbo-primary-light);
 }
 
 /* ── Premium Search Bar ── */
@@ -508,7 +508,7 @@
 }
 
 .ksearch:focus-within {
-  border-color: var(--kariako-primary);
+  border-color: var(--chimbo-primary);
   box-shadow: 0 0 0 4px rgba(6, 95, 70, 0.08), 0 4px 16px rgba(0, 0, 0, 0.05);
 }
 
@@ -571,7 +571,7 @@
 
 .kinput:focus {
   outline: none;
-  border-color: var(--kariako-primary);
+  border-color: var(--chimbo-primary);
   box-shadow: 0 0 0 4px rgba(6, 95, 70, 0.08);
 }
 
@@ -591,7 +591,7 @@
   transition: background 0.3s ease;
 }
 
-.ktoggle-active { background: var(--kariako-primary); }
+.ktoggle-active { background: var(--chimbo-primary); }
 
 .ktoggle::after {
   content: '';
@@ -624,7 +624,7 @@
 }
 
 .ktag-active {
-  background: var(--kariako-primary);
+  background: var(--chimbo-primary);
   color: white;
   box-shadow: 0 2px 8px rgba(6, 95, 70, 0.2);
 }
@@ -969,7 +969,7 @@
 }
 
 .auth-social-btn:hover {
-  border-color: var(--kariako-primary);
+  border-color: var(--chimbo-primary);
   box-shadow: 0 4px 12px rgba(6, 95, 70, 0.08);
   transform: translateY(-1px);
 }
@@ -1110,13 +1110,13 @@ html {
 .glass-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); transform: translateY(-2px); }
 .glass-card-premium { background: var(--card); border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: all 0.3s ease; }
 .glass-card-premium:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); transform: translateY(-3px); }
-.glass-button { background: var(--kariako-primary); color: white; font-weight: 600; border-radius: 12px; transition: all 0.3s ease; border: none; }
-.glass-button:hover { background: var(--kariako-primary-dark); }
-.glass-button-emerald { background: var(--kariako-primary); color: white; font-weight: 600; border-radius: 12px; transition: all 0.3s ease; border: none; }
-.glass-button-emerald:hover { background: var(--kariako-primary-dark); }
+.glass-button { background: var(--chimbo-primary); color: white; font-weight: 600; border-radius: 12px; transition: all 0.3s ease; border: none; }
+.glass-button:hover { background: var(--chimbo-primary-dark); }
+.glass-button-emerald { background: var(--chimbo-primary); color: white; font-weight: 600; border-radius: 12px; transition: all 0.3s ease; border: none; }
+.glass-button-emerald:hover { background: var(--chimbo-primary-dark); }
 .glass-nav { background: rgba(255,255,255,0.8); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(0,0,0,0.04); box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
 .glass-input { background: var(--card); border: 1.5px solid var(--border); border-radius: 12px; transition: all 0.3s ease; }
-.glass-input:focus { border-color: var(--kariako-primary); box-shadow: 0 0 0 4px rgba(6,95,70,0.08); }
+.glass-input:focus { border-color: var(--chimbo-primary); box-shadow: 0 0 0 4px rgba(6,95,70,0.08); }
 .glass-strong { background: var(--card); border: 1px solid var(--border); }
 .glass-frosted { background: rgba(255,255,255,0.72); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.3); border-radius: 16px; }
 .dark .glass-frosted { background: rgba(30,41,59,0.72); border: 1px solid rgba(255,255,255,0.06); }

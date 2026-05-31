@@ -1,4 +1,4 @@
-# Kariako Guide — Entity Relationship Diagram
+# Chimbo Direct — Entity Relationship Diagram
 
 ## Mermaid Diagram
 

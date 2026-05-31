@@ -109,7 +109,7 @@ const DEMO_NOTIFICATIONS: Notification[] = [
     id: 'n7',
     userId: 'demo-seeker',
     type: 'system_announcement',
-    title: 'Welcome to Kariako Guide!',
+    title: 'Welcome to Chimbo Direct!',
     message: 'Your account has been set up successfully. Start exploring Kariakoo market with a local guide.',
     read: true,
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
@@ -244,7 +244,7 @@ export const useNotificationStore = create<NotificationState>()(
       clearAll: () => set({ notifications: [], unreadCount: 0 }),
     }),
     {
-      name: 'kariako-notifications',
+      name: 'chimbo-notifications',
       partialize: (state) => ({
         notifications: state.notifications,
         unreadCount: state.unreadCount,

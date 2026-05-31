@@ -8,13 +8,13 @@ import { Download, X } from 'lucide-react';
 // Bilingual strings for the install banner
 const strings = {
   sw: {
-    installTitle: 'Sakinisha Kariako Guide',
+    installTitle: 'Sakinisha Chimbo Direct',
     installDesc: 'Tumia kama programu kwenye simu yako kwa urahisi zaidi',
     installButton: 'Sakinisha',
     dismissButton: 'Si dakika hii',
   },
   en: {
-    installTitle: 'Install Kariako Guide',
+    installTitle: 'Install Chimbo Direct',
     installDesc: 'Use as an app on your phone for a better experience',
     installButton: 'Install',
     dismissButton: 'Not now',

@@ -90,7 +90,7 @@ const PLATFORM_FEATURES = [
   },
   {
     title: 'Referrals',
-    description: 'Earn rewards by inviting friends to Kariako Guide',
+    description: 'Earn rewards by inviting friends to Chimbo Direct',
     href: '/seeker/referrals',
     icon: Gift,
     color: 'text-[#F59E0B]',
@@ -193,8 +193,8 @@ export default function HomePage() {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight mb-4"
           >
-            <span className="gradient-text-green">Kariako</span>{' '}
-            <span className="gradient-text-gold">Guide</span>
+            <span className="gradient-text-green">Chimbo</span>{' '}
+            <span className="gradient-text-gold">Direct</span>
           </motion.h1>
 
           <motion.p
@@ -380,7 +380,7 @@ export default function HomePage() {
           <div className="w-12 h-12 rounded-2xl bg-[#065F46]/10 dark:bg-[#34D399]/10 flex items-center justify-center mx-auto mb-3">
             <Bot className="w-6 h-6 text-[#065F46] dark:text-[#34D399]" />
           </div>
-          <h3 className="text-lg font-bold text-[#0F172A] dark:text-[#F1F5F9]">Need Help? Ask Kariako AI</h3>
+          <h3 className="text-lg font-bold text-[#0F172A] dark:text-[#F1F5F9]">Need Help? Ask Chimbo AI</h3>
           <p className="text-sm text-[#64748B] dark:text-[#94A3B8] mt-1 max-w-md mx-auto">
             Our AI assistant is available 24/7 to help you find guides, negotiate prices, translate Swahili, and plan your trip.
           </p>

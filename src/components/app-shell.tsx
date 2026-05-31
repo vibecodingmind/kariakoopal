@@ -239,7 +239,7 @@ function TopHeader() {
           <div className="w-9 h-9 rounded-xl overflow-hidden shadow-sm group-hover:shadow-md transition-shadow ring-2 ring-[#065F46]/10 dark:ring-[#34D399]/10">
             <Image
               src="/logo-mark.png"
-              alt="Kariako Guide"
+              alt="Chimbo Direct"
               width={36}
               height={36}
               className="w-full h-full object-cover"
@@ -248,7 +248,7 @@ function TopHeader() {
           </div>
           <Image
             src="/logo-header.png"
-            alt="Kariako Guide"
+            alt="Chimbo Direct"
             width={120}
             height={41}
             className="h-8 w-auto hidden sm:block"
@@ -390,7 +390,7 @@ function AdminTopHeader() {
           <div className="w-9 h-9 rounded-xl overflow-hidden shadow-sm lg:hidden">
             <Image
               src="/logo-mark.png"
-              alt="Kariako Guide"
+              alt="Chimbo Direct"
               width={36}
               height={36}
               className="w-full h-full object-cover"
@@ -399,7 +399,7 @@ function AdminTopHeader() {
           </div>
           <Image
             src="/logo-header.png"
-            alt="Kariako Guide Admin"
+            alt="Chimbo Direct Admin"
             width={140}
             height={48}
             className="h-7 w-auto hidden lg:block brightness-0 invert"

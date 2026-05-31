@@ -1,4 +1,4 @@
-// ── API Client for Kariako Guide Platform ──
+// ── API Client for Chimbo Direct Platform ──
 // Centralized fetch wrapper with error handling, auth, and typed responses
 
 const API_BASE = '/api';

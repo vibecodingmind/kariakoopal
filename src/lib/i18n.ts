@@ -1,4 +1,4 @@
-// Kariako Guide Platform - Internationalization System
+// Chimbo Direct Platform - Internationalization System
 // Bilingual: Swahili (default) and English
 
 export type Language = 'sw' | 'en';

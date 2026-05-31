@@ -117,7 +117,7 @@ export default function AdminRevenuePage() {
     const blob = new Blob([headers + rows], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url; a.download = `kariako-revenue-${period}.csv`; a.click();
+    a.href = url; a.download = `chimbo-revenue-${period}.csv`; a.click();
     URL.revokeObjectURL(url);
   };
 

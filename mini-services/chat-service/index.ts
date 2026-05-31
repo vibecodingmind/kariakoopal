@@ -253,7 +253,7 @@ io.on('connection', (socket: Socket) => {
 
 httpServer.listen(PORT, () => {
   console.log(`[Chat Service] Socket.io server running on port ${PORT}`);
-  console.log(`[Chat Service] Kariako Guide platform - chat events active`);
+  console.log(`[Chat Service] Chimbo Direct platform - chat events active`);
   console.log(`[Chat Service] Health check via Next.js API: /api/socketio?XTransformPort=${PORT}`);
 });
 

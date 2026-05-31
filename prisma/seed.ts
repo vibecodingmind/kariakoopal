@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Seeding Kariako Guide database...');
+  console.log('🌱 Seeding Chimbo Direct database...');
 
   // ── Create Zones ──
   const electronics = await prisma.zone.upsert({

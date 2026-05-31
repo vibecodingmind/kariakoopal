@@ -1,4 +1,4 @@
-// Kariako Guide Platform - Email System
+// Chimbo Direct Platform - Email System
 // In demo mode (no SMTP env vars), emails are logged to console
 
 interface EmailTemplate {
@@ -14,17 +14,17 @@ type EmailType = 'welcome_email' | 'booking_confirmation' | 'payment_receipt' | 
 
 const TEMPLATES: Record<EmailType, (data: Record<string, string>) => { subject: string; html: string; text: string }> = {
   welcome_email: (data) => ({
-    subject: `Karibu Kariako Guide! - Welcome ${data.name || ''}`,
+    subject: `Karibu Chimbo Direct! - Welcome ${data.name || ''}`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #F8FAFC;">
         <div style="background: linear-gradient(135deg, #065F46, #059669); padding: 32px; text-align: center; border-radius: 12px 12px 0 0;">
-          <h1 style="color: #FFFFFF; margin: 0; font-size: 28px;">Karibu Kariako Guide!</h1>
+          <h1 style="color: #FFFFFF; margin: 0; font-size: 28px;">Karibu Chimbo Direct!</h1>
           <p style="color: #34D399; margin: 8px 0 0;">Your guide to Kariakoo Market</p>
         </div>
         <div style="padding: 24px; background: white; border-radius: 0 0 12px 12px;">
           <p style="font-size: 16px; color: #0F172A;">Jambo ${data.name || 'Friend'}! 👋</p>
           <p style="font-size: 14px; color: #64748B; line-height: 1.6;">
-            Welcome to Kariako Guide — your trusted companion for navigating Kariakoo Market in Dar es Salaam.
+            Welcome to Chimbo Direct — your trusted companion for navigating Kariakoo Market in Dar es Salaam.
             Whether you're looking for fabrics, spices, electronics, or a local guide, we've got you covered.
           </p>
           <div style="background: #ECFDF5; border-radius: 8px; padding: 16px; margin: 16px 0;">
@@ -36,17 +36,17 @@ const TEMPLATES: Record<EmailType, (data: Record<string, string>) => { subject: 
               <li>Use AI Vision to identify items</li>
             </ul>
           </div>
-          <a href="${data.appUrl || 'https://kariako.guide'}" style="display: inline-block; background: #065F46; color: white; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 8px;">
+          <a href="${data.appUrl || 'https://chimbo.direct'}" style="display: inline-block; background: #065F46; color: white; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 8px;">
             Explore Kariakoo →
           </a>
         </div>
         <div style="text-align: center; padding: 16px; color: #94A3B8; font-size: 12px;">
-          Kariako Guide · Dar es Salaam, Tanzania<br/>
+          Chimbo Direct · Dar es Salaam, Tanzania<br/>
           Asili ya Kariakoo — Nguvu ya Soko
         </div>
       </div>
     `,
-    text: `Karibu Kariako Guide!\n\nJambo ${data.name || 'Friend'}!\n\nWelcome to Kariako Guide — your trusted companion for navigating Kariakoo Market.\n\nGet started:\n- Browse market zones and vendors\n- Find a verified local guide\n- Check fair prices with Price Radar\n- Use AI Vision to identify items\n\nVisit: ${data.appUrl || 'https://kariako.guide'}`,
+    text: `Karibu Chimbo Direct!\n\nJambo ${data.name || 'Friend'}!\n\nWelcome to Chimbo Direct — your trusted companion for navigating Kariakoo Market.\n\nGet started:\n- Browse market zones and vendors\n- Find a verified local guide\n- Check fair prices with Price Radar\n- Use AI Vision to identify items\n\nVisit: ${data.appUrl || 'https://chimbo.direct'}`,
   }),
 
   booking_confirmation: (data) => ({
@@ -84,7 +84,7 @@ const TEMPLATES: Record<EmailType, (data: Record<string, string>) => { subject: 
           <h1 style="color: #FFFFFF; margin: 0; font-size: 24px;">💰 Payment Receipt</h1>
         </div>
         <div style="padding: 24px; background: white; border-radius: 0 0 12px 12px;">
-          <p style="font-size: 14px; color: #64748B;">Payment receipt for your Kariako Guide transaction.</p>
+          <p style="font-size: 14px; color: #64748B;">Payment receipt for your Chimbo Direct transaction.</p>
           <div style="background: #F1F5F9; border-radius: 8px; padding: 16px; margin: 16px 0;">
             <p style="margin: 4px 0; color: #0F172A;"><strong>Transaction ID:</strong> ${data.transactionId || 'N/A'}</p>
             <p style="margin: 4px 0; color: #0F172A;"><strong>Type:</strong> ${data.type || 'Payment'}</p>
@@ -93,7 +93,7 @@ const TEMPLATES: Record<EmailType, (data: Record<string, string>) => { subject: 
             <p style="margin: 4px 0; color: #0F172A;"><strong>Date:</strong> ${data.date || new Date().toLocaleDateString()}</p>
             <p style="margin: 4px 0; color: #0F172A;"><strong>Method:</strong> ${data.method || 'M-Pesa'}</p>
           </div>
-          <p style="font-size: 12px; color: #94A3B8;">Keep this receipt for your records. For questions, contact support@kariako.guide</p>
+          <p style="font-size: 12px; color: #94A3B8;">Keep this receipt for your records. For questions, contact support@chimbo.direct</p>
         </div>
       </div>
     `,
@@ -101,7 +101,7 @@ const TEMPLATES: Record<EmailType, (data: Record<string, string>) => { subject: 
   }),
 
   guide_verification: (data) => ({
-    subject: `Verification ${data.status || 'Update'} - Kariako Guide`,
+    subject: `Verification ${data.status || 'Update'} - Chimbo Direct`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #F8FAFC;">
         <div style="background: linear-gradient(135deg, #065F46, #059669); padding: 24px; text-align: center; border-radius: 12px 12px 0 0;">
@@ -130,18 +130,18 @@ const TEMPLATES: Record<EmailType, (data: Record<string, string>) => { subject: 
         </div>
       </div>
     `,
-    text: `Verification ${data.status}\n\n${data.status === 'approved' ? 'Congratulations! Your guide verification has been approved.' : data.status === 'rejected' ? `Your verification was not approved. Reason: ${data.reason || 'Please reapply.'}` : 'Your documents are being reviewed (24-48 hours).'}\n\nKariako Guide`,
+    text: `Verification ${data.status}\n\n${data.status === 'approved' ? 'Congratulations! Your guide verification has been approved.' : data.status === 'rejected' ? `Your verification was not approved. Reason: ${data.reason || 'Please reapply.'}` : 'Your documents are being reviewed (24-48 hours).'}\n\nChimbo Direct`,
   }),
 
   password_reset: (data) => ({
-    subject: 'Password Reset - Kariako Guide',
+    subject: 'Password Reset - Chimbo Direct',
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #F8FAFC;">
         <div style="background: linear-gradient(135deg, #065F46, #059669); padding: 24px; text-align: center; border-radius: 12px 12px 0 0;">
           <h1 style="color: #FFFFFF; margin: 0; font-size: 24px;">🔐 Password Reset</h1>
         </div>
         <div style="padding: 24px; background: white; border-radius: 0 0 12px 12px;">
-          <p style="font-size: 14px; color: #64748B;">You requested a password reset for your Kariako Guide account.</p>
+          <p style="font-size: 14px; color: #64748B;">You requested a password reset for your Chimbo Direct account.</p>
           <div style="text-align: center; margin: 24px 0;">
             <a href="${data.resetUrl || '#'}" style="display: inline-block; background: #065F46; color: white; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-weight: bold;">
               Reset Password
@@ -217,5 +217,5 @@ export function previewEmail(type: EmailType, data: Record<string, string> = {})
   const template = TEMPLATES[type];
   if (!template) return null;
   const { subject, html, text } = template(data);
-  return { to: 'preview@kariako.guide', subject, html, text };
+  return { to: 'preview@chimbo.direct', subject, html, text };
 }

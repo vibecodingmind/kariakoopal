@@ -123,8 +123,8 @@ export default function OfflinePage() {
             </div>
             <p className="text-xs text-[#64748B] dark:text-[#94A3B8]">
               {l(
-                'Dial *149# on your phone to access Kariako Guide via USSD without internet.',
-                'Bonyeza *149# kwenye simu yako kufikia Kariako Guide kupitia USSD bila mtandao.'
+                'Dial *149# on your phone to access Chimbo Direct via USSD without internet.',
+                'Bonyeza *149# kwenye simu yako kufikia Chimbo Direct kupitia USSD bila mtandao.'
               )}
             </p>
           </CardContent>

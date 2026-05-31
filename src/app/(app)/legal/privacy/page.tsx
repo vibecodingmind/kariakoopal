@@ -48,8 +48,8 @@ export default function PrivacyPage() {
       icon: UserCheck,
       title: l('5. Your Rights', '5. Haki Zako'),
       content: l(
-        'You have the right to:\n\n• Access: Request a copy of your personal data\n• Correction: Update or correct your personal information\n• Deletion: Request deletion of your account and data (subject to legal retention requirements)\n• Portability: Export your data in a standard format\n• Objection: Opt out of non-essential data processing\n• Withdraw Consent: Revoke permission for specific data uses\n\nTo exercise these rights, contact privacy@kariako.guide',
-        'Una haki ya:\n\n• Upatikanaji: Kuomba nakala ya data yako ya kibinafsi\n• Marekebisho: Kusasisha au kurekebisha taarifa zako za kibinafsi\n• Ufutaji: Kuomba ufutaji wa akaunti yako na data (kulingana na mahitaji ya kisheria ya kuhifadhi)\n• Kubebeka: Kuhamisha data yako katika muundo wa kawaida\n• Pinga: Kutokea kwenye usindikaji wa data ambao si muhimu\n• Kubatilisha Ruhusa: Kuruhusu ruhusa kwa matumizi maalum ya data\n\nKutumia haki hizi, wasiliana na privacy@kariako.guide'
+        'You have the right to:\n\n• Access: Request a copy of your personal data\n• Correction: Update or correct your personal information\n• Deletion: Request deletion of your account and data (subject to legal retention requirements)\n• Portability: Export your data in a standard format\n• Objection: Opt out of non-essential data processing\n• Withdraw Consent: Revoke permission for specific data uses\n\nTo exercise these rights, contact privacy@chimbo.direct',
+        'Una haki ya:\n\n• Upatikanaji: Kuomba nakala ya data yako ya kibinafsi\n• Marekebisho: Kusasisha au kurekebisha taarifa zako za kibinafsi\n• Ufutaji: Kuomba ufutaji wa akaunti yako na data (kulingana na mahitaji ya kisheria ya kuhifadhi)\n• Kubebeka: Kuhamisha data yako katika muundo wa kawaida\n• Pinga: Kutokea kwenye usindikaji wa data ambao si muhimu\n• Kubatilisha Ruhusa: Kuruhusu ruhusa kwa matumizi maalum ya data\n\nKutumia haki hizi, wasiliana na privacy@chimbo.direct'
       ),
     },
     {
@@ -72,8 +72,8 @@ export default function PrivacyPage() {
       icon: Mail,
       title: l('8. Contact Us', '8. Wasiliana Nasi'),
       content: l(
-        'For privacy-related questions or concerns:\n\n• Email: privacy@kariako.guide\n• Data Protection Officer: dpo@kariako.guide\n• Phone: +255 123 456 789\n• Address: Kariakoo Market, Dar es Salaam, Tanzania\n\nLast updated: January 2025',
-        'Kwa maswali au wasiwasi kuhusu faragha:\n\n• Barua: privacy@kariako.guide\n• Afisa wa Ulinzi wa Data: dpo@kariako.guide\n• Simu: +255 123 456 789\n• Anwani: Soko la Kariakoo, Dar es Salaam, Tanzania\n\nIlisasishwa mwisho: Januari 2025'
+        'For privacy-related questions or concerns:\n\n• Email: privacy@chimbo.direct\n• Data Protection Officer: dpo@chimbo.direct\n• Phone: +255 123 456 789\n• Address: Kariakoo Market, Dar es Salaam, Tanzania\n\nLast updated: January 2025',
+        'Kwa maswali au wasiwasi kuhusu faragha:\n\n• Barua: privacy@chimbo.direct\n• Afisa wa Ulinzi wa Data: dpo@chimbo.direct\n• Simu: +255 123 456 789\n• Anwani: Soko la Kariakoo, Dar es Salaam, Tanzania\n\nIlisasishwa mwisho: Januari 2025'
       ),
     },
   ];
@@ -105,8 +105,8 @@ export default function PrivacyPage() {
           <CardContent className="p-5">
             <p className="text-sm text-[#64748B] dark:text-[#94A3B8] leading-relaxed">
               {l(
-                'At Kariako Guide, we take your privacy seriously. This Privacy Policy explains how we collect, use, and protect your personal information when you use our platform.',
-                'Kwenye Kariako Guide, tunachukua faragha yako kwa uzito. Sera hii ya Faragha inaeleza jinsi tunavyokusanya, kutumia, na kulinda taarifa zako za kibinafsi unapotumia jukwaa letu.'
+                'At Chimbo Direct, we take your privacy seriously. This Privacy Policy explains how we collect, use, and protect your personal information when you use our platform.',
+                'Kwenye Chimbo Direct, tunachukua faragha yako kwa uzito. Sera hii ya Faragha inaeleza jinsi tunavyokusanya, kutumia, na kulinda taarifa zako za kibinafsi unapotumia jukwaa letu.'
               )}
             </p>
           </CardContent>

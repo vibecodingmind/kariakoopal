@@ -1049,7 +1049,7 @@ export function SeekerDashboard() {
           <div className="p-4">
             <div className="flex items-center gap-3 mb-3">
               <div className="size-10 rounded-full bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center shrink-0">
-                <Clock className="size-5 text-kariako-green animate-pulse-dot" />
+                <Clock className="size-5 text-chimbo-green animate-pulse-dot" />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
@@ -1083,7 +1083,7 @@ export function SeekerDashboard() {
           <div className="p-4">
             <div className="flex items-center gap-3 mb-3">
               <div className="size-10 rounded-full bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center shrink-0">
-                <Radio className="size-5 text-kariako-green animate-pulse-dot" />
+                <Radio className="size-5 text-chimbo-green animate-pulse-dot" />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
@@ -1091,7 +1091,7 @@ export function SeekerDashboard() {
                   <span className="kbadge kbadge-live">LIVE</span>
                 </div>
                 <p className="text-xs text-muted-foreground truncate mt-0.5">{openRequest.description}</p>
-                <p className="text-xs text-kariako-green font-medium mt-0.5">{lang === 'sw' ? 'Inatafuta waongozaji...' : 'Matching with guides...'}</p>
+                <p className="text-xs text-chimbo-green font-medium mt-0.5">{lang === 'sw' ? 'Inatafuta waongozaji...' : 'Matching with guides...'}</p>
               </div>
             </div>
             <div className="flex gap-2">
@@ -1112,7 +1112,7 @@ export function SeekerDashboard() {
         <div className="kcard">
           <div className="p-4">
             <div className="flex items-center gap-2 mb-3">
-              <Radar className="size-5 text-kariako-green" />
+              <Radar className="size-5 text-chimbo-green" />
               <h3 className="font-semibold text-foreground text-sm">{lang === 'sw' ? 'Rada ya Bei' : 'Price Radar'}</h3>
             </div>
             <div className="space-y-3">
@@ -1167,11 +1167,11 @@ export function SeekerDashboard() {
           {/* Map overlay badges */}
           <div className="absolute top-3 left-3 flex gap-2 z-10">
             <div className="kmap-badge">
-              <MapPin className="size-3.5 text-kariako-green" />
+              <MapPin className="size-3.5 text-chimbo-green" />
               <span>{guides.filter((g) => g.currentStatus === 'online').length || 12} {lang === 'sw' ? 'Waongozaji' : 'Guides Nearby'}</span>
             </div>
             <div className="kmap-badge">
-              <ShieldCheck className="size-3.5 text-kariako-yellow" />
+              <ShieldCheck className="size-3.5 text-chimbo-yellow" />
               <span>{lang === 'sw' ? 'Dhamana Imethibitishwa' : 'Escrow Verified'}</span>
             </div>
           </div>
@@ -1182,7 +1182,7 @@ export function SeekerDashboard() {
       <div className="kcard-green p-4">
         <div className="flex items-center gap-3 mb-3">
           <div className="size-10 rounded-full bg-white/20 flex items-center justify-center shrink-0">
-            <ShieldCheck className="size-5 text-kariako-yellow" />
+            <ShieldCheck className="size-5 text-chimbo-yellow" />
           </div>
           <div>
             <p className="font-semibold text-white text-sm">{lang === 'sw' ? 'Wasifu Uliothibitishwa' : 'Verified Profile'}</p>
@@ -1192,7 +1192,7 @@ export function SeekerDashboard() {
         <div className="mb-3">
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs text-white/80">{lang === 'sw' ? 'Alama ya Kuaminiwa Escrow' : 'Escrow Trust Score'}</span>
-            <span className="text-xs font-bold text-kariako-yellow">85%</span>
+            <span className="text-xs font-bold text-chimbo-yellow">85%</span>
           </div>
           <div className="ktrust-progress">
             <div className="ktrust-progress-bar" style={{ width: '85%' }} />
@@ -1212,8 +1212,8 @@ export function SeekerDashboard() {
           onClick={() => navigateTo('post-request')}
         >
           <div className="p-4 flex flex-col items-center gap-2 text-center">
-            <div className="size-11 rounded-xl bg-kariako-green-light flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Plus className="size-5 text-kariako-green" />
+            <div className="size-11 rounded-xl bg-chimbo-green-light flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Plus className="size-5 text-chimbo-green" />
             </div>
             <span className="text-xs font-medium text-foreground">{t('post_request', lang)}</span>
           </div>
@@ -1224,8 +1224,8 @@ export function SeekerDashboard() {
           onClick={() => navigateTo('price-radar')}
         >
           <div className="p-4 flex flex-col items-center gap-2 text-center">
-            <div className="size-11 rounded-xl bg-kariako-green-light flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Radar className="size-5 text-kariako-green" />
+            <div className="size-11 rounded-xl bg-chimbo-green-light flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Radar className="size-5 text-chimbo-green" />
             </div>
             <span className="text-xs font-medium text-foreground">{t('nav_price_radar', lang)}</span>
           </div>
@@ -1236,8 +1236,8 @@ export function SeekerDashboard() {
           onClick={() => navigateTo('vendors')}
         >
           <div className="p-4 flex flex-col items-center gap-2 text-center">
-            <div className="size-11 rounded-xl bg-kariako-green-light flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Store className="size-5 text-kariako-green" />
+            <div className="size-11 rounded-xl bg-chimbo-green-light flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Store className="size-5 text-chimbo-green" />
             </div>
             <span className="text-xs font-medium text-foreground">{t('nav_vendors', lang)}</span>
           </div>
@@ -1248,8 +1248,8 @@ export function SeekerDashboard() {
           onClick={() => navigateTo('my-requests')}
         >
           <div className="p-4 flex flex-col items-center gap-2 text-center">
-            <div className="size-11 rounded-xl bg-kariako-green-light flex items-center justify-center group-hover:scale-110 transition-transform">
-              <FileText className="size-5 text-kariako-green" />
+            <div className="size-11 rounded-xl bg-chimbo-green-light flex items-center justify-center group-hover:scale-110 transition-transform">
+              <FileText className="size-5 text-chimbo-green" />
             </div>
             <span className="text-xs font-medium text-foreground">{t('my_requests', lang)}</span>
           </div>
@@ -1303,7 +1303,7 @@ export function SeekerDashboard() {
         <div className="kcard">
           <div className="p-4">
             <div className="flex items-center gap-2 mb-3">
-              <MapPin className="size-4 text-kariako-green" />
+              <MapPin className="size-4 text-chimbo-green" />
               <h3 className="font-semibold text-foreground text-sm">{lang === 'sw' ? 'Maeneo Maarufu' : 'Popular Zones'}</h3>
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -1337,8 +1337,8 @@ export function SeekerDashboard() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div className="kcard cursor-pointer group" onClick={() => navigateTo('group-tour')}>
             <div className="p-4 flex flex-col items-center gap-2 text-center">
-              <div className="size-11 rounded-xl bg-kariako-green-light flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Users className="size-5 text-kariako-green" />
+              <div className="size-11 rounded-xl bg-chimbo-green-light flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Users className="size-5 text-chimbo-green" />
               </div>
               <span className="text-xs font-medium text-foreground">{lang === 'sw' ? 'Safari ya Kikundi' : 'Group Tour'}</span>
             </div>
@@ -1346,8 +1346,8 @@ export function SeekerDashboard() {
 
           <div className="kcard cursor-pointer group" onClick={() => navigateTo('heatmap')}>
             <div className="p-4 flex flex-col items-center gap-2 text-center">
-              <div className="size-11 rounded-xl bg-kariako-green-light flex items-center justify-center group-hover:scale-110 transition-transform">
-                <ThermometerSun className="size-5 text-kariako-green" />
+              <div className="size-11 rounded-xl bg-chimbo-green-light flex items-center justify-center group-hover:scale-110 transition-transform">
+                <ThermometerSun className="size-5 text-chimbo-green" />
               </div>
               <span className="text-xs font-medium text-foreground">{lang === 'sw' ? 'Joto la Soko' : 'Market Heatmap'}</span>
             </div>
@@ -1355,8 +1355,8 @@ export function SeekerDashboard() {
 
           <div className="kcard cursor-pointer group" onClick={() => navigateTo('shopping-list')}>
             <div className="p-4 flex flex-col items-center gap-2 text-center">
-              <div className="size-11 rounded-xl bg-kariako-green-light flex items-center justify-center group-hover:scale-110 transition-transform">
-                <ShoppingCart className="size-5 text-kariako-green" />
+              <div className="size-11 rounded-xl bg-chimbo-green-light flex items-center justify-center group-hover:scale-110 transition-transform">
+                <ShoppingCart className="size-5 text-chimbo-green" />
               </div>
               <span className="text-xs font-medium text-foreground">{lang === 'sw' ? 'Orodha ya Ununuzi' : 'Shopping List'}</span>
             </div>
@@ -1364,8 +1364,8 @@ export function SeekerDashboard() {
 
           <div className="kcard cursor-pointer group" onClick={() => navigateTo('packages')}>
             <div className="p-4 flex flex-col items-center gap-2 text-center">
-              <div className="size-11 rounded-xl bg-kariako-green-light flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Package className="size-5 text-kariako-green" />
+              <div className="size-11 rounded-xl bg-chimbo-green-light flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Package className="size-5 text-chimbo-green" />
               </div>
               <span className="text-xs font-medium text-foreground">{lang === 'sw' ? 'Vifurushi' : 'Package Deals'}</span>
             </div>
@@ -1377,8 +1377,8 @@ export function SeekerDashboard() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="kcard cursor-pointer group" onClick={() => navigateTo('stories')}>
           <div className="p-4 flex flex-col items-center gap-2 text-center">
-            <div className="size-11 rounded-xl bg-kariako-green-light flex items-center justify-center group-hover:scale-110 transition-transform">
-              <BookOpen className="size-5 text-kariako-green" />
+            <div className="size-11 rounded-xl bg-chimbo-green-light flex items-center justify-center group-hover:scale-110 transition-transform">
+              <BookOpen className="size-5 text-chimbo-green" />
             </div>
             <span className="text-xs font-medium text-foreground">{lang === 'sw' ? 'Hadithi za Soko' : 'Market Stories'}</span>
           </div>
@@ -1386,8 +1386,8 @@ export function SeekerDashboard() {
 
         <div className="kcard cursor-pointer group" onClick={() => navigateTo('calendar')}>
           <div className="p-4 flex flex-col items-center gap-2 text-center">
-            <div className="size-11 rounded-xl bg-kariako-green-light flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Calendar className="size-5 text-kariako-green" />
+            <div className="size-11 rounded-xl bg-chimbo-green-light flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Calendar className="size-5 text-chimbo-green" />
             </div>
             <span className="text-xs font-medium text-foreground">{lang === 'sw' ? 'Kalenda ya Msimu' : 'Seasonal Calendar'}</span>
           </div>
@@ -1395,8 +1395,8 @@ export function SeekerDashboard() {
 
         <div className="kcard cursor-pointer group" onClick={() => navigateTo('buddy')}>
           <div className="p-4 flex flex-col items-center gap-2 text-center">
-            <div className="size-11 rounded-xl bg-kariako-green-light flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Heart className="size-5 text-kariako-green" />
+            <div className="size-11 rounded-xl bg-chimbo-green-light flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Heart className="size-5 text-chimbo-green" />
             </div>
             <span className="text-xs font-medium text-foreground">{lang === 'sw' ? 'Rafiki Pamoja' : 'Buddy System'}</span>
           </div>
@@ -1404,8 +1404,8 @@ export function SeekerDashboard() {
 
         <div className="kcard cursor-pointer group" onClick={() => navigateTo('haggling')}>
           <div className="p-4 flex flex-col items-center gap-2 text-center">
-            <div className="size-11 rounded-xl bg-kariako-green-light flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Scale className="size-5 text-kariako-green" />
+            <div className="size-11 rounded-xl bg-chimbo-green-light flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Scale className="size-5 text-chimbo-green" />
             </div>
             <span className="text-xs font-medium text-foreground">{lang === 'sw' ? 'Msaidizi wa Bishi' : 'Haggling Helper'}</span>
           </div>
@@ -1420,7 +1420,7 @@ export function SeekerDashboard() {
             <div className="p-4">
               <div className="flex items-center gap-3">
                 <div className={cn(
-                  'size-14 rounded-full flex items-center justify-center text-white font-bold text-lg border-2 border-kariako-yellow',
+                  'size-14 rounded-full flex items-center justify-center text-white font-bold text-lg border-2 border-chimbo-yellow',
                   ['bg-emerald-600', 'bg-sky-600', 'bg-amber-600', 'bg-rose-600', 'bg-teal-600'][guideOfWeek.id.charCodeAt(0) % 5]
                 )}>
                   {guideOfWeek.name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)}
@@ -1428,7 +1428,7 @@ export function SeekerDashboard() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <h3 className="font-bold text-foreground">{guideOfWeek.name}</h3>
-                    <Crown className="size-4 text-kariako-yellow" />
+                    <Crown className="size-4 text-chimbo-yellow" />
                   </div>
                   <RatingStars rating={guideOfWeek.rating} size="sm" showNumeric />
                   <div className="flex flex-wrap gap-1 mt-1.5">
@@ -1808,8 +1808,8 @@ export function SeekerDashboard() {
           <div className="kcard">
             <div className="p-4">
               <div className="flex items-start gap-3">
-                <div className="size-10 rounded-full bg-kariako-green-light flex items-center justify-center shrink-0">
-                  <FileText className="size-5 text-kariako-green" />
+                <div className="size-10 rounded-full bg-chimbo-green-light flex items-center justify-center shrink-0">
+                  <FileText className="size-5 text-chimbo-green" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-foreground">{matchingRequest.description}</p>
@@ -1833,10 +1833,10 @@ export function SeekerDashboard() {
         {isWaitingForGuides && matchedGuides.length === 0 && (
           <div className="text-center py-8">
             <div className="relative inline-block">
-              <div className="size-16 rounded-full bg-kariako-green-light flex items-center justify-center">
-                <Loader2 className="size-8 text-kariako-green animate-spin" />
+              <div className="size-16 rounded-full bg-chimbo-green-light flex items-center justify-center">
+                <Loader2 className="size-8 text-chimbo-green animate-spin" />
               </div>
-              <div className="absolute -bottom-1 -right-1 size-5 rounded-full bg-kariako-green flex items-center justify-center animate-pulse-dot">
+              <div className="absolute -bottom-1 -right-1 size-5 rounded-full bg-chimbo-green flex items-center justify-center animate-pulse-dot">
                 <Users className="size-3 text-white" />
               </div>
             </div>
@@ -1851,8 +1851,8 @@ export function SeekerDashboard() {
 
         {/* Zone expansion notification */}
         {zoneExpanded && (
-          <div className="kcard p-3 flex items-center gap-2 border-kariako-yellow">
-            <Bell className="size-4 text-kariako-yellow shrink-0" />
+          <div className="kcard p-3 flex items-center gap-2 border-chimbo-yellow">
+            <Bell className="size-4 text-chimbo-yellow shrink-0" />
             <p className="text-xs text-amber-700 dark:text-amber-300">
               {lang === 'sw' ? 'Maeneo yamepanuliwa baada ya dakika 5 kutafuta waongozaji zaidi' : 'Zones expanded after 5 min to find more guides'}
             </p>
@@ -2322,7 +2322,7 @@ export function SeekerDashboard() {
                       <span className="text-sm font-semibold text-foreground">{formatTZS(session.amount, lang)}</span>
                       {session.ratingSeeker && (
                         <div className="flex items-center gap-0.5">
-                          <Star className="size-3 text-kariako-yellow fill-kariako-yellow" />
+                          <Star className="size-3 text-chimbo-yellow fill-chimbo-yellow" />
                           <span className="text-xs text-muted-foreground">{session.ratingSeeker}</span>
                         </div>
                       )}
@@ -2429,8 +2429,8 @@ export function SeekerDashboard() {
         <div className="kcard">
           <div className="p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="size-10 rounded-full bg-kariako-green-light flex items-center justify-center">
-                <Scale className="size-5 text-kariako-green" />
+              <div className="size-10 rounded-full bg-chimbo-green-light flex items-center justify-center">
+                <Scale className="size-5 text-chimbo-green" />
               </div>
               <div>
                 <p className="text-sm font-semibold text-foreground">{lang === 'sw' ? 'Piga Bishi' : 'Negotiate Prices'}</p>
@@ -2918,7 +2918,7 @@ export function SeekerDashboard() {
               </button>
             )}
             <h1 className="text-base font-bold gradient-text-green">
-              {view === 'home' && (lang === 'sw' ? 'Kariako Guide' : 'Kariako Guide')}
+              {view === 'home' && (lang === 'sw' ? 'Chimbo Direct' : 'Chimbo Direct')}
               {view === 'post-request' && t('post_request', lang)}
               {view === 'my-requests' && t('my_requests', lang)}
               {view === 'matching' && (lang === 'sw' ? 'Waongozaji' : 'Guides')}
@@ -3011,7 +3011,7 @@ export function SeekerDashboard() {
               className={cn(
                 'flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg transition-colors min-w-[56px]',
                 view === item.id
-                  ? 'text-kariako-green'
+                  ? 'text-chimbo-green'
                   : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
               )}
             >

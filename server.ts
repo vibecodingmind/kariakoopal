@@ -1,4 +1,4 @@
-// ── Kariako Guide Platform - Custom Server ──
+// ── Chimbo Direct Platform - Custom Server ──
 // Starts the Socket.io realtime service and the Next.js application
 // This file is used by the `dev:server` script
 
@@ -28,9 +28,9 @@ async function main() {
   });
 
   server.listen(port, () => {
-    console.log(`[Kariako Server] Next.js app ready on http://${hostname}:${port}`);
-    console.log(`[Kariako Server] Socket.io realtime service runs separately on port 3003`);
-    console.log(`[Kariako Server] Use "bun run dev:server" to start both services`);
+    console.log(`[Chimbo Server] Next.js app ready on http://${hostname}:${port}`);
+    console.log(`[Chimbo Server] Socket.io realtime service runs separately on port 3003`);
+    console.log(`[Chimbo Server] Use "bun run dev:server" to start both services`);
   });
 }
 

@@ -1,4 +1,4 @@
-// Kariako Guide Platform - Analytics & Monitoring System
+// Chimbo Direct Platform - Analytics & Monitoring System
 // Simple console/logging-based analytics (can be upgraded to Sentry/PostHog later)
 
 // ── Event Types ──

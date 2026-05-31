@@ -151,7 +151,7 @@ export default function SecurityPage() {
       const res = await fetch('/api/security/2fa', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, email: user?.email || 'user@kariako.com' }),
+        body: JSON.stringify({ userId, email: user?.email || 'user@chimbo.direct' }),
       });
 
       if (!res.ok) {
@@ -313,7 +313,7 @@ export default function SecurityPage() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `kariako-data-${new Date().toISOString().slice(0, 10)}.json`;
+      a.download = `chimbo-data-${new Date().toISOString().slice(0, 10)}.json`;
       a.click();
       URL.revokeObjectURL(url);
       toast.success(l('Data exported successfully', 'Data imehamishwa kikamilifu'));

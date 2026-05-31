@@ -63,8 +63,8 @@ function generateId(): string {
   return `item-${Date.now()}-${++idCounter}`;
 }
 
-const STORAGE_KEY = 'kariako-shopping-lists';
-const ACTIVE_LIST_KEY = 'kariako-active-list-id';
+const STORAGE_KEY = 'chimbo-shopping-lists';
+const ACTIVE_LIST_KEY = 'chimbo-active-list-id';
 
 interface SavedList {
   id: string;
@@ -430,7 +430,7 @@ export function ShoppingListBuilder({ className }: ShoppingListBuilderProps) {
         `${item.checked ? '✅' : '⬜'} ${item.name} x${item.quantity} — ${formatTZS(item.estimatedPrice * item.quantity)} TZS${item.zone ? ` (${getZoneName(item.zone)})` : ''}`
     );
     const total = `\n${lang === 'sw' ? 'Jumla' : 'Total'}: ${formatTZS(totalEstimated)} TZS`;
-    const text = `${lang === 'sw' ? '🛒 Orodha ya Ununuzi - Kariako Guide' : '🛒 Shopping List - Kariako Guide'}\n\n${lines.join('\n')}${total}`;
+    const text = `${lang === 'sw' ? '🛒 Orodha ya Ununuzi - Chimbo Direct' : '🛒 Shopping List - Chimbo Direct'}\n\n${lines.join('\n')}${total}`;
 
     try {
       await navigator.clipboard.writeText(text);
@@ -455,7 +455,7 @@ export function ShoppingListBuilder({ className }: ShoppingListBuilderProps) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `kariako-shopping-list-${new Date().toISOString().split('T')[0]}.txt`;
+    a.download = `chimbo-shopping-list-${new Date().toISOString().split('T')[0]}.txt`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

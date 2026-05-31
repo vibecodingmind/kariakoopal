@@ -82,7 +82,7 @@ export default function AboutPage() {
                 <Compass className="w-10 h-10 text-[#34D399]" />
               </motion.div>
               <h1 className="text-3xl font-extrabold text-white mb-2">
-                Kariako<span className="text-[#34D399]">Guide</span>
+                Chimbo<span className="text-[#34D399]">Direct</span>
               </h1>
               <p className="text-sm text-[#34D399] max-w-sm mx-auto">
                 {l(

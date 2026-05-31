@@ -1046,7 +1046,7 @@ export function GuideDashboard() {
 
   const renderBackButton = (targetView: GuideView = 'home') => (
     <button
-      className="gap-1.5 mb-4 text-muted-foreground hover:text-kariako-green text-sm px-3 py-1.5 rounded-lg hover:bg-[var(--kariako-green-light)] transition-colors flex items-center border border-border"
+      className="gap-1.5 mb-4 text-muted-foreground hover:text-chimbo-green text-sm px-3 py-1.5 rounded-lg hover:bg-[var(--chimbo-green-light)] transition-colors flex items-center border border-border"
       onClick={() => navigateTo(targetView)}
     >
       <ArrowLeft className="size-4" />
@@ -1091,10 +1091,10 @@ export function GuideDashboard() {
             <div className="flex justify-center">
               {guideStore.status === 'online' && (
                 <div className="relative">
-                  <div className="size-20 rounded-full bg-kariako-green flex items-center justify-center">
+                  <div className="size-20 rounded-full bg-chimbo-green flex items-center justify-center">
                     <Eye className="size-10 text-white" />
                   </div>
-                  <div className="absolute inset-0 size-20 rounded-full bg-kariako-green/40 animate-ping" />
+                  <div className="absolute inset-0 size-20 rounded-full bg-chimbo-green/40 animate-ping" />
                 </div>
               )}
               {guideStore.status === 'busy' && (
@@ -1193,8 +1193,8 @@ export function GuideDashboard() {
       {/* Quick stats cards */}
       <div className="grid grid-cols-3 gap-3">
         <div className="kcard p-4 text-center">
-            <div className="size-10 rounded-full bg-[var(--kariako-green-light)] flex items-center justify-center mx-auto mb-2">
-              <MessageSquare className="size-5 text-kariako-green" />
+            <div className="size-10 rounded-full bg-[var(--chimbo-green-light)] flex items-center justify-center mx-auto mb-2">
+              <MessageSquare className="size-5 text-chimbo-green" />
             </div>
             <p className="text-2xl font-bold gradient-text-green">{profile?.totalSessions || 0}</p>
             <p className="text-xs text-muted-foreground">{lang === 'sw' ? 'Vikao vyote' : 'Total Sessions'}</p>
@@ -1207,8 +1207,8 @@ export function GuideDashboard() {
             <p className="text-xs text-muted-foreground">{lang === 'sw' ? 'Wastani wa ukadiriaji' : 'Avg Rating'}</p>
         </div>
         <div className="kcard p-4 text-center">
-            <div className="size-10 rounded-full bg-[var(--kariako-green-light)] flex items-center justify-center mx-auto mb-2">
-              <DollarSign className="size-5 text-kariako-green" />
+            <div className="size-10 rounded-full bg-[var(--chimbo-green-light)] flex items-center justify-center mx-auto mb-2">
+              <DollarSign className="size-5 text-chimbo-green" />
             </div>
             <p className="text-lg font-bold gradient-text-green">{formatTZS(earningsData.weekly, lang)}</p>
             <p className="text-xs text-muted-foreground">{t('weekly_total', lang)}</p>
@@ -1220,7 +1220,7 @@ export function GuideDashboard() {
         <div>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-lg font-bold gradient-text-green">{t('my_badges', lang)}</h2>
-            <Button variant="ghost" size="sm" className="text-xs text-kariako-green" onClick={() => navigateTo('badges')}>
+            <Button variant="ghost" size="sm" className="text-xs text-chimbo-green" onClick={() => navigateTo('badges')}>
               {t('see_all', lang)}
             </Button>
           </div>
@@ -1288,37 +1288,37 @@ export function GuideDashboard() {
         <h2 className="text-lg font-bold text-foreground mb-3">{lang === 'sw' ? 'Zaidi ya Huduma' : 'More Features'}</h2>
         <div className="grid grid-cols-3 gap-3">
           <div className="kcard cursor-pointer p-3 text-center" onClick={() => navigateTo('packages')}>
-              <div className="size-10 rounded-full bg-[var(--kariako-green-light)] flex items-center justify-center mx-auto mb-1.5">
+              <div className="size-10 rounded-full bg-[var(--chimbo-green-light)] flex items-center justify-center mx-auto mb-1.5">
                 <Package className="size-5 text-orange-600 dark:text-orange-400" />
               </div>
               <p className="text-[11px] font-medium text-foreground">{lang === 'sw' ? 'Vifurushi' : 'Packages'}</p>
           </div>
           <div className="kcard cursor-pointer p-3 text-center" onClick={() => navigateTo('mentorship')}>
-              <div className="size-10 rounded-full bg-[var(--kariako-green-light)] flex items-center justify-center mx-auto mb-1.5">
+              <div className="size-10 rounded-full bg-[var(--chimbo-green-light)] flex items-center justify-center mx-auto mb-1.5">
                 <GraduationCap className="size-5 text-violet-600 dark:text-violet-400" />
               </div>
               <p className="text-[11px] font-medium text-foreground">{lang === 'sw' ? 'Ushauri' : 'Mentorship'}</p>
           </div>
           <div className="kcard cursor-pointer p-3 text-center" onClick={() => navigateTo('calendar')}>
-              <div className="size-10 rounded-full bg-[var(--kariako-green-light)] flex items-center justify-center mx-auto mb-1.5">
+              <div className="size-10 rounded-full bg-[var(--chimbo-green-light)] flex items-center justify-center mx-auto mb-1.5">
                 <Calendar className="size-5 text-teal-600 dark:text-teal-400" />
               </div>
               <p className="text-[11px] font-medium text-foreground">{lang === 'sw' ? 'Kalenda' : 'Calendar'}</p>
           </div>
           <div className="kcard cursor-pointer p-3 text-center" onClick={() => navigateTo('stories')}>
-              <div className="size-10 rounded-full bg-[var(--kariako-green-light)] flex items-center justify-center mx-auto mb-1.5">
+              <div className="size-10 rounded-full bg-[var(--chimbo-green-light)] flex items-center justify-center mx-auto mb-1.5">
                 <BookOpen className="size-5 text-rose-600 dark:text-rose-400" />
               </div>
               <p className="text-[11px] font-medium text-foreground">{lang === 'sw' ? 'Hadithi' : 'Stories'}</p>
           </div>
           <div className="kcard cursor-pointer p-3 text-center" onClick={() => navigateTo('insights')}>
-              <div className="size-10 rounded-full bg-[var(--kariako-green-light)] flex items-center justify-center mx-auto mb-1.5">
+              <div className="size-10 rounded-full bg-[var(--chimbo-green-light)] flex items-center justify-center mx-auto mb-1.5">
                 <BarChart3 className="size-5 text-sky-600 dark:text-sky-400" />
               </div>
               <p className="text-[11px] font-medium text-foreground">{lang === 'sw' ? 'Uchambuzi' : 'Insights'}</p>
           </div>
           <div className="kcard cursor-pointer p-3 text-center" onClick={() => navigateTo('subscription')}>
-              <div className="size-10 rounded-full bg-[var(--kariako-green-light)] flex items-center justify-center mx-auto mb-1.5">
+              <div className="size-10 rounded-full bg-[var(--chimbo-green-light)] flex items-center justify-center mx-auto mb-1.5">
                 <Crown className="size-5 text-amber-600 dark:text-amber-400" />
               </div>
               <p className="text-[11px] font-medium text-foreground">{lang === 'sw' ? 'Usajili' : 'Plans'}</p>
@@ -1492,7 +1492,7 @@ export function GuideDashboard() {
                           ? request.zones.map((z) => t(z.nameKey, lang)).join(', ')
                           : lang === 'sw' ? 'Eneo la soko' : 'Market zone'}
                       </div>
-                      <span className="font-bold text-kariako-green text-sm">
+                      <span className="font-bold text-chimbo-green text-sm">
                         {formatTZS(request.budget, lang)}
                       </span>
                     </div>
@@ -1591,7 +1591,7 @@ export function GuideDashboard() {
                 <p className="text-xs text-muted-foreground">{activeSessionData.seeker?.phone || ''}</p>
               </div>
               <div className="text-right">
-                <p className="text-sm font-bold text-kariako-green">
+                <p className="text-sm font-bold text-chimbo-green">
                   {formatTZS(activeSessionData.amount, lang)}
                 </p>
                 <p className="text-[10px] text-muted-foreground">
@@ -1828,10 +1828,10 @@ export function GuideDashboard() {
         </div>
         <div className="kcard border-emerald-300 dark:border-emerald-600 p-4">
             <div className="flex items-center gap-2 mb-2">
-              <CircleDollarSign className="size-4 text-kariako-green" />
+              <CircleDollarSign className="size-4 text-chimbo-green" />
               <span className="text-xs text-muted-foreground">{t('released_earnings', lang)}</span>
             </div>
-            <p className="text-lg font-bold text-kariako-green">{formatTZS(earningsData.released, lang)}</p>
+            <p className="text-lg font-bold text-chimbo-green">{formatTZS(earningsData.released, lang)}</p>
             <p className="text-[10px] text-muted-foreground mt-1">{lang === 'sw' ? 'Inapatikana' : 'Available'}</p>
         </div>
         <div className="kcard p-4">
@@ -1869,7 +1869,7 @@ export function GuideDashboard() {
                     className={cn(
                       'w-full rounded-t-md transition-all',
                       day.amount > 0
-                        ? 'bg-kariako-green'
+                        ? 'bg-chimbo-green'
                         : 'bg-muted-foreground/20'
                     )}
                     style={{ height: `${heightPct}%` }}
@@ -1911,8 +1911,8 @@ export function GuideDashboard() {
 
       {/* Quick link to Insights */}
       <div className="kcard cursor-pointer p-4 flex items-center gap-3" onClick={() => navigateTo('insights')}>
-          <div className="size-10 rounded-full bg-[var(--kariako-green-light)] flex items-center justify-center shrink-0">
-            <BarChart3 className="size-5 text-kariako-green" />
+          <div className="size-10 rounded-full bg-[var(--chimbo-green-light)] flex items-center justify-center shrink-0">
+            <BarChart3 className="size-5 text-chimbo-green" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-foreground text-sm">{lang === 'sw' ? 'Uchambuzi wa Utendaji' : 'Performance Insights'}</p>
@@ -2121,7 +2121,7 @@ export function GuideDashboard() {
                   className={cn(
                     'flex items-center gap-3 rounded-lg border p-3 transition-colors',
                     isCurrentUser
-                      ? 'border-kariako-green bg-[var(--kariako-green-light)] ring-1 ring-kariako-green/30'
+                      ? 'border-chimbo-green bg-[var(--chimbo-green-light)] ring-1 ring-chimbo-green/30'
                       : position <= 3
                         ? 'bg-amber-50/50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800'
                         : 'kcard'
@@ -2152,7 +2152,7 @@ export function GuideDashboard() {
                   {/* Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5">
-                      <h4 className={cn('font-medium text-sm truncate', isCurrentUser ? 'text-kariako-green font-bold' : 'text-foreground')}>
+                      <h4 className={cn('font-medium text-sm truncate', isCurrentUser ? 'text-chimbo-green font-bold' : 'text-foreground')}>
                         {guide.name} {isCurrentUser && `(${lang === 'sw' ? 'Wewe' : 'You'})`}
                       </h4>
                       {guide.isVerifiedElite && (
@@ -2180,9 +2180,9 @@ export function GuideDashboard() {
 
         {/* Current position */}
         {currentGuideRank > 0 && (
-          <div className="kcard mt-4 p-3 flex items-center justify-between bg-[var(--kariako-green-light)] border-kariako-green/20">
+          <div className="kcard mt-4 p-3 flex items-center justify-between bg-[var(--chimbo-green-light)] border-chimbo-green/20">
               <span className="text-sm text-muted-foreground">{lang === 'sw' ? 'Nafasi yako' : 'Your position'}</span>
-              <span className="text-lg font-bold text-kariako-green">#{currentGuideRank}</span>
+              <span className="text-lg font-bold text-chimbo-green">#{currentGuideRank}</span>
           </div>
         )}
       </div>
@@ -2395,7 +2395,7 @@ export function GuideDashboard() {
                 {user?.name ? getInitials(user.name) : '?'}
               </div>
               {isProfileEditing && (
-                <button className="absolute bottom-0 right-0 size-7 rounded-full bg-kariako-green text-white flex items-center justify-center shadow-md">
+                <button className="absolute bottom-0 right-0 size-7 rounded-full bg-chimbo-green text-white flex items-center justify-center shadow-md">
                   <Camera className="size-3.5" />
                 </button>
               )}
@@ -2435,8 +2435,8 @@ export function GuideDashboard() {
             <div className="flex items-center gap-1.5">
               {profile?.idDocumentUrl ? (
                 <>
-                  <ShieldCheck className="size-4 text-kariako-green" />
-                  <span className="text-xs text-kariako-green">{t('trust_verified', lang)}</span>
+                  <ShieldCheck className="size-4 text-chimbo-green" />
+                  <span className="text-xs text-chimbo-green">{t('trust_verified', lang)}</span>
                 </>
               ) : (
                 <>
@@ -2493,7 +2493,7 @@ export function GuideDashboard() {
                     className={cn(
                       'inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors',
                       isSelected
-                        ? `${zc?.bg || 'bg-[var(--kariako-green-light)]'} ${zc?.text || 'text-kariako-green'} border-current`
+                        ? `${zc?.bg || 'bg-[var(--chimbo-green-light)]'} ${zc?.text || 'text-chimbo-green'} border-current`
                         : 'border-border text-muted-foreground',
                       isProfileEditing && 'cursor-pointer hover:border-foreground/30',
                       !isProfileEditing && 'cursor-default'
@@ -2531,7 +2531,7 @@ export function GuideDashboard() {
                   className={cn(
                     'inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors',
                     isSelected
-                      ? 'bg-[var(--kariako-green-light)] text-kariako-green border-kariako-green/30'
+                      ? 'bg-[var(--chimbo-green-light)] text-chimbo-green border-chimbo-green/30'
                       : 'border-border text-muted-foreground',
                     isProfileEditing && 'cursor-pointer hover:border-foreground/30',
                     !isProfileEditing && 'cursor-default'
@@ -2564,7 +2564,7 @@ export function GuideDashboard() {
 
       {/* Subscription Link */}
       <div className="kcard cursor-pointer p-4 flex items-center gap-3" onClick={() => navigateTo('subscription')}>
-          <div className="size-10 rounded-full bg-[var(--kariako-green-light)] flex items-center justify-center shrink-0">
+          <div className="size-10 rounded-full bg-[var(--chimbo-green-light)] flex items-center justify-center shrink-0">
             <Crown className="size-5 text-amber-600 dark:text-amber-400" />
           </div>
           <div className="flex-1 min-w-0">
@@ -2606,8 +2606,8 @@ export function GuideDashboard() {
             <h1 className="text-lg font-bold gradient-text-green">{t('app_name', lang)}</h1>
             {guideStore.status === 'online' && (
               <span className="flex items-center gap-1">
-                <span className="size-2 rounded-full bg-kariako-green animate-pulse" />
-                <span className="text-xs text-kariako-green font-medium">{t('online', lang)}</span>
+                <span className="size-2 rounded-full bg-chimbo-green animate-pulse" />
+                <span className="text-xs text-chimbo-green font-medium">{t('online', lang)}</span>
               </span>
             )}
             {guideStore.status === 'busy' && (
@@ -2683,7 +2683,7 @@ export function GuideDashboard() {
                 className={cn(
                   'flex flex-col items-center justify-center gap-0.5 min-w-[56px] py-2 px-2 rounded-lg transition-colors relative',
                   isActive
-                    ? 'text-kariako-green'
+                    ? 'text-chimbo-green'
                     : 'text-muted-foreground hover:text-foreground'
                 )}
                 aria-label={tab.label}

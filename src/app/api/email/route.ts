@@ -9,8 +9,8 @@ interface EmailPayload {
 
 const TEMPLATES: Record<string, (data: Record<string, any>) => { html: string; text: string }> = {
   welcome: (data) => ({
-    html: `<h1>Welcome to Kariako Guide, ${data.name}!</h1><p>Your ${data.role} account is ready.</p><p>Start exploring Kariakoo Market with AI-powered tools.</p>`,
-    text: `Welcome to Kariako Guide, ${data.name}! Your ${data.role} account is ready.`,
+    html: `<h1>Welcome to Chimbo Direct, ${data.name}!</h1><p>Your ${data.role} account is ready.</p><p>Start exploring Kariakoo Market with AI-powered tools.</p>`,
+    text: `Welcome to Chimbo Direct, ${data.name}! Your ${data.role} account is ready.`,
   }),
   'booking-confirmed': (data) => ({
     html: `<h1>Booking Confirmed!</h1><p>Your session with ${data.guideName} on ${data.date} at ${data.time} is confirmed.</p><p>Amount: TZS ${data.amount?.toLocaleString()}</p><p>Payment held in escrow until session completion.</p>`,
@@ -33,7 +33,7 @@ const TEMPLATES: Record<string, (data: Record<string, any>) => { html: string; t
     text: `Security alert: ${data.message}`,
   }),
   'weekly-digest': (data) => ({
-    html: `<h1>Your Weekly Kariako Digest</h1><p>Sessions: ${data.sessions} | Earnings: TZS ${data.earnings?.toLocaleString()} | Rating: ${data.rating}</p>`,
+    html: `<h1>Your Weekly Chimbo Digest</h1><p>Sessions: ${data.sessions} | Earnings: TZS ${data.earnings?.toLocaleString()} | Rating: ${data.rating}</p>`,
     text: `Weekly: ${data.sessions} sessions, TZS ${data.earnings?.toLocaleString()} earned.`,
   }),
 };

@@ -1,7 +1,7 @@
-// Kariako Guide - Service Worker
+// Chimbo Direct - Service Worker
 // Caches app shell with cache-first for static assets, network-first for API calls
 
-const CACHE_NAME = 'kariako-guide-v1';
+const CACHE_NAME = 'chimbo-direct-v1';
 
 // Precache these URLs on install
 const PRECACHE_URLS = [
@@ -129,7 +129,7 @@ async function navigationFallback(request) {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Kariako Guide - Offline</title>
+  <title>Chimbo Direct - Offline</title>
   <style>
     body {
       font-family: system-ui, -apple-system, sans-serif;
@@ -153,8 +153,8 @@ async function navigationFallback(request) {
   <div class="container">
     <div class="icon">📵</div>
     <h1>Huna mtandao / You are offline</h1>
-    <p>Kariako Guide inahitaji muunganisho wa mtandao. Tafadhali angalia mtandao wako na ujaribu tena.</p>
-    <p style="font-size:0.85rem; margin-top:0.5rem;">Kariako Guide requires an internet connection. Please check your network and try again.</p>
+    <p>Chimbo Direct inahitaji muunganisho wa mtandao. Tafadhali angalia mtandao wako na ujaribu tena.</p>
+    <p style="font-size:0.85rem; margin-top:0.5rem;">Chimbo Direct requires an internet connection. Please check your network and try again.</p>
   </div>
 </body>
 </html>`,

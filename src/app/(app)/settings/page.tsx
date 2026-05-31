@@ -204,7 +204,7 @@ export default function SettingsPage() {
             { icon: HelpCircle, label: l('Help & Support', 'Msaada'), href: '#', badge: null },
             { icon: MessageSquare, label: l('Feedback', 'Maoni'), href: '#', badge: null },
             { icon: FileText, label: l('Terms of Service', 'Masharti ya Huduma'), href: '#', badge: null },
-            { icon: Info, label: l('About Kariako Guide', 'Kuhusu Kariako Guide'), href: '#', badge: l('v2.0', 'v2.0') },
+            { icon: Info, label: l('About Chimbo Direct', 'Kuhusu Chimbo Direct'), href: '#', badge: l('v2.0', 'v2.0') },
           ].map((item, i) => (
             <button
               key={i}
@@ -235,7 +235,7 @@ export default function SettingsPage() {
       </motion.div>
 
       <div className="text-center py-4">
-        <p className="text-[10px] text-[#64748B]">Kariako Guide v2.0 · {l('Made with love in Kariakoo', 'Imetengenezwa kwa upendo Kariakoo')}</p>
+        <p className="text-[10px] text-[#64748B]">Chimbo Direct v2.0 · {l('Made with love in Kariakoo', 'Imetengenezwa kwa upendo Kariakoo')}</p>
       </div>
     </div>
   );

@@ -92,7 +92,7 @@ function SidebarContent({ collapsed, pathname }: { collapsed: boolean; pathname:
         <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg shadow-emerald-500/20 shrink-0">
           <Image
             src="/logo-mark.png"
-            alt="Kariako Guide"
+            alt="Chimbo Direct"
             width={40}
             height={40}
             className="w-full h-full object-cover"
@@ -108,7 +108,7 @@ function SidebarContent({ collapsed, pathname }: { collapsed: boolean; pathname:
               transition={{ duration: 0.2 }}
               className="overflow-hidden whitespace-nowrap"
             >
-              <p className="text-white font-bold text-sm">KariakoGuide</p>
+              <p className="text-white font-bold text-sm">ChimboDirect</p>
               <p className="text-white/40 text-[10px] font-medium">Admin Panel</p>
             </motion.div>
           )}

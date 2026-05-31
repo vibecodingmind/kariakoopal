@@ -1,4 +1,4 @@
-// Kariako Guide Platform - Map Data
+// Chimbo Direct Platform - Map Data
 // Approximate polygon coordinates for Kariakoo market zones, vendor stalls, and landmarks
 // All coordinates are based on the real Kariakoo market area in Dar es Salaam, Tanzania
 // Center: -6.8264, 39.2695

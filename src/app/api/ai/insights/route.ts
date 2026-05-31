@@ -13,21 +13,21 @@ export async function POST(req: NextRequest) {
     switch (queryType) {
       case 'revenue_forecast':
         systemPrompt =
-          'You are an AI revenue analyst for Kariako Guide platform (a marketplace guide platform for Kariakoo Market, Dar es Salaam). Analyze the provided data and forecast revenue trends for the next 30 days. Include: projectedRevenue, growthRate, topRevenueStreams, riskFactors, opportunities. Also provide a summary paragraph, key metrics array (label, value, change, changeDirection), trendData array for charts (month, value), and recommendations array (title, description, priority, impact). Return as JSON.';
+          'You are an AI revenue analyst for Chimbo Direct platform (a marketplace guide platform for Kariakoo Market, Dar es Salaam). Analyze the provided data and forecast revenue trends for the next 30 days. Include: projectedRevenue, growthRate, topRevenueStreams, riskFactors, opportunities. Also provide a summary paragraph, key metrics array (label, value, change, changeDirection), trendData array for charts (month, value), and recommendations array (title, description, priority, impact). Return as JSON.';
         userPrompt = followUpQuestion
           ? `Follow-up question about revenue: ${followUpQuestion}. Context data: ${JSON.stringify(platformData)}.`
           : `Revenue data: ${JSON.stringify(platformData)}. Forecast next 30 days.`;
         break;
       case 'user_behavior':
         systemPrompt =
-          'You are an AI user behavior analyst for Kariako Guide platform. Analyze user patterns and provide insights on: activeUserTrends, churnRisk (users likely to leave), engagementPatterns, featureAdoption, recommendations. Also provide a summary paragraph, key metrics array (label, value, change, changeDirection), trendData array for charts (month, value), and recommendations array (title, description, priority, impact). Return as JSON.';
+          'You are an AI user behavior analyst for Chimbo Direct platform. Analyze user patterns and provide insights on: activeUserTrends, churnRisk (users likely to leave), engagementPatterns, featureAdoption, recommendations. Also provide a summary paragraph, key metrics array (label, value, change, changeDirection), trendData array for charts (month, value), and recommendations array (title, description, priority, impact). Return as JSON.';
         userPrompt = followUpQuestion
           ? `Follow-up question about user behavior: ${followUpQuestion}. Context data: ${JSON.stringify(platformData)}.`
           : `User data: ${JSON.stringify(platformData)}. Analyze behavior patterns.`;
         break;
       case 'fraud_detection':
         systemPrompt =
-          'You are an AI fraud detection system for Kariako Guide platform. Identify suspicious patterns: unusualPayouts, fakeProfiles, priceManipulation, suspiciousSessions, riskScore (0-100). Also provide a summary paragraph, key metrics array (label, value, change, changeDirection), trendData array for charts (month, value), flaggedItems array (entity, riskScore, reason, severity), and recommendations array (title, description, priority, impact). Return as JSON with flagged items and evidence.';
+          'You are an AI fraud detection system for Chimbo Direct platform. Identify suspicious patterns: unusualPayouts, fakeProfiles, priceManipulation, suspiciousSessions, riskScore (0-100). Also provide a summary paragraph, key metrics array (label, value, change, changeDirection), trendData array for charts (month, value), flaggedItems array (entity, riskScore, reason, severity), and recommendations array (title, description, priority, impact). Return as JSON with flagged items and evidence.';
         userPrompt = followUpQuestion
           ? `Follow-up question about fraud: ${followUpQuestion}. Context data: ${JSON.stringify(platformData)}.`
           : `Transaction and activity data: ${JSON.stringify(platformData)}. Detect fraud.`;
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
         break;
       default:
         systemPrompt =
-          'You are an AI business analyst for Kariako Guide platform (a marketplace guide platform for Kariakoo Market, Dar es Salaam). Provide comprehensive insights including: keyMetrics, trends, alerts, recommendations, actionItems. Also provide a summary paragraph, key metrics array (label, value, change, changeDirection), trendData array for charts (month, value), alertItems array (severity, description, timestamp, entity), and recommendations array (title, description, priority, impact). Return as JSON.';
+          'You are an AI business analyst for Chimbo Direct platform (a marketplace guide platform for Kariakoo Market, Dar es Salaam). Provide comprehensive insights including: keyMetrics, trends, alerts, recommendations, actionItems. Also provide a summary paragraph, key metrics array (label, value, change, changeDirection), trendData array for charts (month, value), alertItems array (severity, description, timestamp, entity), and recommendations array (title, description, priority, impact). Return as JSON.';
         userPrompt = followUpQuestion
           ? `Follow-up question: ${followUpQuestion}. Context data: ${JSON.stringify(platformData)}.`
           : `Platform data: ${JSON.stringify(platformData)}. Give me insights.`;

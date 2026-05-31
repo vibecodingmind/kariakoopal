@@ -222,7 +222,7 @@ export const useAuthStore = create<AuthState>()(
       setSubscriptionTier: (tier) => set({ subscriptionTier: tier }),
     }),
     {
-      name: 'kariako-auth',
+      name: 'chimbo-auth',
       partialize: (state) => ({
         user: state.user,
         guideProfile: state.guideProfile,

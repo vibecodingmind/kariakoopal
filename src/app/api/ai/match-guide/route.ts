@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
       messages: [
         {
           role: 'system',
-          content: `You are an AI matching system for Kariako Guide platform. You match tourists (seekers) with the best local guides in Kariakoo, Dar es Salaam, Tanzania.
+          content: `You are an AI matching system for Chimbo Direct platform. You match tourists (seekers) with the best local guides in Kariakoo, Dar es Salaam, Tanzania.
 
 Consider these matching factors:
 1. Language compatibility (English, Swahili, or other)

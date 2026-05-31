@@ -16,8 +16,8 @@ export default function TermsPage() {
       icon: Scale,
       title: l('1. Acceptance of Terms', '1. kukubaliana na Masharti'),
       content: l(
-        'By accessing or using the Kariako Guide platform ("Service"), you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our Service. These terms apply to all users, including seekers, guides, and administrators.',
-        'Kwa kupata au kutumia jukwaa la Kariako Guide ("Huduma"), unakubali kufungwa na Masharti hizi ya Huduma. Ukikubaliana na masharti hizi, tafadhali usitumie Huduma yetu. Masharti haya inatumika kwa watumiaji wote, ikiwa ni pamoja na watafuta, waongozaji, na wasimamizi.'
+        'By accessing or using the Chimbo Direct platform ("Service"), you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our Service. These terms apply to all users, including seekers, guides, and administrators.',
+        'Kwa kupata au kutumia jukwaa la Chimbo Direct ("Huduma"), unakubali kufungwa na Masharti hizi ya Huduma. Ukikubaliana na masharti hizi, tafadhali usitumie Huduma yetu. Masharti haya inatumika kwa watumiaji wote, ikiwa ni pamoja na watafuta, waongozaji, na wasimamizi.'
       ),
     },
     {
@@ -56,24 +56,24 @@ export default function TermsPage() {
       icon: FileText,
       title: l('6. Intellectual Property', '6. Mali ya Akili'),
       content: l(
-        'All content on the Kariako Guide platform, including but not limited to text, graphics, logos, and software, is the property of Kariako Guide Ltd. Market data and price information are provided for personal use only. Commercial reproduction or distribution without written consent is prohibited.',
-        'Yaliyomo yote kwenye jukwaa la Kariako Guide, ikiwa ni pamoja na lakini sio mdogo na maandishi, michoro, nembo, na programu, ni mali ya Kariako Guide Ltd. Data ya soko na taarifa za bei zinatolewa kwa matumizi ya kibinafsi tu. Uzalishaji au usambazaji wa kibiashara bila idhini ya maandishi unakatazwa.'
+        'All content on the Chimbo Direct platform, including but not limited to text, graphics, logos, and software, is the property of Chimbo Direct Ltd. Market data and price information are provided for personal use only. Commercial reproduction or distribution without written consent is prohibited.',
+        'Yaliyomo yote kwenye jukwaa la Chimbo Direct, ikiwa ni pamoja na lakini sio mdogo na maandishi, michoro, nembo, na programu, ni mali ya Chimbo Direct Ltd. Data ya soko na taarifa za bei zinatolewa kwa matumizi ya kibinafsi tu. Uzalishaji au usambazaji wa kibiashara bila idhini ya maandishi unakatazwa.'
       ),
     },
     {
       icon: Shield,
       title: l('7. Limitation of Liability', '7. Kikomo cha Dhima'),
       content: l(
-        'Kariako Guide acts as an intermediary platform connecting seekers with guides. We are not responsible for the actions or conduct of individual guides or seekers. We do not guarantee the quality of products purchased in the market. Our liability is limited to the amount paid through the platform for the specific transaction in question.',
-        'Kariako Guide inafanya kazi kama jukwaa la kati linalounganisha watafuta na waongozaji. Hatuhusiki na vitendo au mwenendo wa waongozaji au watafuta binafsi. Hatuhakikishi ubora wa bidhaa zilizonunuliwa sokoni. Dhima yetu ni mdogo kwa kiasi kilicholipwa kupitia jukwaa kwa muamala maalum unaozingatiwa.'
+        'Chimbo Direct acts as an intermediary platform connecting seekers with guides. We are not responsible for the actions or conduct of individual guides or seekers. We do not guarantee the quality of products purchased in the market. Our liability is limited to the amount paid through the platform for the specific transaction in question.',
+        'Chimbo Direct inafanya kazi kama jukwaa la kati linalounganisha watafuta na waongozaji. Hatuhusiki na vitendo au mwenendo wa waongozaji au watafuta binafsi. Hatuhakikishi ubora wa bidhaa zilizonunuliwa sokoni. Dhima yetu ni mdogo kwa kiasi kilicholipwa kupitia jukwaa kwa muamala maalum unaozingatiwa.'
       ),
     },
     {
       icon: Mail,
       title: l('8. Contact Information', '8. Taarifa za Mawasiliano'),
       content: l(
-        'For questions about these Terms of Service, please contact us at:\n\n• Email: legal@kariako.guide\n• Phone: +255 123 456 789\n• Address: Kariakoo Market, Dar es Salaam, Tanzania\n\nLast updated: January 2025',
-        'Kwa maswali kuhusu Masharti hizi ya Huduma, tafadhali wasiliana nasi:\n\n• Barua: legal@kariako.guide\n• Simu: +255 123 456 789\n• Anwani: Soko la Kariakoo, Dar es Salaam, Tanzania\n\nIlisasishwa mwisho: Januari 2025'
+        'For questions about these Terms of Service, please contact us at:\n\n• Email: legal@chimbo.direct\n• Phone: +255 123 456 789\n• Address: Kariakoo Market, Dar es Salaam, Tanzania\n\nLast updated: January 2025',
+        'Kwa maswali kuhusu Masharti hizi ya Huduma, tafadhali wasiliana nasi:\n\n• Barua: legal@chimbo.direct\n• Simu: +255 123 456 789\n• Anwani: Soko la Kariakoo, Dar es Salaam, Tanzania\n\nIlisasishwa mwisho: Januari 2025'
       ),
     },
   ];
@@ -105,8 +105,8 @@ export default function TermsPage() {
           <CardContent className="p-5">
             <p className="text-sm text-[#64748B] dark:text-[#94A3B8] leading-relaxed">
               {l(
-                'Welcome to Kariako Guide. These Terms of Service govern your use of our platform and services. Please read them carefully before using our service.',
-                'Karibu Kariako Guide. Masharti hizi ya Huduma zinaongoza matumizi yako ya jukwaa letu na huduma. Tafadhali zisome kwa uangalifu kabla ya kutumia huduma yetu.'
+                'Welcome to Chimbo Direct. These Terms of Service govern your use of our platform and services. Please read them carefully before using our service.',
+                'Karibu Chimbo Direct. Masharti hizi ya Huduma zinaongoza matumizi yako ya jukwaa letu na huduma. Tafadhali zisome kwa uangalifu kabla ya kutumia huduma yetu.'
               )}
             </p>
           </CardContent>

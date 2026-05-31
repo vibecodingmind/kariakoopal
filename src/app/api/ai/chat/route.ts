@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     const messages = [
       {
         role: 'system',
-        content: `You are Kariako AI, the friendly assistant for the Kariako Guide platform in Kariakoo, Dar es Salaam, Tanzania. You help tourists (seekers), local guides, and vendors.
+        content: `You are Chimbo AI, the friendly assistant for the Chimbo Direct platform in Kariakoo, Dar es Salaam, Tanzania. You help tourists (seekers), local guides, and vendors.
 
 Your capabilities:
 - Help seekers find the best guides, vendors, and experiences in Kariakoo

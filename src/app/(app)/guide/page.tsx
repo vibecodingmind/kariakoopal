@@ -178,7 +178,7 @@ export default function GuideDashboard() {
             <Bot className="w-5 h-5 text-[#065F46] dark:text-[#34D399]" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-[#0F172A] dark:text-[#F1F5F9]">{l('Ask Kariako AI', 'Uliza Kariako AI')}</p>
+            <p className="text-sm font-semibold text-[#0F172A] dark:text-[#F1F5F9]">{l('Ask Chimbo AI', 'Uliza Chimbo AI')}</p>
             <p className="text-xs text-[#64748B]">{l('Get tips to boost your earnings', 'Pata vidokezo vya kuongeza mapato')}</p>
           </div>
           <div className="flex items-center gap-1 text-xs text-[#065F46] dark:text-[#34D399] font-medium">

@@ -1,6 +1,6 @@
 export const sw: Record<string, string> = {
   // ── General ──
-  app_name: 'Kariako Guide',
+  app_name: 'Chimbo Direct',
   tagline: 'Mwongozo wako katika soko la Kariakoo',
   welcome: 'Karibu',
   loading: 'Inapakia...',
@@ -31,7 +31,7 @@ export const sw: Record<string, string> = {
   share: 'Shiriki',
 
   // ── Auth ──
-  auth_title: 'Ingia kwenye Kariako Guide',
+  auth_title: 'Ingia kwenye Chimbo Direct',
   auth_subtitle: 'Ingia ili kupitia Kariakoo kwa urahisi',
   email_label: 'Barua pepe',
   email_placeholder: 'wewe@mfano.com',
@@ -705,7 +705,7 @@ export const sw: Record<string, string> = {
   verification_not_submitted: 'Haijawasilishwa',
 
   // ── Email System ──
-  email_welcome_subject: 'Karibu Kariako Guide!',
+  email_welcome_subject: 'Karibu Chimbo Direct!',
   email_booking_subject: 'Buku Imethibitishwa',
   email_payment_subject: 'Risiti ya Malipo',
   email_verification_subject: 'Masasisho ya Uthibitisho',
@@ -729,7 +729,7 @@ export const sw: Record<string, string> = {
   help_visit_us: 'Ututembelee',
 
   // ── Content Pages ──
-  about_title: 'Kuhusu KariakoGuide',
+  about_title: 'Kuhusu ChimboDirect',
   about_mission: 'Dhamira Yetu',
   about_values: 'Thamani Zetu',
   about_features: 'Vipengele Muhimu',

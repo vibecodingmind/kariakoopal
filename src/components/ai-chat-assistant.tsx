@@ -61,9 +61,9 @@ const QUICK_ACTIONS = [
 ];
 
 const ROLE_GREETINGS: Record<UserRole, string> = {
-  seeker: "Karibu! 👋 I'm **Kariako AI**, your personal guide to Kariakoo Market. I can help you find the best deals, connect with local guides, translate Swahili, and navigate the market like a pro.\n\nWhat would you like to explore today?",
-  guide: "Jambo! 🌟 I'm **Kariako AI**, your assistant for the guide platform. I can help you improve your profile, get more bookings, manage your schedule, and connect with seekers.\n\nHow can I help you today?",
-  admin: "Hello! ⚡ I'm **Kariako AI**, your admin assistant. I can help you monitor platform health, manage disputes, verify vendors, and review analytics.\n\nWhat would you like to check?",
+  seeker: "Karibu! 👋 I'm **Chimbo AI**, your personal guide to Kariakoo Market. I can help you find the best deals, connect with local guides, translate Swahili, and navigate the market like a pro.\n\nWhat would you like to explore today?",
+  guide: "Jambo! 🌟 I'm **Chimbo AI**, your assistant for the guide platform. I can help you improve your profile, get more bookings, manage your schedule, and connect with seekers.\n\nHow can I help you today?",
+  admin: "Hello! ⚡ I'm **Chimbo AI**, your admin assistant. I can help you monitor platform health, manage disputes, verify vendors, and review analytics.\n\nWhat would you like to check?",
 };
 
 const WELCOME_SUGGESTIONS: Record<UserRole, string[]> = {
@@ -504,7 +504,7 @@ export function AIChatAssistant({ userRole = 'seeker', className }: AIChatAssist
                   <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-300 rounded-full border-2 border-emerald-700 animate-pulse" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-sm leading-tight">Kariako AI</h3>
+                  <h3 className="font-bold text-sm leading-tight">Chimbo AI</h3>
                   <div className="flex items-center gap-1.5 mt-0.5">
                     <span className="w-1.5 h-1.5 bg-emerald-300 rounded-full" />
                     <span className="text-[11px] text-white/70 font-medium">Online • Ready to help</span>
@@ -599,7 +599,7 @@ export function AIChatAssistant({ userRole = 'seeker', className }: AIChatAssist
                     type="text"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    placeholder="Ask Kariako AI anything..."
+                    placeholder="Ask Chimbo AI anything..."
                     disabled={isLoading}
                     className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground disabled:opacity-50 py-1"
                     autoComplete="off"

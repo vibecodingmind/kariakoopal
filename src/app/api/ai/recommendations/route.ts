@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
       messages: [
         {
           role: 'system',
-          content: `You are the Kariako AI recommendation engine for Kariakoo Market, Dar es Salaam, Tanzania. Provide hyper-local, personalized recommendations.
+          content: `You are the Chimbo AI recommendation engine for Kariakoo Market, Dar es Salaam, Tanzania. Provide hyper-local, personalized recommendations.
 
 Categories: vendors, food, shopping, experiences, cultural-sites, hidden-gems
 

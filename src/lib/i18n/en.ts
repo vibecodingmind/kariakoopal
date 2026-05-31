@@ -1,6 +1,6 @@
 export const en: Record<string, string> = {
   // ── General ──
-  app_name: 'Kariako Guide',
+  app_name: 'Chimbo Direct',
   tagline: 'Your guide to Kariakoo market',
   welcome: 'Welcome',
   loading: 'Loading...',
@@ -31,7 +31,7 @@ export const en: Record<string, string> = {
   share: 'Share',
 
   // ── Auth ──
-  auth_title: 'Sign in to Kariako Guide',
+  auth_title: 'Sign in to Chimbo Direct',
   auth_subtitle: 'Sign in to navigate Kariakoo with ease',
   email_label: 'Email address',
   email_placeholder: 'you@example.com',
@@ -705,7 +705,7 @@ export const en: Record<string, string> = {
   verification_not_submitted: 'Not Submitted',
 
   // ── Email System ──
-  email_welcome_subject: 'Welcome to Kariako Guide!',
+  email_welcome_subject: 'Welcome to Chimbo Direct!',
   email_booking_subject: 'Booking Confirmed',
   email_payment_subject: 'Payment Receipt',
   email_verification_subject: 'Verification Update',
@@ -729,7 +729,7 @@ export const en: Record<string, string> = {
   help_visit_us: 'Visit Us',
 
   // ── Content Pages ──
-  about_title: 'About KariakoGuide',
+  about_title: 'About ChimboDirect',
   about_mission: 'Our Mission',
   about_values: 'Our Values',
   about_features: 'Key Features',

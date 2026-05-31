@@ -30,7 +30,7 @@ export const authOptions: NextAuthOptions = {
         ]
       : []),
   ],
-  secret: process.env.NEXTAUTH_SECRET || 'kariako-guide-dev-secret-key-2024',
+  secret: process.env.NEXTAUTH_SECRET || 'chimbo-direct-dev-secret-key-2024',
   session: {
     strategy: 'jwt',
     maxAge: 7 * 24 * 60 * 60, // 7 days

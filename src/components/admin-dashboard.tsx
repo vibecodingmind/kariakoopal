@@ -354,11 +354,11 @@ function AdminSidebar({ lang, view, onNavigate, pendingCount }: { lang: Language
       <div className="p-4 border-b border-white/20">
         <h2 className="font-bold text-lg flex items-center gap-2 text-white">
           <div className="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center">
-            <ShieldCheck className="h-4 w-4 text-[var(--kariako-yellow)]" />
+            <ShieldCheck className="h-4 w-4 text-[var(--chimbo-yellow)]" />
           </div>
           <span className="text-white">{t('admin_dashboard', lang)}</span>
         </h2>
-        <p className="text-xs text-white/60 mt-1">Kariako Guide Admin</p>
+        <p className="text-xs text-white/60 mt-1">Chimbo Direct Admin</p>
       </div>
       <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
         {navItems.map(item => (
@@ -379,7 +379,7 @@ function AdminSidebar({ lang, view, onNavigate, pendingCount }: { lang: Language
       </nav>
       <div className="p-4 border-t border-white/20">
         <div className="text-xs text-white/50">
-          <p>v1.0.0 &bull; Kariako Guide</p>
+          <p>v1.0.0 &bull; Chimbo Direct</p>
         </div>
       </div>
     </div>
@@ -562,7 +562,7 @@ export function AdminDashboard() {
         <header className="knav sticky top-0 z-40">
           <div className="flex items-center gap-3 px-4 py-3">
             <button
-              className="lg:hidden w-9 h-9 rounded-lg flex items-center justify-center hover:bg-[var(--kariako-green-light)] transition-colors"
+              className="lg:hidden w-9 h-9 rounded-lg flex items-center justify-center hover:bg-[var(--chimbo-green-light)] transition-colors"
               onClick={() => setSidebarOpen(true)}
             >
               <Menu className="h-5 w-5" />
@@ -654,9 +654,9 @@ function OverviewView({ lang, stats, zones, disputes, pendingGuides, users, onNa
   const fraudFlags = disputes.filter(d => d.emergencyFlag).length;
 
   const metrics = [
-    { label: t('total_users', lang), value: stats.users.total, icon: Users, sub: `${stats.users.seekers} S / ${stats.users.guides} G / ${stats.users.admins} A`, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-950/30', change: '+4.2%', changeColor: 'text-[var(--kariako-green)]' },
+    { label: t('total_users', lang), value: stats.users.total, icon: Users, sub: `${stats.users.seekers} S / ${stats.users.guides} G / ${stats.users.admins} A`, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-950/30', change: '+4.2%', changeColor: 'text-[var(--chimbo-green)]' },
     { label: t('active_sessions_a', lang), value: stats.sessions.active, icon: Activity, sub: `${onlineGuides} ${t('online', lang)}`, color: 'text-sky-600', bg: 'bg-sky-50 dark:bg-sky-950/30', change: '', changeColor: '' },
-    { label: t('total_revenue', lang) + ' (Escrow)', value: formatTZS(stats.revenue.total), icon: DollarSign, sub: `${stats.sessions.total} ${t('total', lang)}`, color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-950/30', change: '+12.5%', changeColor: 'text-[var(--kariako-yellow)]' },
+    { label: t('total_revenue', lang) + ' (Escrow)', value: formatTZS(stats.revenue.total), icon: DollarSign, sub: `${stats.sessions.total} ${t('total', lang)}`, color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-950/30', change: '+12.5%', changeColor: 'text-[var(--chimbo-yellow)]' },
     { label: t('avg_rating', lang), value: stats.rating.average.toFixed(1), icon: Star, sub: '/ 5.0', color: 'text-violet-600', bg: 'bg-violet-50 dark:bg-violet-950/30', change: '', changeColor: '' },
     { label: t('fraud_flags', lang), value: fraudAlerts.filter(a => a.status === 'pending').length, icon: AlertTriangle, sub: fraudAlerts.length + ' ' + (lang === 'sw' ? 'tahadhari jumla' : 'total alerts'), color: 'text-rose-600', bg: 'bg-rose-50 dark:bg-rose-950/30', change: '', changeColor: '' },
     { label: t('requests', lang) || 'Requests', value: stats.requests.open + stats.requests.matched, icon: FileText, sub: `${stats.requests.open} open / ${stats.requests.matched} matched`, color: 'text-teal-600', bg: 'bg-teal-50 dark:bg-teal-950/30', change: '', changeColor: '' },
@@ -824,10 +824,10 @@ function OverviewView({ lang, stats, zones, disputes, pendingGuides, users, onNa
           <div className="p-4 pt-0 space-y-3">
             <button
               onClick={() => onNavigate('verification')}
-              className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-[var(--kariako-green-light)] transition-all border border-[var(--border)]"
+              className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-[var(--chimbo-green-light)] transition-all border border-[var(--border)]"
             >
               <div className="flex items-center gap-2">
-                <ClipboardCheck className="h-4 w-4 text-[var(--kariako-green)]" />
+                <ClipboardCheck className="h-4 w-4 text-[var(--chimbo-green)]" />
                 <span className="text-sm">{t('verification_queue', lang)}</span>
               </div>
               <span className={`kbadge ${pendingGuides.length > 0 ? 'kbadge-pending' : 'kbadge-silver'}`}>
@@ -836,7 +836,7 @@ function OverviewView({ lang, stats, zones, disputes, pendingGuides, users, onNa
             </button>
             <button
               onClick={() => onNavigate('disputes')}
-              className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-[var(--kariako-green-light)] transition-all border border-[var(--border)]"
+              className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-[var(--chimbo-green-light)] transition-all border border-[var(--border)]"
             >
               <div className="flex items-center gap-2">
                 <AlertTriangle className="h-4 w-4 text-rose-500" />
@@ -848,17 +848,17 @@ function OverviewView({ lang, stats, zones, disputes, pendingGuides, users, onNa
             </button>
             <button
               onClick={() => onNavigate('zones')}
-              className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-[var(--kariako-green-light)] transition-all border border-[var(--border)]"
+              className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-[var(--chimbo-green-light)] transition-all border border-[var(--border)]"
             >
               <div className="flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-[var(--kariako-green)]" />
+                <MapPin className="h-4 w-4 text-[var(--chimbo-green)]" />
                 <span className="text-sm">{t('zone_management', lang)}</span>
               </div>
               <span className="kbadge kbadge-silver">{zones.length}</span>
             </button>
             <button
               onClick={() => onNavigate('users')}
-              className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-[var(--kariako-green-light)] transition-all border border-[var(--border)]"
+              className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-[var(--chimbo-green-light)] transition-all border border-[var(--border)]"
             >
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4 text-sky-500" />
@@ -989,7 +989,7 @@ function VerificationView({ lang, guides, onRefresh }: {
       {/* Verification Table */}
       {filteredGuides.length === 0 ? (
         <div className="kcard p-12 text-center">
-          <CheckCircle2 className="h-12 w-12 text-[var(--kariako-green)] mx-auto mb-3" />
+          <CheckCircle2 className="h-12 w-12 text-[var(--chimbo-green)] mx-auto mb-3" />
           <h3 className="font-semibold text-lg gradient-text-green">
             {lang === 'sw' ? 'Waongozaji wote wamethibitishwa!' : 'All guides verified!'}
           </h3>
@@ -1187,7 +1187,7 @@ function ZonesView({ lang, zones, onRefresh }: {
                 <h3 className="font-semibold gradient-text-green">{zone.name}</h3>
               </div>
               <div className="flex gap-1">
-                <button className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-[var(--kariako-green-light)] transition-colors border border-[var(--border)]" onClick={() => openEdit(zone)}>
+                <button className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-[var(--chimbo-green-light)] transition-colors border border-[var(--border)]" onClick={() => openEdit(zone)}>
                   <Edit3 className="h-3.5 w-3.5" />
                 </button>
                 <button className="w-7 h-7 rounded-lg flex items-center justify-center text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors border border-[var(--border)]" onClick={() => { setDeleteZoneId(zone.id); setDeleteDialogOpen(true); }}>
@@ -1478,7 +1478,7 @@ function PriceRadarView({ lang, entries, zones, onRefresh }: {
                     <TableCell className="text-xs text-muted-foreground">{entry.updatedBy}</TableCell>
                     <TableCell>
                       <div className="flex gap-1">
-                        <button className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-[var(--kariako-green-light)] transition-colors border border-[var(--border)]" onClick={() => openEdit(entry)}>
+                        <button className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-[var(--chimbo-green-light)] transition-colors border border-[var(--border)]" onClick={() => openEdit(entry)}>
                           <Edit3 className="h-3.5 w-3.5" />
                         </button>
                         <button className="w-7 h-7 rounded-lg flex items-center justify-center text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors border border-[var(--border)]" onClick={() => { setDeleteEntryId(entry.id); setDeleteDialogOpen(true); }}>
@@ -1688,7 +1688,7 @@ function AnalyticsView({ lang, stats, zones, users, sessions }: {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `kariako-analytics-${dateRange}.csv`;
+      a.download = `chimbo-analytics-${dateRange}.csv`;
       a.click();
       URL.revokeObjectURL(url);
       toast.success(lang === 'sw' ? 'Data imeshushwa' : 'Data exported!');
@@ -2002,7 +2002,7 @@ function UsersView({ lang, users, onRefresh }: {
                 filteredUsers.map(user => (
                   <TableRow
                     key={user.id}
-                    className="cursor-pointer hover:bg-[var(--kariako-green-light)] border-b border-[var(--border)]"
+                    className="cursor-pointer hover:bg-[var(--chimbo-green-light)] border-b border-[var(--border)]"
                     onClick={() => { setSelectedUser(user); setDetailOpen(true); }}
                   >
                     <TableCell>
@@ -2022,10 +2022,10 @@ function UsersView({ lang, users, onRefresh }: {
                     <TableCell className="text-xs text-muted-foreground">{formatDate(user.createdAt, lang)}</TableCell>
                     <TableCell>
                       <div className="flex gap-0.5" onClick={e => e.stopPropagation()}>
-                        <button className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-[var(--kariako-green-light)] transition-colors border border-[var(--border)]" onClick={() => handleAction(user.id, 'suspend')} disabled={actionLoading === user.id} title="Suspend">
+                        <button className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-[var(--chimbo-green-light)] transition-colors border border-[var(--border)]" onClick={() => handleAction(user.id, 'suspend')} disabled={actionLoading === user.id} title="Suspend">
                           <Ban className="h-3.5 w-3.5 text-amber-500" />
                         </button>
-                        <button className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-[var(--kariako-green-light)] transition-colors border border-[var(--border)]" onClick={() => handleAction(user.id, 'message')} disabled={actionLoading === user.id} title="Message">
+                        <button className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-[var(--chimbo-green-light)] transition-colors border border-[var(--border)]" onClick={() => handleAction(user.id, 'message')} disabled={actionLoading === user.id} title="Message">
                           <Mail className="h-3.5 w-3.5 text-sky-500" />
                         </button>
                       </div>
@@ -2149,7 +2149,7 @@ function DisputesView({ lang, disputes, onRefresh }: {
 
       {disputes.length === 0 ? (
         <div className="kcard p-12 text-center">
-          <CheckCircle2 className="h-12 w-12 text-[var(--kariako-green)] mx-auto mb-3" />
+          <CheckCircle2 className="h-12 w-12 text-[var(--chimbo-green)] mx-auto mb-3" />
           <h3 className="font-semibold text-lg gradient-text-green">
             {lang === 'sw' ? 'Hakuna migogoro!' : 'No disputes!'}
           </h3>
@@ -2389,7 +2389,7 @@ function FraudView({ lang, alerts, onRefresh }: {
 
       {filtered.length === 0 ? (
         <div className="kcard p-12 text-center">
-          <ShieldCheck className="h-12 w-12 text-[var(--kariako-green)] mx-auto mb-3" />
+          <ShieldCheck className="h-12 w-12 text-[var(--chimbo-green)] mx-auto mb-3" />
           <h3 className="font-semibold text-lg gradient-text-green">{lang === 'sw' ? 'Hakuna tahadhari!' : 'No fraud alerts!'}</h3>
           <p className="text-sm text-muted-foreground mt-1">{lang === 'sw' ? 'Jukwaa ni salama' : 'Platform is secure'}</p>
         </div>
@@ -2484,7 +2484,7 @@ function VendorsView({ lang, vendors, zones, onRefresh }: {
 
       {filtered.length === 0 ? (
         <div className="kcard p-12 text-center">
-          <Store className="h-12 w-12 text-[var(--kariako-yellow)] mx-auto mb-3" />
+          <Store className="h-12 w-12 text-[var(--chimbo-yellow)] mx-auto mb-3" />
           <h3 className="font-semibold text-lg gradient-text-green">{lang === 'sw' ? 'Hakuna wauzaji' : 'No vendors found'}</h3>
         </div>
       ) : (
@@ -2577,7 +2577,7 @@ function CalendarView({ lang, events, zones, onRefresh }: {
 
       {events.length === 0 ? (
         <div className="kcard p-12 text-center">
-          <Calendar className="h-12 w-12 text-[var(--kariako-yellow)] mx-auto mb-3" />
+          <Calendar className="h-12 w-12 text-[var(--chimbo-yellow)] mx-auto mb-3" />
           <h3 className="font-semibold text-lg gradient-text-green">{lang === 'sw' ? 'Hakuna matukio' : 'No seasonal events'}</h3>
         </div>
       ) : (
@@ -2587,8 +2587,8 @@ function CalendarView({ lang, events, zones, onRefresh }: {
             return (
               <div key={event.id} className="kcard p-4">
                 <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-[var(--kariako-green-light)] flex items-center justify-center flex-shrink-0">
-                    <Icon className="h-5 w-5 text-[var(--kariako-green)]" />
+                  <div className="w-10 h-10 rounded-lg bg-[var(--chimbo-green-light)] flex items-center justify-center flex-shrink-0">
+                    <Icon className="h-5 w-5 text-[var(--chimbo-green)]" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-sm gradient-text-green">{event.title}</h3>
@@ -2664,7 +2664,7 @@ function PackagesView({ lang, deals, onRefresh }: {
     <div className="space-y-4">
       {deals.length === 0 ? (
         <div className="kcard p-12 text-center">
-          <Package className="h-12 w-12 text-[var(--kariako-yellow)] mx-auto mb-3" />
+          <Package className="h-12 w-12 text-[var(--chimbo-yellow)] mx-auto mb-3" />
           <h3 className="font-semibold text-lg gradient-text-green">{lang === 'sw' ? 'Hakuna vifurushi' : 'No package deals'}</h3>
           <p className="text-sm text-muted-foreground mt-1">{lang === 'sw' ? 'Waongozaji bado hawajaunda vifurushi' : 'Guides haven\'t created packages yet'}</p>
         </div>
@@ -2694,7 +2694,7 @@ function PackagesView({ lang, deals, onRefresh }: {
                 </div>
               </div>
               {deal.includesDelivery && (
-                <div className="flex items-center gap-1 mt-2 text-xs text-[var(--kariako-green)]">
+                <div className="flex items-center gap-1 mt-2 text-xs text-[var(--chimbo-green)]">
                   <Truck className="h-3 w-3" />
                   {lang === 'sw' ? 'Inajumuisha usafirishaji' : 'Includes delivery'}
                 </div>

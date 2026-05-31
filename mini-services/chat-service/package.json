@@ -1,5 +1,5 @@
 {
-  "name": "kariako-chat-service",
+  "name": "chimbo-chat-service",
   "version": "1.0.0",
   "scripts": {
     "dev": "bun --hot index.ts"

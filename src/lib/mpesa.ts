@@ -140,7 +140,7 @@ export async function initiateSTKPush(params: {
       PartyA: formatPhone(phone),
       PartyB: shortcode,
       PhoneNumber: formatPhone(phone),
-      CallBackURL: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://kariako.app'}/api/payments/mpesa/callback`,
+      CallBackURL: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://chimbo.direct'}/api/payments/mpesa/callback`,
       AccountReference: accountRef,
       TransactionDesc: transactionDesc,
     }),

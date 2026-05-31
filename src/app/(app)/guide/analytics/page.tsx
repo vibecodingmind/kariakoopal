@@ -201,7 +201,7 @@ export default function AnalyticsPage() {
           <Trophy className="w-10 h-10 text-[#F59E0B] mx-auto mb-2" />
           <h3 className="font-black text-white text-lg">{l('Top 15% of Guides', '15% Bora za Miongozo')}</h3>
           <p className="text-sm text-white/60 mt-1">
-            {l('Your booking rate and ratings put you among the top performers on KariakoGuide.', 'Kiwango chako cha buki na alama kinakuweka miongoni mwa wafanyabiashara bora kwenye KariakoGuide.')}
+            {l('Your booking rate and ratings put you among the top performers on ChimboDirect.', 'Kiwango chako cha buki na alama kinakuweka miongoni mwa wafanyabiashara bora kwenye ChimboDirect.')}
           </p>
         </div>
       </motion.div>

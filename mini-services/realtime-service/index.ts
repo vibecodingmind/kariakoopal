@@ -750,7 +750,7 @@ io.on('connection', (socket: Socket) => {
 
 httpServer.listen(PORT, () => {
   console.log(`[Realtime Service] Socket.io server running on port ${PORT}`);
-  console.log(`[Realtime Service] Kariako Guide platform - real-time events active`);
+  console.log(`[Realtime Service] Chimbo Direct platform - real-time events active`);
   console.log(`[Realtime Service] Health check via Next.js API: /api/socketio?XTransformPort=${PORT}`);
 });
 

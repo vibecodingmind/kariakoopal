@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
 
     const secret = generate2FASecret();
     const backupCodes = generateBackupCodes(8);
-    const otpauthUri = getOTPAuthURI(secret, email || 'user@kariako.com');
+    const otpauthUri = getOTPAuthURI(secret, email || 'user@chimbo.direct');
 
     try {
       const { db } = await import('@/lib/db');

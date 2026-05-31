@@ -101,9 +101,9 @@ function AuthContent() {
     try {
       let emailAddr = '';
       let userName = '';
-      if (role === 'seeker') { emailAddr = 'seeker@kariako.com'; userName = 'Demo Seeker'; }
-      else if (role === 'guide') { emailAddr = 'guide@kariako.com'; userName = 'Demo Guide'; }
-      else if (role === 'admin') { emailAddr = 'admin@kariako.com'; userName = 'Admin'; }
+      if (role === 'seeker') { emailAddr = 'seeker@chimbo.direct'; userName = 'Demo Seeker'; }
+      else if (role === 'guide') { emailAddr = 'guide@chimbo.direct'; userName = 'Demo Guide'; }
+      else if (role === 'admin') { emailAddr = 'admin@chimbo.direct'; userName = 'Admin'; }
       await login(emailAddr, role, userName, 'demo1234');
     } catch { setError(language === 'sw' ? 'Hitilafu katika kuingia' : 'Login failed'); }
   };
@@ -139,7 +139,7 @@ function AuthContent() {
             <div className="w-16 h-16 rounded-2xl mx-auto mb-4 shadow-lg shadow-[#0B5D3A]/20 overflow-hidden">
               <Image
                 src="/logo-mark.png"
-                alt="Kariako Guide"
+                alt="Chimbo Direct"
                 width={64}
                 height={64}
                 className="w-full h-full object-cover"
@@ -428,7 +428,7 @@ function AuthContent() {
 
           <div className="mt-8 text-center text-xs text-[#6C757D] dark:text-[#8B949E]">
             <p>Kariakoo, Dar es Salaam, Tanzania</p>
-            <p className="mt-1">v1.0.0 &middot; {t('powered_by', language)} Kariako Guide</p>
+            <p className="mt-1">v1.0.0 &middot; {t('powered_by', language)} Chimbo Direct</p>
           </div>
         </div>
       </div>

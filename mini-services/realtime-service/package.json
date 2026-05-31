@@ -1,7 +1,7 @@
 {
   "name": "realtime-service",
   "version": "1.0.0",
-  "description": "Socket.io real-time service for Kariako Guide platform",
+  "description": "Socket.io real-time service for Chimbo Direct platform",
   "scripts": {
     "dev": "bun --hot index.ts"
   },

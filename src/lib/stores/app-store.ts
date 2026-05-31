@@ -82,7 +82,7 @@ export const useAppStore = create<AppState>()(
       clearToasts: () => set({ toastQueue: [] }),
     }),
     {
-      name: 'kariako-app',
+      name: 'chimbo-app',
       partialize: (state) => ({
         showOnboarding: state.showOnboarding,
         onboardingStep: state.onboardingStep,

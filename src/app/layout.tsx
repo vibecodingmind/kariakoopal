@@ -19,10 +19,10 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Kariako Guide - Navigate Kariakoo Like a Local",
+  title: "Chimbo Direct - Navigate Kariakoo Like a Local",
   description: "Connect with verified local market guides in Kariakoo, Dar es Salaam. Navigate the market like a local, find fair prices, and explore with confidence.",
   keywords: ["Kariakoo", "Dar es Salaam", "Tanzania", "market guide", "local guide", "tourism", "wholesale"],
-  authors: [{ name: "Kariako Guide" }],
+  authors: [{ name: "Chimbo Direct" }],
   manifest: "/manifest.json",
   icons: {
     icon: [
@@ -37,10 +37,10 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Kariako Guide",
+    title: "Chimbo Direct",
   },
   openGraph: {
-    title: "Kariako Guide",
+    title: "Chimbo Direct",
     description: "Your trusted guide to Kariakoo market - Connect with verified local experts",
     type: "website",
   },
@@ -62,7 +62,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" type="image/png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="Kariako Guide" />
+        <meta name="apple-mobile-web-app-title" content="Chimbo Direct" />
       </head>
       <body
         className={`${inter.variable} antialiased bg-[#FAFAF9] text-[#1C1917] dark:bg-[#0C0A1D] dark:text-[#E7E5E4]`}

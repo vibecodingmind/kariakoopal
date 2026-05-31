@@ -92,13 +92,13 @@ export async function POST(req: NextRequest) {
             currency_code: 'TZS',
             value: String(amount),
           },
-          description: 'Kariako Guide Wallet Top Up',
+          description: 'Chimbo Direct Wallet Top Up',
           custom_id: userId || 'demo',
         }],
         application_context: {
-          brand_name: 'Kariako Guide',
-          return_url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://kariako.guide'}/wallet?payment=paypal&status=success`,
-          cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://kariako.guide'}/wallet?payment=paypal&status=cancelled`,
+          brand_name: 'Chimbo Direct',
+          return_url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://chimbo.direct'}/wallet?payment=paypal&status=success`,
+          cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://chimbo.direct'}/wallet?payment=paypal&status=cancelled`,
         },
       }),
     });

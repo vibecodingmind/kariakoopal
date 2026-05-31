@@ -1,4 +1,4 @@
-// Kariako Guide - Marketplace for local market guides in Kariakoo
+// Chimbo Direct - Marketplace for local market guides in Kariakoo
 
 generator client {
   provider = "prisma-client-js"

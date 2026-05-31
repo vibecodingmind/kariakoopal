@@ -52,7 +52,7 @@ const demoConversations = [
       { userId: 'demo-seeker', name: 'James K.', role: 'seeker', avatarUrl: null, unreadCount: 0 },
       { userId: 'guide-3', name: 'Asha Mohamed', role: 'guide', avatarUrl: null, unreadCount: 0 },
     ],
-    lastMessageContent: 'Asante kwa kutumia Kariako Guide! ⭐',
+    lastMessageContent: 'Asante kwa kutumia Chimbo Direct! ⭐',
     lastMessageSender: 'demo-seeker',
     lastMessageAt: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString(),
     bookingId: 'booking-3',

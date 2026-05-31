@@ -23,7 +23,7 @@ const DEMO_USERS: DemoUser[] = [
   { id: 'u2', name: 'Fatma Hassan', phone: '+255 744 567 890', email: 'fatma.h@email.com', role: 'guide', status: 'active', joinedAt: '2024-11-20', initials: 'FH' },
   { id: 'u3', name: 'Omar Selemani', phone: '+255 756 789 012', email: 'omar.s@email.com', role: 'guide', status: 'active', joinedAt: '2024-09-03', initials: 'OS' },
   { id: 'u4', name: 'Amina Swaleh', phone: '+255 723 890 123', email: 'amina.s@email.com', role: 'seeker', status: 'active', joinedAt: '2025-02-28', initials: 'AS' },
-  { id: 'u5', name: 'Admin Mkuu', phone: '+255 700 111 222', email: 'admin@kariako.com', role: 'admin', status: 'active', joinedAt: '2024-01-01', initials: 'AM' },
+  { id: 'u5', name: 'Admin Mkuu', phone: '+255 700 111 222', email: 'admin@chimbo.direct', role: 'admin', status: 'active', joinedAt: '2024-01-01', initials: 'AM' },
   { id: 'u6', name: 'David Mwangi', phone: '+254 712 333 444', email: 'david.m@email.com', role: 'seeker', status: 'suspended', joinedAt: '2024-06-10', initials: 'DM' },
   { id: 'u7', name: 'Mwanamvua Juma', phone: '+255 745 555 666', email: 'mwanamvua.j@email.com', role: 'guide', status: 'active', joinedAt: '2025-03-14', initials: 'MJ' },
   { id: 'u8', name: 'Said Baraka', phone: '+255 778 777 888', email: 'said.b@email.com', role: 'guide', status: 'suspended', joinedAt: '2024-04-22', initials: 'SB' },

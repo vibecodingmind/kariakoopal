@@ -1,4 +1,4 @@
-// ── Socket.io Client for Kariako Guide Platform ──
+// ── Socket.io Client for Chimbo Direct Platform ──
 // Provides real-time messaging, location tracking, and live updates
 
 import { io, Socket } from 'socket.io-client';

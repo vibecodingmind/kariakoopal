@@ -71,8 +71,8 @@ export async function POST(req: NextRequest) {
       PartyB: MPESA_CONFIG.businessShortCode,
       PhoneNumber: formattedPhone,
       CallBackURL: `${process.env.NEXT_PUBLIC_APP_URL || 'https://web-production-91b90.up.railway.app'}/api/payments/mpesa/callback`,
-      AccountReference: reference || 'KariakoGuide',
-      TransactionDesc: description || 'Kariako Guide Payment',
+      AccountReference: reference || 'ChimboDirect',
+      TransactionDesc: description || 'Chimbo Direct Payment',
     };
 
     const response = await fetch(`${MPESA_CONFIG.baseUrl}/mpesa/stkpush/v1/processrequest`, {
