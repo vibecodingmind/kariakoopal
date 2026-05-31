@@ -23,7 +23,7 @@ export default function GuideSessionsPage() {
   return (
     <div className="px-4 py-4 space-y-5">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-2xl font-bold text-[#312E81] dark:text-[#818CF8]">{l('Sessions', 'Vipindi')}</h1>
+        <h1 className="text-2xl font-bold text-[#065F46] dark:text-[#34D399]">{l('Sessions', 'Vipindi')}</h1>
       </motion.div>
 
       {upcoming.length > 0 && (
@@ -34,7 +34,7 @@ export default function GuideSessionsPage() {
               <div key={s.id} className="kcard-green p-4">
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="font-semibold text-white text-sm">{s.seeker}</h4>
-                  <span className="text-sm font-bold text-[#D97706]">TZS {s.amount.toLocaleString()}</span>
+                  <span className="text-sm font-bold text-[#F59E0B]">TZS {s.amount.toLocaleString()}</span>
                 </div>
                 <div className="flex items-center gap-3 text-xs text-white/60">
                   <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{s.zone}</span>
@@ -54,9 +54,9 @@ export default function GuideSessionsPage() {
               <div key={s.id} className="kcard p-4">
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="font-semibold text-sm">{s.seeker}</h4>
-                  <span className="text-sm font-bold text-[#312E81]">TZS {s.amount.toLocaleString()}</span>
+                  <span className="text-sm font-bold text-[#065F46]">TZS {s.amount.toLocaleString()}</span>
                 </div>
-                <div className="flex items-center gap-3 text-xs text-[#78716C] mb-3">
+                <div className="flex items-center gap-3 text-xs text-[#64748B] mb-3">
                   <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{s.zone}</span>
                   <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{s.time}</span>
                 </div>
@@ -72,7 +72,7 @@ export default function GuideSessionsPage() {
 
       {completed.length > 0 && (
         <div>
-          <h2 className="text-sm font-bold text-[#78716C] mb-2">{l('Completed', 'Zimekamilika')}</h2>
+          <h2 className="text-sm font-bold text-[#64748B] mb-2">{l('Completed', 'Zimekamilika')}</h2>
           <div className="space-y-3">
             {completed.map(s => (
               <div key={s.id} className="kcard p-4 opacity-75">
@@ -80,10 +80,10 @@ export default function GuideSessionsPage() {
                   <h4 className="font-semibold text-sm">{s.seeker}</h4>
                   <span className="text-sm font-bold">TZS {s.amount.toLocaleString()}</span>
                 </div>
-                <div className="flex items-center gap-3 text-xs text-[#78716C]">
+                <div className="flex items-center gap-3 text-xs text-[#64748B]">
                   <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{s.zone}</span>
                   <span>{s.time}</span>
-                  {s.rating && <span className="flex items-center gap-0.5">{Array.from({length: s.rating}).map((_,j) => <Star key={j} className="w-3 h-3 fill-[#D97706] text-[#D97706]" />)}</span>}
+                  {s.rating && <span className="flex items-center gap-0.5">{Array.from({length: s.rating}).map((_,j) => <Star key={j} className="w-3 h-3 fill-[#F59E0B] text-[#F59E0B]" />)}</span>}
                 </div>
               </div>
             ))}

@@ -36,14 +36,14 @@ export default function SettingsPage() {
   return (
     <div className="px-4 py-4 space-y-5">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-2xl font-bold text-[#312E81] dark:text-[#818CF8]">{l('Settings', 'Mipangilio')}</h1>
-        <p className="text-sm text-[#78716C] mt-1">{l('Manage your account and preferences', 'Simamia akaunti yako na mapendeleo')}</p>
+        <h1 className="text-2xl font-bold text-[#065F46] dark:text-[#34D399]">{l('Settings', 'Mipangilio')}</h1>
+        <p className="text-sm text-[#64748B] mt-1">{l('Manage your account and preferences', 'Simamia akaunti yako na mapendeleo')}</p>
       </motion.div>
 
       {/* Account Section */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-bold text-[#78716C] uppercase tracking-wider">{l('Account', 'Akaunti')}</h2>
+          <h2 className="text-sm font-bold text-[#64748B] uppercase tracking-wider">{l('Account', 'Akaunti')}</h2>
           <button onClick={() => editing ? handleSave() : setEditing(true)} className="kbtn-outline text-xs py-1 px-3 flex items-center gap-1">
             {editing ? (
               saved ? <Check className="w-3 h-3 text-[#10B981]" /> : <Save className="w-3 h-3" />
@@ -54,15 +54,15 @@ export default function SettingsPage() {
           </button>
         </div>
         <div className="kcard p-0 overflow-hidden">
-          <div className="p-5 border-b border-[#E7E5E4] dark:border-[#2E2C4A]">
+          <div className="p-5 border-b border-[#E2E8F0] dark:border-[#475569]">
             <div className="flex items-center gap-4">
               <div className="relative">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#312E81] to-[#818CF8] flex items-center justify-center text-white font-bold text-xl">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#065F46] to-[#34D399] flex items-center justify-center text-white font-bold text-xl">
                   {user?.name?.charAt(0) || 'U'}
                 </div>
                 {editing && (
-                  <button className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-[#D97706] flex items-center justify-center shadow-md">
-                    <Camera className="w-3.5 h-3.5 text-[#312E81]" />
+                  <button className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-[#F59E0B] flex items-center justify-center shadow-md">
+                    <Camera className="w-3.5 h-3.5 text-[#065F46]" />
                   </button>
                 )}
               </div>
@@ -77,38 +77,38 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          <div className="divide-y divide-[#E7E5E4] dark:divide-[#2E2C4A]">
+          <div className="divide-y divide-[#E2E8F0] dark:divide-[#475569]">
             <div className="px-4 py-3 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <User className="w-4 h-4 text-[#3730A3]" />
+                <User className="w-4 h-4 text-[#065F46]" />
                 <span className="text-sm">{l('Name', 'Jina')}</span>
               </div>
               {editing ? (
                 <input value={name} onChange={e => setName(e.target.value)} className="kinput text-sm text-right w-48" />
               ) : (
-                <span className="text-sm text-[#78716C]">{user?.name}</span>
+                <span className="text-sm text-[#64748B]">{user?.name}</span>
               )}
             </div>
             <div className="px-4 py-3 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Phone className="w-4 h-4 text-[#3730A3]" />
+                <Phone className="w-4 h-4 text-[#065F46]" />
                 <span className="text-sm">{l('Phone', 'Simu')}</span>
               </div>
               {editing ? (
                 <input value={phone} onChange={e => setPhone(e.target.value)} className="kinput text-sm text-right w-48" />
               ) : (
-                <span className="text-sm text-[#78716C]">{user?.phone}</span>
+                <span className="text-sm text-[#64748B]">{user?.phone}</span>
               )}
             </div>
             <div className="px-4 py-3 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Mail className="w-4 h-4 text-[#3730A3]" />
+                <Mail className="w-4 h-4 text-[#065F46]" />
                 <span className="text-sm">{l('Email', 'Barua Pepe')}</span>
               </div>
               {editing ? (
                 <input value={email} onChange={e => setEmail(e.target.value)} className="kinput text-sm text-right w-48" />
               ) : (
-                <span className="text-sm text-[#78716C]">{user?.email || l('Not set', 'Haijawekwa')}</span>
+                <span className="text-sm text-[#64748B]">{user?.email || l('Not set', 'Haijawekwa')}</span>
               )}
             </div>
           </div>
@@ -117,74 +117,74 @@ export default function SettingsPage() {
 
       {/* Language */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
-        <h2 className="text-sm font-bold text-[#78716C] uppercase tracking-wider mb-3">{l('Preferences', 'Mapendeleo')}</h2>
+        <h2 className="text-sm font-bold text-[#64748B] uppercase tracking-wider mb-3">{l('Preferences', 'Mapendeleo')}</h2>
         <div className="kcard p-0 overflow-hidden">
           <div className="px-4 py-3.5 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Globe className="w-4 h-4 text-[#3730A3]" />
+              <Globe className="w-4 h-4 text-[#065F46]" />
               <span className="text-sm font-medium">{l('Language', 'Lugha')}</span>
             </div>
             <div className="flex gap-1">
               <button
                 onClick={() => setLanguage('sw')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${language === 'sw' ? 'bg-[#312E81] text-white' : 'bg-[#F5F5F4] dark:bg-[#242244] text-[#78716C]'}`}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${language === 'sw' ? 'bg-[#065F46] text-white' : 'bg-[#F1F5F9] dark:bg-[#334155] text-[#64748B]'}`}
               >
                 Kiswahili
               </button>
               <button
                 onClick={() => setLanguage('en')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${language === 'en' ? 'bg-[#312E81] text-white' : 'bg-[#F5F5F4] dark:bg-[#242244] text-[#78716C]'}`}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${language === 'en' ? 'bg-[#065F46] text-white' : 'bg-[#F1F5F9] dark:bg-[#334155] text-[#64748B]'}`}
               >
                 English
               </button>
             </div>
           </div>
 
-          <div className="border-t border-[#E7E5E4] dark:border-[#2E2C4A]">
+          <div className="border-t border-[#E2E8F0] dark:border-[#475569]">
             <div className="px-4 py-3.5 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Bell className="w-4 h-4 text-[#3730A3]" />
+                <Bell className="w-4 h-4 text-[#065F46]" />
                 <div>
                   <span className="text-sm font-medium">{l('Push Notifications', 'Arifa za Simu')}</span>
-                  <p className="text-[10px] text-[#78716C]">{l('Session alerts, payments', 'Arifa za vipindi, malipo')}</p>
+                  <p className="text-[10px] text-[#64748B]">{l('Session alerts, payments', 'Arifa za vipindi, malipo')}</p>
                 </div>
               </div>
               <button onClick={() => setPushNotif(!pushNotif)}>
-                <div className={`w-10 h-5.5 rounded-full relative transition-colors ${pushNotif ? 'bg-[#312E81]' : 'bg-[#E7E5E4] dark:bg-[#2E2C4A]'}`}>
+                <div className={`w-10 h-5.5 rounded-full relative transition-colors ${pushNotif ? 'bg-[#065F46]' : 'bg-[#E2E8F0] dark:bg-[#475569]'}`}>
                   <div className={`w-4 h-4 rounded-full bg-white absolute top-0.5 transition-all shadow-sm ${pushNotif ? 'right-0.5' : 'left-0.5'}`} />
                 </div>
               </button>
             </div>
           </div>
 
-          <div className="border-t border-[#E7E5E4] dark:border-[#2E2C4A]">
+          <div className="border-t border-[#E2E8F0] dark:border-[#475569]">
             <div className="px-4 py-3.5 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Mail className="w-4 h-4 text-[#3730A3]" />
+                <Mail className="w-4 h-4 text-[#065F46]" />
                 <div>
                   <span className="text-sm font-medium">{l('Email Notifications', 'Arifa za Barua Pepe')}</span>
-                  <p className="text-[10px] text-[#78716C]">{l('Updates, promotions', 'Taarifa, matangazo')}</p>
+                  <p className="text-[10px] text-[#64748B]">{l('Updates, promotions', 'Taarifa, matangazo')}</p>
                 </div>
               </div>
               <button onClick={() => setEmailNotif(!emailNotif)}>
-                <div className={`w-10 h-5.5 rounded-full relative transition-colors ${emailNotif ? 'bg-[#312E81]' : 'bg-[#E7E5E4] dark:bg-[#2E2C4A]'}`}>
+                <div className={`w-10 h-5.5 rounded-full relative transition-colors ${emailNotif ? 'bg-[#065F46]' : 'bg-[#E2E8F0] dark:bg-[#475569]'}`}>
                   <div className={`w-4 h-4 rounded-full bg-white absolute top-0.5 transition-all shadow-sm ${emailNotif ? 'right-0.5' : 'left-0.5'}`} />
                 </div>
               </button>
             </div>
           </div>
 
-          <div className="border-t border-[#E7E5E4] dark:border-[#2E2C4A]">
+          <div className="border-t border-[#E2E8F0] dark:border-[#475569]">
             <div className="px-4 py-3.5 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Eye className="w-4 h-4 text-[#3730A3]" />
+                <Eye className="w-4 h-4 text-[#065F46]" />
                 <div>
                   <span className="text-sm font-medium">{l('Profile Visibility', 'Mwonekano wa Wasifu')}</span>
-                  <p className="text-[10px] text-[#78716C]">{l('Visible to other users', 'Inaonekana kwa wengine')}</p>
+                  <p className="text-[10px] text-[#64748B]">{l('Visible to other users', 'Inaonekana kwa wengine')}</p>
                 </div>
               </div>
               <button onClick={() => setProfileVisible(!profileVisible)}>
-                <div className={`w-10 h-5.5 rounded-full relative transition-colors ${profileVisible ? 'bg-[#312E81]' : 'bg-[#E7E5E4] dark:bg-[#2E2C4A]'}`}>
+                <div className={`w-10 h-5.5 rounded-full relative transition-colors ${profileVisible ? 'bg-[#065F46]' : 'bg-[#E2E8F0] dark:bg-[#475569]'}`}>
                   <div className={`w-4 h-4 rounded-full bg-white absolute top-0.5 transition-all shadow-sm ${profileVisible ? 'right-0.5' : 'left-0.5'}`} />
                 </div>
               </button>
@@ -195,7 +195,7 @@ export default function SettingsPage() {
 
       {/* Quick Links */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-        <h2 className="text-sm font-bold text-[#78716C] uppercase tracking-wider mb-3">{l('More', 'Zaidi')}</h2>
+        <h2 className="text-sm font-bold text-[#64748B] uppercase tracking-wider mb-3">{l('More', 'Zaidi')}</h2>
         <div className="kcard p-0 overflow-hidden">
           {[
             { icon: Shield, label: l('Security Center', 'Kituo cha Usalama'), href: '/settings/security', badge: null },
@@ -209,15 +209,15 @@ export default function SettingsPage() {
             <button
               key={i}
               onClick={() => item.href !== '#' && router.push(item.href)}
-              className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-[#F5F5F4] dark:hover:bg-[#242244] transition-colors border-b border-[#E7E5E4] dark:border-[#2E2C4A] last:border-0"
+              className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-[#F1F5F9] dark:hover:bg-[#334155] transition-colors border-b border-[#E2E8F0] dark:border-[#475569] last:border-0"
             >
               <div className="flex items-center gap-3">
-                <item.icon className="w-4 h-4 text-[#3730A3]" />
+                <item.icon className="w-4 h-4 text-[#065F46]" />
                 <span className="text-sm font-medium">{item.label}</span>
               </div>
               <div className="flex items-center gap-2">
                 {item.badge && <span className="kbadge kbadge-gold text-[8px]">{item.badge}</span>}
-                <ChevronRight className="w-4 h-4 text-[#78716C]" />
+                <ChevronRight className="w-4 h-4 text-[#64748B]" />
               </div>
             </button>
           ))}
@@ -235,7 +235,7 @@ export default function SettingsPage() {
       </motion.div>
 
       <div className="text-center py-4">
-        <p className="text-[10px] text-[#78716C]">Kariako Guide v2.0 · {l('Made with love in Kariakoo', 'Imetengenezwa kwa upendo Kariakoo')}</p>
+        <p className="text-[10px] text-[#64748B]">Kariako Guide v2.0 · {l('Made with love in Kariakoo', 'Imetengenezwa kwa upendo Kariakoo')}</p>
       </div>
     </div>
   );

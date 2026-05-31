@@ -18,7 +18,7 @@ export default function GuideEarningsPage() {
   return (
     <div className="px-4 py-4 space-y-5">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-2xl font-bold text-[#312E81] dark:text-[#818CF8]">{l('Earnings', 'Mapato')}</h1>
+        <h1 className="text-2xl font-bold text-[#065F46] dark:text-[#34D399]">{l('Earnings', 'Mapato')}</h1>
       </motion.div>
 
       {/* Total Earnings */}
@@ -32,7 +32,7 @@ export default function GuideEarningsPage() {
         <div className="grid grid-cols-2 gap-3 mt-4">
           <div className="p-3 rounded-lg bg-white/10">
             <p className="text-xs text-white/60">{l('Available', 'Inapatikana')}</p>
-            <p className="text-lg font-bold text-[#D97706]">TZS 55,000</p>
+            <p className="text-lg font-bold text-[#F59E0B]">TZS 55,000</p>
           </div>
           <div className="p-3 rounded-lg bg-white/10">
             <p className="text-xs text-white/60">{l('Pending', 'Inasubiri')}</p>
@@ -49,12 +49,12 @@ export default function GuideEarningsPage() {
           {PAYOUTS.map((payout, i) => (
             <motion.div key={payout.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="kcard p-3 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className={`w-9 h-9 rounded-full flex items-center justify-center ${payout.status === 'processed' ? 'bg-[#E0E7FF]' : 'bg-[#FEF3C7]'}`}>
-                  {payout.status === 'processed' ? <ArrowUpRight className="w-4 h-4 text-[#3730A3]" /> : <Clock className="w-4 h-4 text-[#D97706]" />}
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center ${payout.status === 'processed' ? 'bg-[#ECFDF5]' : 'bg-[#FEF3C7]'}`}>
+                  {payout.status === 'processed' ? <ArrowUpRight className="w-4 h-4 text-[#065F46]" /> : <Clock className="w-4 h-4 text-[#F59E0B]" />}
                 </div>
                 <div>
                   <p className="text-sm font-medium">{payout.method}</p>
-                  <p className="text-xs text-[#78716C]">{payout.date}</p>
+                  <p className="text-xs text-[#64748B]">{payout.date}</p>
                 </div>
               </div>
               <div className="text-right">

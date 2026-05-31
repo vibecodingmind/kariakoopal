@@ -52,7 +52,7 @@ const GUIDE_DATA: Record<string, {
 const STATUS_MAP = {
   online: { color: '#10B981', label: 'Online', labelSw: 'Mtandaoni' },
   busy: { color: '#F59E0B', label: 'Busy', labelSw: 'Machwa' },
-  offline: { color: '#78716C', label: 'Offline', labelSw: 'Nje ya Mtandao' },
+  offline: { color: '#64748B', label: 'Offline', labelSw: 'Nje ya Mtandao' },
 };
 
 export default function GuideProfilePage() {
@@ -68,7 +68,7 @@ export default function GuideProfilePage() {
   return (
     <div className="px-4 py-4 space-y-5">
       <motion.div initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }}>
-        <button onClick={() => router.push('/guides')} className="flex items-center gap-1 text-sm text-[#78716C] hover:text-[#0A4D3A]">
+        <button onClick={() => router.push('/guides')} className="flex items-center gap-1 text-sm text-[#64748B] hover:text-[#0A4D3A]">
           <ArrowLeft className="w-4 h-4" /> {l('Back', 'Rudi')}
         </button>
       </motion.div>
@@ -80,14 +80,14 @@ export default function GuideProfilePage() {
             <div className="w-20 h-20 rounded-2xl flex items-center justify-center text-white font-bold text-2xl" style={{ background: guide.zoneColor }}>
               {guide.name.split(' ').map(n => n[0]).join('')}
             </div>
-            <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-3 border-white dark:border-[#1A1832]" style={{ background: STATUS_MAP[guide.status].color }} />
+            <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-3 border-white dark:border-[#1E293B]" style={{ background: STATUS_MAP[guide.status].color }} />
           </div>
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-bold">{guide.name}</h1>
-              {guide.verified && <ShieldCheck className="w-5 h-5 text-[#3730A3]" />}
+              {guide.verified && <ShieldCheck className="w-5 h-5 text-[#065F46]" />}
             </div>
-            <p className="text-sm text-[#78716C]">{guide.specialty}</p>
+            <p className="text-sm text-[#64748B]">{guide.specialty}</p>
             <span className="text-xs font-medium mt-1 inline-block" style={{ color: STATUS_MAP[guide.status].color }}>
               {sw ? STATUS_MAP[guide.status].labelSw : STATUS_MAP[guide.status].label}
             </span>
@@ -96,17 +96,17 @@ export default function GuideProfilePage() {
 
         {/* Stats Row */}
         <div className="grid grid-cols-3 gap-3 mt-4">
-          <div className="text-center p-3 rounded-lg bg-[#FAFAF9] dark:bg-[#242244]">
-            <div className="flex items-center justify-center gap-1"><Star className="w-4 h-4 fill-[#D97706] text-[#D97706]" /><span className="font-bold">{guide.rating}</span></div>
-            <p className="text-[10px] text-[#78716C] mt-0.5">{l('Rating', 'Alama')}</p>
+          <div className="text-center p-3 rounded-lg bg-[#F8FAFC] dark:bg-[#334155]">
+            <div className="flex items-center justify-center gap-1"><Star className="w-4 h-4 fill-[#F59E0B] text-[#F59E0B]" /><span className="font-bold">{guide.rating}</span></div>
+            <p className="text-[10px] text-[#64748B] mt-0.5">{l('Rating', 'Alama')}</p>
           </div>
-          <div className="text-center p-3 rounded-lg bg-[#FAFAF9] dark:bg-[#242244]">
-            <div className="flex items-center justify-center gap-1"><Users className="w-4 h-4 text-[#3730A3]" /><span className="font-bold">{guide.sessions}</span></div>
-            <p className="text-[10px] text-[#78716C] mt-0.5">{l('Sessions', 'Vipindi')}</p>
+          <div className="text-center p-3 rounded-lg bg-[#F8FAFC] dark:bg-[#334155]">
+            <div className="flex items-center justify-center gap-1"><Users className="w-4 h-4 text-[#065F46]" /><span className="font-bold">{guide.sessions}</span></div>
+            <p className="text-[10px] text-[#64748B] mt-0.5">{l('Sessions', 'Vipindi')}</p>
           </div>
-          <div className="text-center p-3 rounded-lg bg-[#FAFAF9] dark:bg-[#242244]">
-            <div className="flex items-center justify-center gap-1"><Globe className="w-4 h-4 text-[#3730A3]" /><span className="font-bold text-sm">{guide.languages.length}</span></div>
-            <p className="text-[10px] text-[#78716C] mt-0.5">{l('Languages', 'Lugha')}</p>
+          <div className="text-center p-3 rounded-lg bg-[#F8FAFC] dark:bg-[#334155]">
+            <div className="flex items-center justify-center gap-1"><Globe className="w-4 h-4 text-[#065F46]" /><span className="font-bold text-sm">{guide.languages.length}</span></div>
+            <p className="text-[10px] text-[#64748B] mt-0.5">{l('Languages', 'Lugha')}</p>
           </div>
         </div>
       </motion.div>
@@ -121,7 +121,7 @@ export default function GuideProfilePage() {
       {/* About */}
       <div className="kcard p-5">
         <h3 className="font-semibold text-sm mb-2">{l('About', 'Kuhusu')}</h3>
-        <p className="text-sm text-[#78716C] leading-relaxed">{sw ? guide.bioSw : guide.bio}</p>
+        <p className="text-sm text-[#64748B] leading-relaxed">{sw ? guide.bioSw : guide.bio}</p>
         <div className="flex gap-2 flex-wrap mt-3">
           {guide.languages.map(lang => (
             <span key={lang} className="kbadge kbadge-gold">{lang}</span>
@@ -140,12 +140,12 @@ export default function GuideProfilePage() {
                   <div>
                     <h4 className="font-semibold text-sm">{pkg.title}</h4>
                     <div className="flex items-center gap-3 mt-1">
-                      <span className="text-xs text-[#78716C] flex items-center gap-1"><Clock className="w-3 h-3" />{pkg.duration}h</span>
-                      <span className="text-xs text-[#78716C] flex items-center gap-1"><Users className="w-3 h-3" />{pkg.completed} {l('done', 'zimefanyika')}</span>
+                      <span className="text-xs text-[#64748B] flex items-center gap-1"><Clock className="w-3 h-3" />{pkg.duration}h</span>
+                      <span className="text-xs text-[#64748B] flex items-center gap-1"><Users className="w-3 h-3" />{pkg.completed} {l('done', 'zimefanyika')}</span>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-[#312E81]">TZS {pkg.price.toLocaleString()}</p>
+                    <p className="font-bold text-[#065F46]">TZS {pkg.price.toLocaleString()}</p>
                   </div>
                 </div>
               </motion.div>
@@ -163,15 +163,15 @@ export default function GuideProfilePage() {
               <div key={i} className="kcard p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-[#E0E7FF] flex items-center justify-center text-xs font-bold text-[#3730A3]">{review.name.charAt(0)}</div>
+                    <div className="w-8 h-8 rounded-full bg-[#ECFDF5] flex items-center justify-center text-xs font-bold text-[#065F46]">{review.name.charAt(0)}</div>
                     <div>
                       <p className="text-sm font-medium">{review.name}</p>
-                      <div className="flex items-center gap-0.5">{Array.from({ length: 5 }).map((_, j) => <Star key={j} className={`w-3 h-3 ${j < review.rating ? 'fill-[#D97706] text-[#D97706]' : 'text-[#E7E5E4]'}`} />)}</div>
+                      <div className="flex items-center gap-0.5">{Array.from({ length: 5 }).map((_, j) => <Star key={j} className={`w-3 h-3 ${j < review.rating ? 'fill-[#F59E0B] text-[#F59E0B]' : 'text-[#E2E8F0]'}`} />)}</div>
                     </div>
                   </div>
-                  <span className="text-[10px] text-[#78716C]">{review.date}</span>
+                  <span className="text-[10px] text-[#64748B]">{review.date}</span>
                 </div>
-                <p className="text-sm text-[#78716C] mt-2 leading-relaxed">{review.text}</p>
+                <p className="text-sm text-[#64748B] mt-2 leading-relaxed">{review.text}</p>
               </div>
             ))}
           </div>
@@ -180,7 +180,7 @@ export default function GuideProfilePage() {
 
       {/* Book CTA */}
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="kcard-green p-5 text-center">
-        <MessageSquare className="w-8 h-8 text-[#D97706] mx-auto mb-2" />
+        <MessageSquare className="w-8 h-8 text-[#F59E0B] mx-auto mb-2" />
         <h3 className="font-bold text-white">{l('Book This Guide', 'Hudi Mwongozo huyu')}</h3>
         <p className="text-sm text-white/70 mt-1">{l('Start navigating Kariakoo with a trusted expert', 'Anza kutembea Kariakoo na mtaalamu wa kuaminika')}</p>
         <button onClick={() => router.push(isAuthenticated ? '/seeker/find' : '/auth')} className="kbtn-yellow mt-3 text-sm w-full max-w-xs mx-auto">

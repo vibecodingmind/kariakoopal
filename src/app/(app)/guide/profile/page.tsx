@@ -38,9 +38,9 @@ export default function GuideProfilePage() {
   const handleLogout = async () => { logout(); router.replace('/auth'); };
 
   const tierConfig: Record<string, { icon: typeof Crown; color: string; bg: string }> = {
-    starter: { icon: Shield, color: 'from-slate-400 to-slate-500', bg: 'bg-[#F5F5F4] dark:bg-[#242244]' },
+    starter: { icon: Shield, color: 'from-slate-400 to-slate-500', bg: 'bg-[#F1F5F9] dark:bg-[#334155]' },
     pro: { icon: Zap, color: 'from-amber-500 to-orange-500', bg: 'bg-[#FEF3C7] dark:bg-[#3D2E0A]' },
-    elite: { icon: Crown, color: 'from-[#312E81] to-[#818CF8]', bg: 'bg-[#E0E7FF] dark:bg-[#1E1B4B]' },
+    elite: { icon: Crown, color: 'from-[#065F46] to-[#34D399]', bg: 'bg-[#ECFDF5] dark:bg-[#022C22]' },
   };
 
   const currentTier = tierConfig[subscriptionTier] || tierConfig.starter;
@@ -51,15 +51,15 @@ export default function GuideProfilePage() {
       {/* Header with Edit */}
       <div className="flex items-center justify-between">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="text-2xl font-bold text-[#312E81] dark:text-[#818CF8]">{l('My Profile', 'Wasifu Wangu')}</h1>
+          <h1 className="text-2xl font-bold text-[#065F46] dark:text-[#34D399]">{l('My Profile', 'Wasifu Wangu')}</h1>
         </motion.div>
         <div className="flex items-center gap-2">
           {/* Online Toggle */}
           <button
             onClick={() => setIsOnline(!isOnline)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${isOnline ? 'bg-[#E0E7FF] text-[#3730A3]' : 'bg-[#F5F5F4] dark:bg-[#242244] text-[#78716C]'}`}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${isOnline ? 'bg-[#ECFDF5] text-[#065F46]' : 'bg-[#F1F5F9] dark:bg-[#334155] text-[#64748B]'}`}
           >
-            <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-[#10B981] animate-pulse-dot' : 'bg-[#78716C]'}`} />
+            <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-[#10B981] animate-pulse-dot' : 'bg-[#64748B]'}`} />
             {isOnline ? l('Online', 'Mtandaoni') : l('Offline', 'Hapatikani')}
           </button>
           <button onClick={() => editing ? handleSave() : setEditing(true)} className="kbtn-outline text-xs py-1.5 px-3 flex items-center gap-1">
@@ -72,17 +72,17 @@ export default function GuideProfilePage() {
       {/* Avatar Section */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="kcard p-5 text-center">
         <div className="relative inline-block">
-          <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-[#312E81] to-[#818CF8] flex items-center justify-center text-white font-bold text-3xl mx-auto shadow-lg shadow-[#312E81]/20 ring-4 ring-[#10B981]/20">
+          <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-[#065F46] to-[#34D399] flex items-center justify-center text-white font-bold text-3xl mx-auto shadow-lg shadow-[#065F46]/20 ring-4 ring-[#10B981]/20">
             {user?.name?.split(' ').map(n => n[0]).join('') || 'G'}
           </div>
           {editing && (
-            <button className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-[#D97706] flex items-center justify-center shadow-md">
-              <Camera className="w-4 h-4 text-[#312E81]" />
+            <button className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-[#F59E0B] flex items-center justify-center shadow-md">
+              <Camera className="w-4 h-4 text-[#065F46]" />
             </button>
           )}
           {/* Online indicator */}
           {isOnline && (
-            <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[#10B981] border-2 border-white dark:border-[#1A1832]" />
+            <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[#10B981] border-2 border-white dark:border-[#1E293B]" />
           )}
         </div>
         {editing ? (
@@ -96,15 +96,15 @@ export default function GuideProfilePage() {
           </>
         )}
         <div className="flex items-center justify-center gap-2 mt-2">
-          <ShieldCheck className="w-4 h-4 text-[#3730A3]" />
+          <ShieldCheck className="w-4 h-4 text-[#065F46]" />
           <span className="kbadge kbadge-verified">{l('Verified Expert', 'Mtaalamu Aliyethibitishwa')}</span>
         </div>
         <div className="flex items-center justify-center gap-4 mt-3">
-          <div className="text-center"><p className="text-lg font-bold">4.8</p><p className="text-[10px] text-[#78716C]">{l('Rating', 'Alama')}</p></div>
-          <div className="w-px h-8 bg-[#E7E5E4]" />
-          <div className="text-center"><p className="text-lg font-bold">156</p><p className="text-[10px] text-[#78716C]">{l('Sessions', 'Vipindi')}</p></div>
-          <div className="w-px h-8 bg-[#E7E5E4]" />
-          <div className="text-center"><p className="text-lg font-bold">3</p><p className="text-[10px] text-[#78716C]">{l('Badges', 'Beji')}</p></div>
+          <div className="text-center"><p className="text-lg font-bold">4.8</p><p className="text-[10px] text-[#64748B]">{l('Rating', 'Alama')}</p></div>
+          <div className="w-px h-8 bg-[#E2E8F0]" />
+          <div className="text-center"><p className="text-lg font-bold">156</p><p className="text-[10px] text-[#64748B]">{l('Sessions', 'Vipindi')}</p></div>
+          <div className="w-px h-8 bg-[#E2E8F0]" />
+          <div className="text-center"><p className="text-lg font-bold">3</p><p className="text-[10px] text-[#64748B]">{l('Badges', 'Beji')}</p></div>
         </div>
       </motion.div>
 
@@ -114,7 +114,7 @@ export default function GuideProfilePage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.15 }}
         onClick={() => router.push('/guide/subscriptions')}
-        className="kcard p-4 cursor-pointer hover:shadow-md transition-all active:scale-[0.98] border-l-4 border-l-[#D97706]"
+        className="kcard p-4 cursor-pointer hover:shadow-md transition-all active:scale-[0.98] border-l-4 border-l-[#F59E0B]"
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -123,14 +123,14 @@ export default function GuideProfilePage() {
             </div>
             <div>
               <p className="font-semibold text-sm">{subscriptionTier === 'starter' ? l('Starter Plan', 'Mpango wa Starter') : subscriptionTier === 'pro' ? l('Pro Plan', 'Mpango wa Pro') : l('Elite Plan', 'Mpango wa Elite')}</p>
-              <p className="text-xs text-[#78716C]">
+              <p className="text-xs text-[#64748B]">
                 {subscriptionTier === 'starter' ? l('Free forever', 'Bure milele') : `TZS ${subscriptionTier === 'pro' ? '15,000' : '35,000'}/${l('mo', 'mwezi')}`}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             {subscriptionTier !== 'starter' && <span className="kbadge kbadge-gold text-[8px]">{l('Active', 'Hai')}</span>}
-            <ChevronRight className="w-4 h-4 text-[#78716C]" />
+            <ChevronRight className="w-4 h-4 text-[#64748B]" />
           </div>
         </div>
       </motion.div>
@@ -138,12 +138,12 @@ export default function GuideProfilePage() {
       {/* Bio */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="kcard p-4">
         <h3 className="font-semibold text-sm mb-2">{l('Bio', 'Maisha')}</h3>
-        {editing ? <textarea value={bio} onChange={e => setBio(e.target.value)} className="kinput w-full h-24 resize-none" /> : <p className="text-sm text-[#78716C] leading-relaxed">{bio}</p>}
+        {editing ? <textarea value={bio} onChange={e => setBio(e.target.value)} className="kinput w-full h-24 resize-none" /> : <p className="text-sm text-[#64748B] leading-relaxed">{bio}</p>}
       </motion.div>
 
       {/* Zones */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="kcard p-4">
-        <h3 className="font-semibold text-sm mb-2 flex items-center gap-1"><MapPin className="w-4 h-4 text-[#3730A3]" />{l('Zones', 'Maeneo')}</h3>
+        <h3 className="font-semibold text-sm mb-2 flex items-center gap-1"><MapPin className="w-4 h-4 text-[#065F46]" />{l('Zones', 'Maeneo')}</h3>
         <div className="flex gap-2 flex-wrap">
           {(editing ? allZones : zones).map(zone => {
             const active = zones.includes(zone);
@@ -158,7 +158,7 @@ export default function GuideProfilePage() {
 
       {/* Languages */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="kcard p-4">
-        <h3 className="font-semibold text-sm mb-2 flex items-center gap-1"><Globe className="w-4 h-4 text-[#3730A3]" />{l('Languages', 'Lugha')}</h3>
+        <h3 className="font-semibold text-sm mb-2 flex items-center gap-1"><Globe className="w-4 h-4 text-[#065F46]" />{l('Languages', 'Lugha')}</h3>
         <div className="flex gap-2 flex-wrap">
           {(editing ? allLanguages : languages).map(lang => {
             const active = languages.includes(lang);
@@ -173,7 +173,7 @@ export default function GuideProfilePage() {
 
       {/* Badges */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }} className="kcard p-4">
-        <h3 className="font-semibold text-sm mb-2 flex items-center gap-1"><Award className="w-4 h-4 text-[#D97706]" />{l('Badges', 'Beji')}</h3>
+        <h3 className="font-semibold text-sm mb-2 flex items-center gap-1"><Award className="w-4 h-4 text-[#F59E0B]" />{l('Badges', 'Beji')}</h3>
         <div className="flex gap-2 flex-wrap">
           <span className="kbadge kbadge-gold flex items-center gap-1"><Star className="w-3 h-3" />Top Rated</span>
           <span className="kbadge kbadge-verified flex items-center gap-1"><ShieldCheck className="w-3 h-3" />Verified Expert</span>
@@ -184,22 +184,22 @@ export default function GuideProfilePage() {
       {/* Quick Links */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="kcard p-0 overflow-hidden">
         {[
-          { icon: Wallet, label: l('Earnings & Wallet', 'Mapato na Mkoba'), href: '/guide/earnings', color: '#3730A3' },
+          { icon: Wallet, label: l('Earnings & Wallet', 'Mapato na Mkoba'), href: '/guide/earnings', color: '#065F46' },
           { icon: Bell, label: l('Notifications', 'Arifa'), href: '/notifications', color: '#0891B2', badge: '5' },
-          { icon: Settings, label: l('Settings', 'Mipangilio'), href: '/settings', color: '#78716C' },
-          { icon: Shield, label: l('Security', 'Usalama'), href: '/settings/security', color: '#3730A3' },
+          { icon: Settings, label: l('Settings', 'Mipangilio'), href: '/settings', color: '#64748B' },
+          { icon: Shield, label: l('Security', 'Usalama'), href: '/settings/security', color: '#065F46' },
         ].map((item, i) => (
           <button
             key={i}
             onClick={() => router.push(item.href)}
-            className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-[#F5F5F4] dark:hover:bg-[#242244] transition-colors border-b border-[#E7E5E4] dark:border-[#2E2C4A] last:border-0"
+            className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-[#F1F5F9] dark:hover:bg-[#334155] transition-colors border-b border-[#E2E8F0] dark:border-[#475569] last:border-0"
           >
             <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${item.color}15` }}>
               <item.icon className="w-4 h-4" style={{ color: item.color }} />
             </div>
             <span className="text-sm font-medium flex-1 text-left">{item.label}</span>
             {item.badge && <span className="w-5 h-5 rounded-full bg-[#DC2626] text-white text-[9px] font-bold flex items-center justify-center">{item.badge}</span>}
-            <ChevronRight className="w-4 h-4 text-[#78716C]" />
+            <ChevronRight className="w-4 h-4 text-[#64748B]" />
           </button>
         ))}
       </motion.div>

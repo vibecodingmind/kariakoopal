@@ -46,15 +46,15 @@ export default function SecurityPage() {
   return (
     <div className="px-4 py-4 space-y-5">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-2xl font-bold text-[#312E81] dark:text-[#818CF8]">{l('Security Center', 'Kituo cha Usalama')}</h1>
-        <p className="text-sm text-[#78716C] mt-1">{l('Protect your account and data', 'Linda akaunti yako na data yako')}</p>
+        <h1 className="text-2xl font-bold text-[#065F46] dark:text-[#34D399]">{l('Security Center', 'Kituo cha Usalama')}</h1>
+        <p className="text-sm text-[#64748B] mt-1">{l('Protect your account and data', 'Linda akaunti yako na data yako')}</p>
       </motion.div>
 
       {/* Security Score */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="kcard-green p-5">
         <div className="flex items-center justify-between mb-3">
           <span className="text-sm text-white/70">{l('Security Score', 'Alama ya Usalama')}</span>
-          <Shield className="w-5 h-5 text-[#D97706]" />
+          <Shield className="w-5 h-5 text-[#F59E0B]" />
         </div>
         <div className="flex items-center gap-4">
           <div className="relative w-20 h-20">
@@ -81,26 +81,26 @@ export default function SecurityPage() {
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="kcard p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#E0E7FF] flex items-center justify-center">
-              <Smartphone className="w-5 h-5 text-[#3730A3]" />
+            <div className="w-10 h-10 rounded-xl bg-[#ECFDF5] flex items-center justify-center">
+              <Smartphone className="w-5 h-5 text-[#065F46]" />
             </div>
             <div>
               <p className="font-semibold text-sm">{l('Two-Factor Auth', 'Uthibitishaji wa Pili')}</p>
-              <p className="text-xs text-[#78716C]">{twoFA ? l('Enabled', 'Imewashwa') : l('Disabled', 'Imezimwa')}</p>
+              <p className="text-xs text-[#64748B]">{twoFA ? l('Enabled', 'Imewashwa') : l('Disabled', 'Imezimwa')}</p>
             </div>
           </div>
           <button onClick={() => { if (!twoFA) setShowSetup2FA(true); else setTwoFA(false); }} className="transition-all">
             {twoFA ? (
-              <ToggleRight className="w-10 h-6 text-[#312E81]" />
+              <ToggleRight className="w-10 h-6 text-[#065F46]" />
             ) : (
-              <ToggleLeft className="w-10 h-6 text-[#E7E5E4]" />
+              <ToggleLeft className="w-10 h-6 text-[#E2E8F0]" />
             )}
           </button>
         </div>
 
         {showSetup2FA && (
-          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="mt-4 space-y-3 pt-3 border-t border-[#E7E5E4] dark:border-[#2E2C4A]">
-            <p className="text-xs text-[#78716C]">{l('Set up 2FA using an authenticator app', 'Weka 2FA kwa kutumia programu ya uthibitishaji')}</p>
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="mt-4 space-y-3 pt-3 border-t border-[#E2E8F0] dark:border-[#475569]">
+            <p className="text-xs text-[#64748B]">{l('Set up 2FA using an authenticator app', 'Weka 2FA kwa kutumia programu ya uthibitishaji')}</p>
             <div className="space-y-2">
               {[
                 l('1. Install Google Authenticator or Authy', '1. Sakinisha Google Authenticator au Authy'),
@@ -114,10 +114,10 @@ export default function SecurityPage() {
               ))}
             </div>
             {/* Simulated QR Code */}
-            <div className="w-32 h-32 mx-auto bg-[#F5F5F4] dark:bg-[#242244] rounded-xl flex items-center justify-center border-2 border-dashed border-[#E7E5E4] dark:border-[#2E2C4A]">
+            <div className="w-32 h-32 mx-auto bg-[#F1F5F9] dark:bg-[#334155] rounded-xl flex items-center justify-center border-2 border-dashed border-[#E2E8F0] dark:border-[#475569]">
               <div className="grid grid-cols-5 gap-0.5">
                 {Array.from({ length: 25 }).map((_, i) => (
-                  <div key={i} className={`w-4 h-4 rounded-sm ${Math.random() > 0.4 ? 'bg-[#312E81]' : 'bg-transparent'}`} />
+                  <div key={i} className={`w-4 h-4 rounded-sm ${Math.random() > 0.4 ? 'bg-[#065F46]' : 'bg-transparent'}`} />
                 ))}
               </div>
             </div>
@@ -141,21 +141,21 @@ export default function SecurityPage() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-[#FEF3C7] flex items-center justify-center">
-              <Key className="w-5 h-5 text-[#D97706]" />
+              <Key className="w-5 h-5 text-[#F59E0B]" />
             </div>
             <div>
               <p className="font-semibold text-sm">{l('Transaction PIN', 'PIN ya Miamala')}</p>
-              <p className="text-xs text-[#78716C]">{pinLock ? l('Enabled', 'Imewashwa') : l('Protect transactions with PIN', 'Linda miamala kwa PIN')}</p>
+              <p className="text-xs text-[#64748B]">{pinLock ? l('Enabled', 'Imewashwa') : l('Protect transactions with PIN', 'Linda miamala kwa PIN')}</p>
             </div>
           </div>
           <button onClick={() => { if (!pinLock) setShowSetupPIN(true); else setPinLock(false); }} className="transition-all">
-            {pinLock ? <ToggleRight className="w-10 h-6 text-[#312E81]" /> : <ToggleLeft className="w-10 h-6 text-[#E7E5E4]" />}
+            {pinLock ? <ToggleRight className="w-10 h-6 text-[#065F46]" /> : <ToggleLeft className="w-10 h-6 text-[#E2E8F0]" />}
           </button>
         </div>
 
         {showSetupPIN && (
-          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="mt-4 space-y-3 pt-3 border-t border-[#E7E5E4] dark:border-[#2E2C4A]">
-            <p className="text-xs text-[#78716C]">{l('Create a 4-digit PIN for transactions', 'Unda PIN ya tarakimu 4 kwa miamala')}</p>
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="mt-4 space-y-3 pt-3 border-t border-[#E2E8F0] dark:border-[#475569]">
+            <p className="text-xs text-[#64748B]">{l('Create a 4-digit PIN for transactions', 'Unda PIN ya tarakimu 4 kwa miamala')}</p>
             <div className="flex items-center justify-center gap-3">
               {pinDigits.map((digit, i) => (
                 <input
@@ -172,7 +172,7 @@ export default function SecurityPage() {
                       next?.focus();
                     }
                   }}
-                  className="w-14 h-14 rounded-xl border-2 border-[#E7E5E4] dark:border-[#2E2C4A] text-center text-2xl font-bold focus:border-[#312E81] focus:ring-2 focus:ring-[#312E81]/20 outline-none transition-all"
+                  className="w-14 h-14 rounded-xl border-2 border-[#E2E8F0] dark:border-[#475569] text-center text-2xl font-bold focus:border-[#065F46] focus:ring-2 focus:ring-[#065F46]/20 outline-none transition-all"
                 />
               ))}
             </div>
@@ -194,15 +194,15 @@ export default function SecurityPage() {
           {ACTIVE_SESSIONS.map((session, i) => (
             <div key={session.id} className="kcard p-3.5 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-[#F5F5F4] dark:bg-[#242244] flex items-center justify-center">
-                  <Monitor className="w-4 h-4 text-[#78716C]" />
+                <div className="w-9 h-9 rounded-xl bg-[#F1F5F9] dark:bg-[#334155] flex items-center justify-center">
+                  <Monitor className="w-4 h-4 text-[#64748B]" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-medium">{session.device}</p>
                     {session.current && <span className="kbadge kbadge-verified text-[8px]">{l('Current', 'Hii')}</span>}
                   </div>
-                  <p className="text-[10px] text-[#78716C]"><MapPin className="w-3 h-3 inline mr-0.5" />{session.location} · {session.lastActive}</p>
+                  <p className="text-[10px] text-[#64748B]"><MapPin className="w-3 h-3 inline mr-0.5" />{session.location} · {session.lastActive}</p>
                 </div>
               </div>
               {!session.current && (
@@ -222,12 +222,12 @@ export default function SecurityPage() {
           {LOGIN_HISTORY.map((login, i) => (
             <div key={login.id} className="kcard p-3 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${login.success ? 'bg-[#E0E7FF]' : 'bg-[#FEE2E2]'}`}>
-                  {login.success ? <CheckCircle2 className="w-4 h-4 text-[#3730A3]" /> : <AlertTriangle className="w-4 h-4 text-[#DC2626]" />}
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${login.success ? 'bg-[#ECFDF5]' : 'bg-[#FEE2E2]'}`}>
+                  {login.success ? <CheckCircle2 className="w-4 h-4 text-[#065F46]" /> : <AlertTriangle className="w-4 h-4 text-[#DC2626]" />}
                 </div>
                 <div>
                   <p className="text-xs font-medium">{login.device}</p>
-                  <p className="text-[10px] text-[#78716C]">{login.ip} · {login.time}</p>
+                  <p className="text-[10px] text-[#64748B]">{login.ip} · {login.time}</p>
                 </div>
               </div>
               <span className={`kbadge text-[8px] ${login.success ? 'kbadge-verified' : 'kbadge-urgent'}`}>
@@ -247,16 +247,16 @@ export default function SecurityPage() {
             { icon: Smartphone, label: l('Show Phone Number', 'Onesha Namba ya Simu'), sublabel: l('Visible on your profile', 'Inaonekana kwenye wasifu wako'), value: showPhone, setter: setShowPhone },
             { icon: Lock, label: l('Show Email', 'Onesha Barua Pepe'), sublabel: l('Visible on your profile', 'Inaonekana kwenye wasifu wako'), value: showEmail, setter: setShowEmail },
           ].map((item, i) => (
-            <div key={i} className="flex items-center justify-between px-4 py-3.5 border-b border-[#E7E5E4] dark:border-[#2E2C4A] last:border-0">
+            <div key={i} className="flex items-center justify-between px-4 py-3.5 border-b border-[#E2E8F0] dark:border-[#475569] last:border-0">
               <div className="flex items-center gap-3">
-                <item.icon className="w-4 h-4 text-[#3730A3]" />
+                <item.icon className="w-4 h-4 text-[#065F46]" />
                 <div>
                   <p className="text-sm font-medium">{item.label}</p>
-                  <p className="text-[10px] text-[#78716C]">{item.sublabel}</p>
+                  <p className="text-[10px] text-[#64748B]">{item.sublabel}</p>
                 </div>
               </div>
               <button onClick={() => item.setter(!item.value)}>
-                {item.value ? <ToggleRight className="w-9 h-5 text-[#312E81]" /> : <ToggleLeft className="w-9 h-5 text-[#E7E5E4]" />}
+                {item.value ? <ToggleRight className="w-9 h-5 text-[#065F46]" /> : <ToggleLeft className="w-9 h-5 text-[#E2E8F0]" />}
               </button>
             </div>
           ))}
@@ -269,10 +269,10 @@ export default function SecurityPage() {
         <div className="space-y-2">
           <button className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-[#FEE2E2] dark:hover:bg-[#2D1B1B] transition-colors">
             <div className="flex items-center gap-2">
-              <Download className="w-4 h-4 text-[#78716C]" />
+              <Download className="w-4 h-4 text-[#64748B]" />
               <span className="text-sm">{l('Export My Data', 'Hamisha Data Yangu')}</span>
             </div>
-            <ChevronRight className="w-4 h-4 text-[#78716C]" />
+            <ChevronRight className="w-4 h-4 text-[#64748B]" />
           </button>
           <button className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-[#FEE2E2] dark:hover:bg-[#2D1B1B] transition-colors">
             <div className="flex items-center gap-2">

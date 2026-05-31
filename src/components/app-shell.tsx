@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { useAppStore } from '@/lib/stores/app-store';
 import { useNotificationStore } from '@/lib/stores/notification-store';
@@ -9,16 +10,18 @@ import {
   Compass,
   Store,
   Search,
-  Calendar,
-  User,
+  CalendarCheck,
+  UserCircle2,
   Home,
-  MapPin,
-  DollarSign,
-  Shield,
+  TrendingUp,
+  LayoutDashboard,
   Users,
+  Scale,
+  ShieldAlert,
   Bell,
   Wallet,
   Settings,
+  ShoppingBag,
 } from 'lucide-react';
 import { LanguageToggle } from '@/components/language-toggle';
 import { Moon, Sun, LogOut, ChevronDown, ChevronRight } from 'lucide-react';
@@ -81,9 +84,36 @@ function NavProgress() {
   return (
     <div className="fixed top-0 left-0 right-0 z-[100] h-[3px]">
       <div
-        className="h-full bg-gradient-to-r from-[#312E81] via-[#818CF8] to-[#D97706] transition-all duration-200 ease-out"
+        className="h-full bg-gradient-to-r from-[#065F46] via-[#34D399] to-[#F59E0B] transition-all duration-200 ease-out"
         style={{ width: `${progress}%` }}
       />
+    </div>
+  );
+}
+
+// ── User Avatar Component ──
+function UserAvatar({ user, size = 'md' }: { user: { name?: string; role?: string; avatarUrl?: string | null }; size?: 'sm' | 'md' | 'lg' }) {
+  const sizeClasses = { sm: 'w-8 h-8 text-xs', md: 'w-9 h-9 text-sm', lg: 'w-12 h-12 text-base' };
+  const roleClass = user.role === 'guide' ? 'avatar-guide' : user.role === 'admin' ? 'avatar-admin' : 'avatar-seeker';
+  const initials = user.name?.split(' ').map(n => n[0]).join('').slice(0, 2) || 'U';
+
+  if (user.avatarUrl) {
+    return (
+      <div className={`${sizeClasses[size]} rounded-xl overflow-hidden ring-2 ring-[#065F46]/10 dark:ring-[#34D399]/10 shadow-sm`}>
+        <Image
+          src={user.avatarUrl}
+          alt={user.name || 'User'}
+          width={size === 'lg' ? 48 : size === 'md' ? 36 : 32}
+          height={size === 'lg' ? 48 : size === 'md' ? 36 : 32}
+          className="w-full h-full object-cover"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className={`${sizeClasses[size]} rounded-xl ${roleClass} flex items-center justify-center text-white font-bold ring-2 ring-[#065F46]/10 dark:ring-[#34D399]/10 shadow-sm`}>
+      {initials}
     </div>
   );
 }
@@ -96,33 +126,33 @@ function BottomNav() {
   const publicTabs = [
     { href: '/', icon: Home, label: 'Home', labelSw: 'Nyumbani' },
     { href: '/guides', icon: Compass, label: 'Guides', labelSw: 'Miongozo' },
-    { href: '/prices', icon: DollarSign, label: 'Prices', labelSw: 'Bei' },
-    { href: '/events', icon: Calendar, label: 'Events', labelSw: 'Matukio' },
+    { href: '/prices', icon: TrendingUp, label: 'Prices', labelSw: 'Bei' },
+    { href: '/events', icon: CalendarCheck, label: 'Events', labelSw: 'Matukio' },
     { href: '/vendors', icon: Store, label: 'Vendors', labelSw: 'Wauzaji' },
   ];
 
   const seekerTabs = [
     { href: '/', icon: Home, label: 'Home', labelSw: 'Nyumbani' },
-    { href: '/market', icon: Store, label: 'Market', labelSw: 'Soko' },
-    { href: '/seeker/find', icon: Search, label: 'Find Guide', labelSw: 'Tafuta' },
-    { href: '/prices', icon: DollarSign, label: 'Prices', labelSw: 'Bei' },
-    { href: '/seeker/profile', icon: User, label: 'Profile', labelSw: 'Wasifu' },
+    { href: '/market', icon: ShoppingBag, label: 'Market', labelSw: 'Soko' },
+    { href: '/seeker/find', icon: Search, label: 'Find', labelSw: 'Tafuta' },
+    { href: '/prices', icon: TrendingUp, label: 'Prices', labelSw: 'Bei' },
+    { href: '/seeker/profile', icon: UserCircle2, label: 'Profile', labelSw: 'Wasifu' },
   ];
 
   const guideTabs = [
     { href: '/guide', icon: Home, label: 'Home', labelSw: 'Nyumbani' },
-    { href: '/guide/sessions', icon: MapPin, label: 'Sessions', labelSw: 'Vipindi' },
+    { href: '/guide/sessions', icon: CalendarCheck, label: 'Sessions', labelSw: 'Vipindi' },
     { href: '/guide/packages', icon: Compass, label: 'Packages', labelSw: 'Pakiti' },
-    { href: '/guide/earnings', icon: DollarSign, label: 'Earnings', labelSw: 'Mapato' },
-    { href: '/guide/profile', icon: User, label: 'Profile', labelSw: 'Wasifu' },
+    { href: '/guide/earnings', icon: TrendingUp, label: 'Earnings', labelSw: 'Mapato' },
+    { href: '/guide/profile', icon: UserCircle2, label: 'Profile', labelSw: 'Wasifu' },
   ];
 
   const adminTabs = [
-    { href: '/admin', icon: Home, label: 'Dashboard', labelSw: 'Dashibodi' },
-    { href: '/admin/guides', icon: Users, label: 'Guides', labelSw: 'Miongozo' },
-    { href: '/admin/vendors', icon: Store, label: 'Vendors', labelSw: 'Wauzaji' },
-    { href: '/admin/disputes', icon: Shield, label: 'Disputes', labelSw: 'Migogoro' },
-    { href: '/admin/fraud', icon: Search, label: 'Fraud', labelSw: 'Dhuluma' },
+    { href: '/admin', icon: LayoutDashboard, label: 'Dashboard', labelSw: 'Dashibodi' },
+    { href: '/admin/users', icon: Users, label: 'Users', labelSw: 'Watumiaji' },
+    { href: '/admin/revenue', icon: TrendingUp, label: 'Revenue', labelSw: 'Mapato' },
+    { href: '/admin/disputes', icon: Scale, label: 'Disputes', labelSw: 'Migogoro' },
+    { href: '/admin/fraud', icon: ShieldAlert, label: 'Fraud', labelSw: 'Dhuluma' },
   ];
 
   const isAuth = useAuthStore(s => s.isAuthenticated);
@@ -204,19 +234,19 @@ function TopHeader() {
     <header className="knav sticky top-0 z-50">
       <div className="flex items-center justify-between px-4 h-14 max-w-4xl mx-auto">
         <Link href="/" prefetch={true} className="flex items-center gap-2.5 group">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#312E81] to-[#818CF8] flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#065F46] to-[#34D399] flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
             <Compass className="w-4.5 h-4.5 text-white" strokeWidth={2.5} />
           </div>
           <span className="text-sm font-bold gradient-text-green hidden sm:block">
-            Kariako<span className="text-[#D97706]">Guide</span>
+            Kariako<span className="text-[#F59E0B]">Guide</span>
           </span>
         </Link>
 
         <div className="flex items-center gap-1">
-          <LanguageToggle className="border border-[#E7E5E4] dark:border-[#2E2C4A] rounded-full" />
+          <LanguageToggle className="border border-[#E2E8F0] dark:border-[#334155] rounded-full" />
           <button
             onClick={() => setDarkMode(!darkMode)}
-            className="w-9 h-9 rounded-xl flex items-center justify-center border border-[#E7E5E4] dark:border-[#2E2C4A] hover:bg-[#F5F5F4] dark:hover:bg-[#242244] transition-all active:scale-90"
+            className="w-9 h-9 rounded-xl flex items-center justify-center border border-[#E2E8F0] dark:border-[#334155] hover:bg-[#F1F5F9] dark:hover:bg-[#334155] transition-all active:scale-90"
           >
             {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
@@ -226,16 +256,16 @@ function TopHeader() {
               {/* Wallet Badge */}
               <button
                 onClick={() => router.push('/wallet')}
-                className="h-8 px-2.5 rounded-xl flex items-center gap-1.5 bg-[#E0E7FF] dark:bg-[#1E1B4B] border border-[#312E81]/10 dark:border-[#818CF8]/20 hover:shadow-sm transition-all active:scale-95"
+                className="h-8 px-2.5 rounded-xl flex items-center gap-1.5 bg-[#ECFDF5] dark:bg-[#064E3B] border border-[#065F46]/10 dark:border-[#34D399]/20 hover:shadow-sm transition-all active:scale-95"
               >
-                <Wallet className="w-3.5 h-3.5 text-[#312E81] dark:text-[#818CF8]" />
-                <span className="text-[10px] font-bold text-[#312E81] dark:text-[#818CF8]">{(walletBalance / 1000).toFixed(0)}K</span>
+                <Wallet className="w-3.5 h-3.5 text-[#065F46] dark:text-[#34D399]" />
+                <span className="text-[10px] font-bold text-[#065F46] dark:text-[#34D399]">{(walletBalance / 1000).toFixed(0)}K</span>
               </button>
 
               {/* Notification Bell */}
               <button
                 onClick={() => router.push('/notifications')}
-                className="w-9 h-9 rounded-xl flex items-center justify-center border border-[#E7E5E4] dark:border-[#2E2C4A] hover:bg-[#F5F5F4] dark:hover:bg-[#242244] transition-all active:scale-90 relative"
+                className="w-9 h-9 rounded-xl flex items-center justify-center border border-[#E2E8F0] dark:border-[#334155] hover:bg-[#F1F5F9] dark:hover:bg-[#334155] transition-all active:scale-90 relative"
               >
                 <Bell className="w-4 h-4" />
                 {unreadCount > 0 && (
@@ -248,10 +278,8 @@ function TopHeader() {
               {/* User Menu */}
               <div className="relative" ref={menuRef}>
                 <button onClick={() => setShowMenu(!showMenu)} className="flex items-center gap-1.5 group active:scale-95 transition-transform">
-                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#312E81] to-[#818CF8] flex items-center justify-center text-white text-xs font-bold group-hover:shadow-md group-hover:ring-2 group-hover:ring-[#312E81]/20 transition-all">
-                    {user.name?.charAt(0) || 'U'}
-                  </div>
-                  <ChevronDown className="w-3 h-3 text-[#78716C] hidden sm:block" />
+                  <UserAvatar user={user} size="md" />
+                  <ChevronDown className="w-3 h-3 text-[#64748B] hidden sm:block" />
                 </button>
                 <AnimatePresence>
                   {showMenu && (
@@ -262,41 +290,39 @@ function TopHeader() {
                       transition={{ duration: 0.15 }}
                       className="absolute right-0 top-full mt-2 w-60 kcard-glass p-0 overflow-hidden z-50"
                     >
-                      <div className="p-4 border-b border-[#E7E5E4] dark:border-[#2E2C4A]">
+                      <div className="p-4 border-b border-[#E2E8F0] dark:border-[#334155]">
                         <div className="flex items-center gap-2.5">
-                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#312E81] to-[#818CF8] flex items-center justify-center text-white text-sm font-bold">
-                            {user.name?.charAt(0) || 'U'}
-                          </div>
+                          <UserAvatar user={user} size="lg" />
                           <div>
                             <p className="font-semibold text-sm">{user.name}</p>
-                            <p className="text-xs text-[#78716C]">{user.phone || user.email}</p>
+                            <p className="text-xs text-[#64748B]">{user.phone || user.email}</p>
                           </div>
                         </div>
-                        <span className="inline-block mt-2 text-xs font-semibold text-[#312E81] dark:text-[#818CF8] capitalize px-2 py-0.5 rounded-md bg-[#E0E7FF] dark:bg-[#1E1B4B]">{user.role}</span>
+                        <span className="inline-block mt-2 text-xs font-semibold text-[#065F46] dark:text-[#34D399] capitalize px-2 py-0.5 rounded-md bg-[#ECFDF5] dark:bg-[#064E3B]">{user.role}</span>
                       </div>
                       <div className="p-1.5">
                         {[
-                          { icon: User, label: sw ? 'Wasifu Wangu' : 'My Profile', href: profileHref },
+                          { icon: UserCircle2, label: sw ? 'Wasifu Wangu' : 'My Profile', href: profileHref },
                           { icon: Wallet, label: sw ? 'Mkoba' : 'Wallet', href: '/wallet' },
                           { icon: Bell, label: sw ? 'Arifa' : 'Notifications', href: '/notifications', badge: unreadCount },
                           { icon: Settings, label: sw ? 'Mipangilio' : 'Settings', href: '/settings' },
-                          { icon: Shield, label: sw ? 'Usalama' : 'Security', href: '/settings/security' },
+                          { icon: ShieldAlert, label: sw ? 'Usalama' : 'Security', href: '/settings/security' },
                         ].map((item, i) => (
                           <button
                             key={i}
                             onClick={() => { router.push(item.href); setShowMenu(false); }}
-                            className="w-full flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-[#F5F5F4] dark:hover:bg-[#242244] rounded-lg transition-colors"
+                            className="w-full flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-[#F1F5F9] dark:hover:bg-[#334155] rounded-lg transition-colors"
                           >
-                            <item.icon className="w-4 h-4 text-[#78716C]" />
+                            <item.icon className="w-4 h-4 text-[#64748B]" />
                             <span className="flex-1 text-left">{item.label}</span>
                             {item.badge && item.badge > 0 && (
                               <span className="w-4.5 h-4.5 rounded-full bg-[#DC2626] text-white text-[8px] font-bold flex items-center justify-center">{item.badge}</span>
                             )}
-                            <ChevronRight className="w-3 h-3 text-[#78716C]" />
+                            <ChevronRight className="w-3 h-3 text-[#64748B]" />
                           </button>
                         ))}
                       </div>
-                      <div className="p-1.5 border-t border-[#E7E5E4] dark:border-[#2E2C4A]">
+                      <div className="p-1.5 border-t border-[#E2E8F0] dark:border-[#334155]">
                         <button onClick={handleLogout} className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-[#DC2626] hover:bg-[#FEE2E2] dark:hover:bg-[#2D1B1B] rounded-xl transition-colors active:scale-95">
                           <LogOut className="w-4 h-4" />{sw ? 'Toka' : 'Logout'}
                         </button>
@@ -336,7 +362,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <>
       <NextAuthSessionSync />
       <NavProgress />
-      <div className="min-h-screen flex flex-col bg-[#FAFAF9] dark:bg-[#0C0A1D]">
+      <div className="min-h-screen flex flex-col bg-[#F8FAFC] dark:bg-[#0F172A]">
         <TopHeader />
         <main className="flex-1 pb-20 max-w-4xl mx-auto w-full">
           {children}

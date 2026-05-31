@@ -21,7 +21,7 @@ export default function AdminGuidesPage() {
   return (
     <div className="px-4 py-4 space-y-5">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-2xl font-bold text-[#312E81] dark:text-[#818CF8]">{l('Manage Guides', 'Simamia Miongozo')}</h1>
+        <h1 className="text-2xl font-bold text-[#065F46] dark:text-[#34D399]">{l('Manage Guides', 'Simamia Miongozo')}</h1>
       </motion.div>
 
       {PENDING_GUIDES.length > 0 && (
@@ -31,10 +31,10 @@ export default function AdminGuidesPage() {
             {PENDING_GUIDES.map((guide, i) => (
               <motion.div key={guide.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="kcard p-4 border-l-4 border-[#F59E0B]">
                 <div className="flex items-center gap-3 mb-2">
-                  <div className="w-10 h-10 rounded-full bg-[#FEF3C7] flex items-center justify-center text-[#D97706] font-bold">{guide.name.charAt(0)}</div>
-                  <div><h4 className="font-semibold text-sm">{guide.name}</h4><p className="text-xs text-[#78716C]">{guide.specialty}</p></div>
+                  <div className="w-10 h-10 rounded-full bg-[#FEF3C7] flex items-center justify-center text-[#F59E0B] font-bold">{guide.name.charAt(0)}</div>
+                  <div><h4 className="font-semibold text-sm">{guide.name}</h4><p className="text-xs text-[#64748B]">{guide.specialty}</p></div>
                 </div>
-                <div className="flex items-center gap-3 text-xs text-[#78716C] mb-3">
+                <div className="flex items-center gap-3 text-xs text-[#64748B] mb-3">
                   <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{guide.submitted}</span>
                   {guide.sessions > 0 && <><span className="flex items-center gap-1"><Users className="w-3 h-3" />{guide.sessions}</span><span className="flex items-center gap-1"><Star className="w-3 h-3" />{guide.rating}</span></>}
                 </div>
@@ -50,13 +50,13 @@ export default function AdminGuidesPage() {
       )}
 
       <div>
-        <h2 className="text-sm font-bold mb-2 flex items-center gap-1"><ShieldCheck className="w-4 h-4 text-[#3730A3]" />{l('Active Guides', 'Miongozo Hai')} ({ACTIVE_GUIDES.length})</h2>
+        <h2 className="text-sm font-bold mb-2 flex items-center gap-1"><ShieldCheck className="w-4 h-4 text-[#065F46]" />{l('Active Guides', 'Miongozo Hai')} ({ACTIVE_GUIDES.length})</h2>
         <div className="space-y-2">
           {ACTIVE_GUIDES.map((guide, i) => (
             <div key={guide.id} className="kcard p-3 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-[#3730A3] flex items-center justify-center text-white text-xs font-bold">{guide.name.split(' ').map(n => n[0]).join('')}</div>
-                <div><p className="text-sm font-medium">{guide.name}</p><p className="text-xs text-[#78716C]">{guide.specialty} · {guide.sessions} {l('sessions', 'vipindi')} · {guide.rating}★</p></div>
+                <div className="w-8 h-8 rounded-full bg-[#065F46] flex items-center justify-center text-white text-xs font-bold">{guide.name.split(' ').map(n => n[0]).join('')}</div>
+                <div><p className="text-sm font-medium">{guide.name}</p><p className="text-xs text-[#64748B]">{guide.specialty} · {guide.sessions} {l('sessions', 'vipindi')} · {guide.rating}★</p></div>
               </div>
               <span className="kbadge kbadge-verified">{l('Active', 'Hai')}</span>
             </div>

@@ -21,7 +21,7 @@ export default function AdminVendorsPage() {
   return (
     <div className="px-4 py-4 space-y-5">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-2xl font-bold text-[#312E81] dark:text-[#818CF8]">{l('Manage Vendors', 'Simamia Wauzaji')}</h1>
+        <h1 className="text-2xl font-bold text-[#065F46] dark:text-[#34D399]">{l('Manage Vendors', 'Simamia Wauzaji')}</h1>
       </motion.div>
 
       <div>
@@ -30,8 +30,8 @@ export default function AdminVendorsPage() {
           {PENDING_VENDORS.map((vendor, i) => (
             <motion.div key={vendor.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="kcard p-4 border-l-4 border-[#F59E0B]">
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 rounded-full bg-[#FEF3C7] flex items-center justify-center text-[#D97706] font-bold">{vendor.name.charAt(0)}</div>
-                <div><h4 className="font-semibold text-sm">{vendor.name}</h4><p className="text-xs text-[#78716C]">{vendor.zone} · {l('Stall', 'Duka')} {vendor.stall} · {vendor.submitted}</p></div>
+                <div className="w-10 h-10 rounded-full bg-[#FEF3C7] flex items-center justify-center text-[#F59E0B] font-bold">{vendor.name.charAt(0)}</div>
+                <div><h4 className="font-semibold text-sm">{vendor.name}</h4><p className="text-xs text-[#64748B]">{vendor.zone} · {l('Stall', 'Duka')} {vendor.stall} · {vendor.submitted}</p></div>
               </div>
               <div className="flex gap-2">
                 <button className="kbtn flex-1 text-xs py-2 flex items-center justify-center gap-1"><CheckCircle2 className="w-3 h-3" />{l('Verify', 'Thibitisha')}</button>
@@ -43,15 +43,15 @@ export default function AdminVendorsPage() {
       </div>
 
       <div>
-        <h2 className="text-sm font-bold mb-2 flex items-center gap-1"><ShieldCheck className="w-4 h-4 text-[#3730A3]" />{l('Verified Vendors', 'Wauzaji Waliothibitishwa')} ({VERIFIED_VENDORS.length})</h2>
+        <h2 className="text-sm font-bold mb-2 flex items-center gap-1"><ShieldCheck className="w-4 h-4 text-[#065F46]" />{l('Verified Vendors', 'Wauzaji Waliothibitishwa')} ({VERIFIED_VENDORS.length})</h2>
         <div className="space-y-2">
           {VERIFIED_VENDORS.map((vendor, i) => (
             <div key={vendor.id} className="kcard p-3 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-[#E0E7FF] flex items-center justify-center text-[#3730A3] font-bold text-xs">{vendor.name.charAt(0)}</div>
-                <div><p className="text-sm font-medium">{vendor.name}</p><p className="text-xs text-[#78716C]">{vendor.zone} · {vendor.stall} · {l('Expires', 'Inaisha')} {vendor.expires}</p></div>
+                <div className="w-8 h-8 rounded-full bg-[#ECFDF5] flex items-center justify-center text-[#065F46] font-bold text-xs">{vendor.name.charAt(0)}</div>
+                <div><p className="text-sm font-medium">{vendor.name}</p><p className="text-xs text-[#64748B]">{vendor.zone} · {vendor.stall} · {l('Expires', 'Inaisha')} {vendor.expires}</p></div>
               </div>
-              <QrCode className="w-4 h-4 text-[#3730A3]" />
+              <QrCode className="w-4 h-4 text-[#065F46]" />
             </div>
           ))}
         </div>

@@ -16,7 +16,7 @@ const TIERS = [
     price: 0,
     icon: Shield,
     color: 'from-slate-400 to-slate-500',
-    bgColor: 'bg-[#F5F5F4] dark:bg-[#242244]',
+    bgColor: 'bg-[#F1F5F9] dark:bg-[#334155]',
     features: [
       { text: 'Basic matching', included: true },
       { text: '3 sessions/day', included: true },
@@ -52,8 +52,8 @@ const TIERS = [
     name: 'Elite',
     price: 35000,
     icon: Crown,
-    color: 'from-[#312E81] to-[#818CF8]',
-    bgColor: 'bg-[#E0E7FF] dark:bg-[#1E1B4B]',
+    color: 'from-[#065F46] to-[#34D399]',
+    bgColor: 'bg-[#ECFDF5] dark:bg-[#022C22]',
     features: [
       { text: 'Basic matching', included: true },
       { text: 'Unlimited sessions', included: true },
@@ -132,12 +132,12 @@ export default function SubscriptionsPage() {
   return (
     <div className="px-4 py-4 space-y-5">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-2xl font-bold text-[#312E81] dark:text-[#818CF8]">{l('Subscription', 'Usajili')}</h1>
-        <p className="text-sm text-[#78716C] mt-1">{l('Manage your guide subscription plan', 'Simamia mpango wako wa usajili')}</p>
+        <h1 className="text-2xl font-bold text-[#065F46] dark:text-[#34D399]">{l('Subscription', 'Usajili')}</h1>
+        <p className="text-sm text-[#64748B] mt-1">{l('Manage your guide subscription plan', 'Simamia mpango wako wa usajili')}</p>
       </motion.div>
 
       {/* Current Plan Card */}
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className={`kcard p-5 ${subscriptionTier !== 'starter' ? 'border-2 border-[#D97706]' : ''}`}>
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className={`kcard p-5 ${subscriptionTier !== 'starter' ? 'border-2 border-[#F59E0B]' : ''}`}>
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2.5">
             <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${currentTierData.color} flex items-center justify-center`}>
@@ -145,7 +145,7 @@ export default function SubscriptionsPage() {
             </div>
             <div>
               <p className="font-bold">{currentTierData.name} {l('Plan', 'Mpango')}</p>
-              <p className="text-xs text-[#78716C]">
+              <p className="text-xs text-[#64748B]">
                 {currentTierData.price === 0 ? l('Free forever', 'Bure milele') : `TZS ${currentTierData.price.toLocaleString()}/${l('month', 'mwezi')}`}
               </p>
             </div>
@@ -157,14 +157,14 @@ export default function SubscriptionsPage() {
 
         {subscriptionTier !== 'starter' && (
           <div className="grid grid-cols-2 gap-3 mt-3">
-            <div className="p-2.5 rounded-lg bg-[#F5F5F4] dark:bg-[#242244]">
-              <p className="text-[10px] text-[#78716C]">{l('Renews In', 'Inajiriwa Baada ya')}</p>
+            <div className="p-2.5 rounded-lg bg-[#F1F5F9] dark:bg-[#334155]">
+              <p className="text-[10px] text-[#64748B]">{l('Renews In', 'Inajiriwa Baada ya')}</p>
               <p className="text-sm font-bold">{daysRemaining} {l('days', 'siku')}</p>
             </div>
-            <div className="p-2.5 rounded-lg bg-[#F5F5F4] dark:bg-[#242244]">
-              <p className="text-[10px] text-[#78716C]">{l('Auto-Renew', 'Kujiriwa Kiotomatiki')}</p>
+            <div className="p-2.5 rounded-lg bg-[#F1F5F9] dark:bg-[#334155]">
+              <p className="text-[10px] text-[#64748B]">{l('Auto-Renew', 'Kujiriwa Kiotomatiki')}</p>
               <button onClick={() => setAutoRenew(!autoRenew)} className="flex items-center gap-1.5 mt-0.5">
-                <div className={`w-8 h-4.5 rounded-full transition-colors ${autoRenew ? 'bg-[#312E81]' : 'bg-[#E7E5E4]'} relative`}>
+                <div className={`w-8 h-4.5 rounded-full transition-colors ${autoRenew ? 'bg-[#065F46]' : 'bg-[#E2E8F0]'} relative`}>
                   <div className={`w-3.5 h-3.5 rounded-full bg-white absolute top-0.5 transition-all ${autoRenew ? 'right-0.5' : 'left-0.5'}`} />
                 </div>
                 <span className="text-[10px] font-medium">{autoRenew ? l('On', 'Imewashwa') : l('Off', 'Imezimwa')}</span>
@@ -189,7 +189,7 @@ export default function SubscriptionsPage() {
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 + i * 0.05 }}
-                className={`kcard p-4 ${isCurrent ? 'border-2 border-[#312E81] dark:border-[#818CF8]' : ''} ${tier.popular && !isCurrent ? 'border-2 border-[#D97706]' : ''}`}
+                className={`kcard p-4 ${isCurrent ? 'border-2 border-[#065F46] dark:border-[#34D399]' : ''} ${tier.popular && !isCurrent ? 'border-2 border-[#F59E0B]' : ''}`}
               >
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2.5">
@@ -201,7 +201,7 @@ export default function SubscriptionsPage() {
                         <p className="font-bold text-sm">{tier.name}</p>
                         {tier.popular && <span className="kbadge kbadge-gold text-[8px]"><Sparkles className="w-2.5 h-2.5" />{l('Popular', 'Maarufu')}</span>}
                       </div>
-                      <p className="text-xs text-[#78716C]">
+                      <p className="text-xs text-[#64748B]">
                         {tier.price === 0 ? l('Free', 'Bure') : `TZS ${tier.price.toLocaleString()}/${l('mo', 'mwezi')}`}
                       </p>
                     </div>
@@ -222,7 +222,7 @@ export default function SubscriptionsPage() {
                 <div className="grid grid-cols-2 gap-1.5">
                   {tier.features.slice(0, 6).map((feat, fi) => (
                     <div key={fi} className={`flex items-center gap-1.5 text-xs ${feat.included ? '' : 'opacity-40 line-through'}`}>
-                      <Check className={`w-3 h-3 shrink-0 ${feat.included ? 'text-[#10B981]' : 'text-[#78716C]'}`} />
+                      <Check className={`w-3 h-3 shrink-0 ${feat.included ? 'text-[#10B981]' : 'text-[#64748B]'}`} />
                       {feat.text}
                     </div>
                   ))}
@@ -244,10 +244,10 @@ export default function SubscriptionsPage() {
             { icon: Trophy, label: l('Guide of Week', 'Mwongozo wa Wiki'), desc: l('Featured placement', 'Nafasi ya kuonekana') },
           ].map((feat, i) => (
             <div key={i} className="flex items-start gap-2">
-              <feat.icon className="w-5 h-5 text-[#D97706] shrink-0 mt-0.5" />
+              <feat.icon className="w-5 h-5 text-[#F59E0B] shrink-0 mt-0.5" />
               <div>
                 <p className="text-xs font-semibold">{feat.label}</p>
-                <p className="text-[10px] text-[#78716C]">{feat.desc}</p>
+                <p className="text-[10px] text-[#64748B]">{feat.desc}</p>
               </div>
             </div>
           ))}
@@ -261,12 +261,12 @@ export default function SubscriptionsPage() {
           {BILLING_HISTORY.map((bill, i) => (
             <div key={bill.id} className="kcard p-3 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-[#E0E7FF] flex items-center justify-center">
-                  <CreditCard className="w-4 h-4 text-[#3730A3]" />
+                <div className="w-9 h-9 rounded-xl bg-[#ECFDF5] flex items-center justify-center">
+                  <CreditCard className="w-4 h-4 text-[#065F46]" />
                 </div>
                 <div>
                   <p className="text-sm font-medium">{bill.tier} {l('Plan', 'Mpango')}</p>
-                  <p className="text-[10px] text-[#78716C]">{bill.date} · {bill.method}</p>
+                  <p className="text-[10px] text-[#64748B]">{bill.date} · {bill.method}</p>
                 </div>
               </div>
               <div className="text-right">
@@ -293,22 +293,22 @@ export default function SubscriptionsPage() {
               animate={{ y: 0 }}
               exit={{ y: 300 }}
               transition={{ type: 'spring', damping: 25 }}
-              className="w-full max-w-lg bg-white dark:bg-[#1A1832] rounded-t-3xl p-6 space-y-4"
+              className="w-full max-w-lg bg-white dark:bg-[#1E293B] rounded-t-3xl p-6 space-y-4"
               onClick={(e) => e.stopPropagation()}
             >
               {success ? (
                 <div className="text-center py-8">
-                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-16 h-16 rounded-full bg-[#E0E7FF] flex items-center justify-center mx-auto mb-3">
+                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-16 h-16 rounded-full bg-[#ECFDF5] flex items-center justify-center mx-auto mb-3">
                     <Check className="w-8 h-8 text-[#10B981]" />
                   </motion.div>
                   <p className="font-bold text-lg">{l('Subscription Updated!', 'Usajili Umehuishwa!')}</p>
-                  <p className="text-sm text-[#78716C]">{l(`You are now on the ${selectedTier} plan`, `Sasa uko kwenye mpango wa ${selectedTier}`)}</p>
+                  <p className="text-sm text-[#64748B]">{l(`You are now on the ${selectedTier} plan`, `Sasa uko kwenye mpango wa ${selectedTier}`)}</p>
                 </div>
               ) : (
                 <>
                   <div className="flex items-center justify-between">
                     <h3 className="text-lg font-bold">{l('Confirm Upgrade', 'Thibitisha Boresha')}</h3>
-                    <button onClick={() => !processing && setShowPayment(false)} className="w-8 h-8 rounded-full bg-[#F5F5F4] dark:bg-[#242244] flex items-center justify-center">
+                    <button onClick={() => !processing && setShowPayment(false)} className="w-8 h-8 rounded-full bg-[#F1F5F9] dark:bg-[#334155] flex items-center justify-center">
                       <X className="w-4 h-4" />
                     </button>
                   </div>
@@ -318,7 +318,7 @@ export default function SubscriptionsPage() {
                     </div>
                     <div>
                       <p className="font-bold">{selectedTier} {l('Plan', 'Mpango')}</p>
-                      <p className="text-sm text-[#78716C]">TZS {TIERS.find(t => t.id === selectedTier)?.price.toLocaleString()}/{l('month', 'mwezi')}</p>
+                      <p className="text-sm text-[#64748B]">TZS {TIERS.find(t => t.id === selectedTier)?.price.toLocaleString()}/{l('month', 'mwezi')}</p>
                     </div>
                   </div>
                   <div>

@@ -679,8 +679,8 @@ function OverviewView({ lang, stats, zones, disputes, pendingGuides, users, onNa
     }
   });
   const ratingDistribution = [
-    { rating: '5 ★', count: ratingBuckets[4], fill: '#3730A3' },
-    { rating: '4 ★', count: ratingBuckets[3], fill: '#818CF8' },
+    { rating: '5 ★', count: ratingBuckets[4], fill: '#065F46' },
+    { rating: '4 ★', count: ratingBuckets[3], fill: '#34D399' },
     { rating: '3 ★', count: ratingBuckets[2], fill: '#FBBF24' },
     { rating: '2 ★', count: ratingBuckets[1], fill: '#F97316' },
     { rating: '1 ★', count: ratingBuckets[0], fill: '#EF4444' },
@@ -1654,8 +1654,8 @@ function AnalyticsView({ lang, stats, zones, users, sessions }: {
     }
   });
   const ratingDist = [
-    { name: '5 ★', value: ratingBucketsAnalytics[4], fill: '#3730A3' },
-    { name: '4 ★', value: ratingBucketsAnalytics[3], fill: '#818CF8' },
+    { name: '5 ★', value: ratingBucketsAnalytics[4], fill: '#065F46' },
+    { name: '4 ★', value: ratingBucketsAnalytics[3], fill: '#34D399' },
     { name: '3 ★', value: ratingBucketsAnalytics[2], fill: '#FBBF24' },
     { name: '2 ★', value: ratingBucketsAnalytics[1], fill: '#F97316' },
     { name: '1 ★', value: ratingBucketsAnalytics[0], fill: '#EF4444' },
@@ -1753,7 +1753,7 @@ function AnalyticsView({ lang, stats, zones, users, sessions }: {
                   <XAxis dataKey="name" tick={{ fontSize: 10 }} interval={dateRange === 'week' ? 0 : 'preserveStartEnd'} />
                   <YAxis tick={{ fontSize: 11 }} />
                   <RechartsTooltip />
-                  <Line type="monotone" dataKey="sessions" stroke="#3730A3" strokeWidth={2} dot={dateRange === 'week' ? true : false} />
+                  <Line type="monotone" dataKey="sessions" stroke="#065F46" strokeWidth={2} dot={dateRange === 'week' ? true : false} />
                 </LineChart>
               </ResponsiveContainer>
             </div>

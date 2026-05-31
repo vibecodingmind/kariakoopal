@@ -17,7 +17,7 @@ export default function AdminDisputesPage() {
   return (
     <div className="px-4 py-4 space-y-5">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-2xl font-bold text-[#312E81] dark:text-[#818CF8]">{l('Disputes', 'Migogoro')}</h1>
+        <h1 className="text-2xl font-bold text-[#065F46] dark:text-[#34D399]">{l('Disputes', 'Migogoro')}</h1>
       </motion.div>
 
       <div className="space-y-3">
@@ -25,12 +25,12 @@ export default function AdminDisputesPage() {
           <motion.div key={dispute.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className={`kcard p-4 border-l-4 ${dispute.status === 'open' ? 'border-[#DC2626]' : 'border-[#F59E0B]'}`}>
             <div className="flex items-center justify-between mb-2">
               <span className={`kbadge ${dispute.status === 'open' ? 'kbadge-urgent' : 'kbadge-pending'}`}>{dispute.status.toUpperCase()}</span>
-              <span className="text-xs text-[#78716C] flex items-center gap-1"><Clock className="w-3 h-3" />{dispute.date}</span>
+              <span className="text-xs text-[#64748B] flex items-center gap-1"><Clock className="w-3 h-3" />{dispute.date}</span>
             </div>
             <h4 className="font-semibold text-sm mb-1">{dispute.reason}</h4>
-            <div className="flex items-center gap-3 text-xs text-[#78716C] mb-3">
+            <div className="flex items-center gap-3 text-xs text-[#64748B] mb-3">
               <span className="flex items-center gap-1"><User className="w-3 h-3" />{dispute.seeker} vs {dispute.guide}</span>
-              <span className="font-medium text-[#312E81]">TZS {dispute.amount.toLocaleString()}</span>
+              <span className="font-medium text-[#065F46]">TZS {dispute.amount.toLocaleString()}</span>
             </div>
             <div className="flex gap-2">
               <button className="kbtn flex-1 text-xs py-2 flex items-center justify-center gap-1"><MessageSquare className="w-3 h-3" />{l('Investigate', 'Chunguza')}</button>

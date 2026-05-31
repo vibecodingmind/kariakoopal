@@ -20,8 +20,8 @@ export default function GuidePackagesPage() {
     <div className="px-4 py-4 space-y-5">
       <div className="flex items-center justify-between">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="text-2xl font-bold text-[#312E81] dark:text-[#818CF8]">{l('Package Deals', 'Pakiti za Biashara')}</h1>
-          <p className="text-sm text-[#78716C] mt-1">{l('Create curated tour packages for seekers', 'Unda pakiti za ziara kwa watafutaji')}</p>
+          <h1 className="text-2xl font-bold text-[#065F46] dark:text-[#34D399]">{l('Package Deals', 'Pakiti za Biashara')}</h1>
+          <p className="text-sm text-[#64748B] mt-1">{l('Create curated tour packages for seekers', 'Unda pakiti za ziara kwa watafutaji')}</p>
         </motion.div>
         <button onClick={() => setShowCreate(!showCreate)} className="kbtn text-xs py-1.5 px-3"><Plus className="w-3 h-3" />{l('New', 'Mpya')}</button>
       </div>
@@ -49,7 +49,7 @@ export default function GuidePackagesPage() {
               <h4 className="font-semibold text-sm">{pkg.title}</h4>
               <span className={`kbadge ${pkg.active ? 'kbadge-verified' : 'kbadge-pending'}`}>{pkg.active ? l('Active', 'Inayoendelea') : l('Inactive', 'Haiendelei')}</span>
             </div>
-            <div className="flex items-center gap-4 text-xs text-[#78716C] mb-3">
+            <div className="flex items-center gap-4 text-xs text-[#64748B] mb-3">
               <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{pkg.duration}h</span>
               <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />TZS {pkg.price.toLocaleString()}</span>
               <span className="flex items-center gap-1"><Star className="w-3 h-3" />{pkg.completed} {l('done', 'zimefanyika')}</span>

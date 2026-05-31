@@ -34,7 +34,7 @@ export default function VendorProfilePage() {
   if (!vendor) {
     return (
       <div className="px-4 py-8 text-center">
-        <p className="text-lg font-semibold text-[#78716C]">{l('Vendor not found', 'Muuzaji hajapatikana')}</p>
+        <p className="text-lg font-semibold text-[#64748B]">{l('Vendor not found', 'Muuzaji hajapatikana')}</p>
         <button onClick={() => router.push('/vendors')} className="kbtn mt-4">{l('Back to Vendors', 'Rudi kwa Wauzaji')}</button>
       </div>
     );
@@ -43,7 +43,7 @@ export default function VendorProfilePage() {
   return (
     <div className="px-4 py-4 space-y-5">
       <motion.div initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }}>
-        <button onClick={() => router.push('/vendors')} className="flex items-center gap-1 text-sm text-[#78716C] hover:text-[#0A4D3A]">
+        <button onClick={() => router.push('/vendors')} className="flex items-center gap-1 text-sm text-[#64748B] hover:text-[#0A4D3A]">
           <ArrowLeft className="w-4 h-4" /> {l('Back', 'Rudi')}
         </button>
       </motion.div>
@@ -57,34 +57,34 @@ export default function VendorProfilePage() {
           <div className="flex-1">
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-bold">{vendor.name}</h1>
-              {vendor.verified && <ShieldCheck className="w-5 h-5 text-[#3730A3]" />}
+              {vendor.verified && <ShieldCheck className="w-5 h-5 text-[#065F46]" />}
             </div>
-            <p className="text-sm text-[#78716C] mt-0.5 flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{vendor.zoneName} · {l('Stall', 'Duka')} {vendor.stall}</p>
+            <p className="text-sm text-[#64748B] mt-0.5 flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{vendor.zoneName} · {l('Stall', 'Duka')} {vendor.stall}</p>
           </div>
         </div>
 
         {vendor.verified && (
-          <div className="mt-4 p-3 rounded-lg bg-[#E0E7FF] dark:bg-[#1E1B4B] flex items-center gap-3">
-            <QrCode className="w-8 h-8 text-[#3730A3] dark:text-[#818CF8]" />
+          <div className="mt-4 p-3 rounded-lg bg-[#ECFDF5] dark:bg-[#022C22] flex items-center gap-3">
+            <QrCode className="w-8 h-8 text-[#065F46] dark:text-[#34D399]" />
             <div>
-              <p className="text-sm font-semibold text-[#3730A3] dark:text-[#818CF8]">{l('Verified Vendor', 'Muuzaji Aliyethibitishwa')}</p>
-              <p className="text-xs text-[#78716C]">{l('Scannable QR code available', 'Nambari ya QR inapatikana')}</p>
+              <p className="text-sm font-semibold text-[#065F46] dark:text-[#34D399]">{l('Verified Vendor', 'Muuzaji Aliyethibitishwa')}</p>
+              <p className="text-xs text-[#64748B]">{l('Scannable QR code available', 'Nambari ya QR inapatikana')}</p>
             </div>
           </div>
         )}
 
         <div className="grid grid-cols-3 gap-3 mt-4">
-          <div className="text-center p-2 rounded-lg bg-[#FAFAF9] dark:bg-[#242244]">
-            <div className="flex items-center justify-center gap-1"><Star className="w-4 h-4 fill-[#D97706] text-[#D97706]" /><span className="font-bold text-sm">{vendor.rating}</span></div>
-            <p className="text-[10px] text-[#78716C] mt-0.5">{l('Rating', 'Alama')}</p>
+          <div className="text-center p-2 rounded-lg bg-[#F8FAFC] dark:bg-[#334155]">
+            <div className="flex items-center justify-center gap-1"><Star className="w-4 h-4 fill-[#F59E0B] text-[#F59E0B]" /><span className="font-bold text-sm">{vendor.rating}</span></div>
+            <p className="text-[10px] text-[#64748B] mt-0.5">{l('Rating', 'Alama')}</p>
           </div>
-          <div className="text-center p-2 rounded-lg bg-[#FAFAF9] dark:bg-[#242244]">
-            <div className="flex items-center justify-center gap-1"><ThumbsUp className="w-4 h-4 text-[#3730A3]" /><span className="font-bold text-sm">{vendor.recs}</span></div>
-            <p className="text-[10px] text-[#78716C] mt-0.5">{l('Recommend', 'Pendekeza')}</p>
+          <div className="text-center p-2 rounded-lg bg-[#F8FAFC] dark:bg-[#334155]">
+            <div className="flex items-center justify-center gap-1"><ThumbsUp className="w-4 h-4 text-[#065F46]" /><span className="font-bold text-sm">{vendor.recs}</span></div>
+            <p className="text-[10px] text-[#64748B] mt-0.5">{l('Recommend', 'Pendekeza')}</p>
           </div>
-          <div className="text-center p-2 rounded-lg bg-[#FAFAF9] dark:bg-[#242244]">
-            <div className="flex items-center justify-center gap-1"><Clock className="w-4 h-4 text-[#78716C]" /><span className="font-bold text-xs">{vendor.hours}</span></div>
-            <p className="text-[10px] text-[#78716C] mt-0.5">{l('Hours', 'Masaa')}</p>
+          <div className="text-center p-2 rounded-lg bg-[#F8FAFC] dark:bg-[#334155]">
+            <div className="flex items-center justify-center gap-1"><Clock className="w-4 h-4 text-[#64748B]" /><span className="font-bold text-xs">{vendor.hours}</span></div>
+            <p className="text-[10px] text-[#64748B] mt-0.5">{l('Hours', 'Masaa')}</p>
           </div>
         </div>
       </motion.div>
@@ -99,21 +99,21 @@ export default function VendorProfilePage() {
       {/* About */}
       <div className="kcard p-5">
         <h3 className="font-semibold text-sm mb-2">{l('About', 'Kuhusu')}</h3>
-        <p className="text-sm text-[#78716C] leading-relaxed">{sw ? vendor.bioSw : vendor.bio}</p>
+        <p className="text-sm text-[#64748B] leading-relaxed">{sw ? vendor.bioSw : vendor.bio}</p>
       </div>
 
       {/* Contact */}
       <div className="kcard p-5">
         <h3 className="font-semibold text-sm mb-3">{l('Contact', 'Mawasiliano')}</h3>
         <div className="flex items-center gap-3">
-          <Phone className="w-4 h-4 text-[#3730A3]" />
+          <Phone className="w-4 h-4 text-[#065F46]" />
           <span className="text-sm">{vendor.contact}</span>
         </div>
       </div>
 
       {/* CTA */}
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="kcard-green p-5 text-center">
-        <Navigation className="w-8 h-8 text-[#D97706] mx-auto mb-2" />
+        <Navigation className="w-8 h-8 text-[#F59E0B] mx-auto mb-2" />
         <h3 className="font-bold text-white">{l('Need Help Finding This Stall?', 'Unahitaji Msaada Wa Kupata Duka Hili?')}</h3>
         <p className="text-sm text-white/70 mt-1">{l('A local guide can navigate you directly here', 'Mwongozo wa karani anaweza kukuelekeza moja kwa moja hapa')}</p>
         <button onClick={() => router.push(isAuthenticated ? '/seeker/find' : '/auth')} className="kbtn-yellow mt-3 text-sm">

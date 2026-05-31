@@ -18,8 +18,8 @@ export default function HistoryPage() {
   return (
     <div className="px-4 py-4 space-y-4">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-2xl font-bold text-[#312E81] dark:text-[#818CF8]">{l('Session History', 'Historia ya Vipindi')}</h1>
-        <p className="text-sm text-[#78716C] mt-1">{l('Your past guided sessions', 'Vipindi vyako vilivyopita')}</p>
+        <h1 className="text-2xl font-bold text-[#065F46] dark:text-[#34D399]">{l('Session History', 'Historia ya Vipindi')}</h1>
+        <p className="text-sm text-[#64748B] mt-1">{l('Your past guided sessions', 'Vipindi vyako vilivyopita')}</p>
       </motion.div>
 
       <div className="space-y-3">
@@ -27,23 +27,23 @@ export default function HistoryPage() {
           <motion.div key={session.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="kcard p-4">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <div className="w-10 h-10 rounded-full bg-[#3730A3] flex items-center justify-center text-white text-xs font-bold">{session.guide.split(' ').map(n => n[0]).join('')}</div>
+                <div className="w-10 h-10 rounded-full bg-[#065F46] flex items-center justify-center text-white text-xs font-bold">{session.guide.split(' ').map(n => n[0]).join('')}</div>
                 <div>
                   <p className="font-semibold text-sm">{session.guide}</p>
-                  <p className="text-xs text-[#78716C]">{session.specialty}</p>
+                  <p className="text-xs text-[#64748B]">{session.specialty}</p>
                 </div>
               </div>
               <div className="text-right">
-                <p className="font-bold text-sm text-[#312E81]">TZS {session.amount.toLocaleString()}</p>
-                <div className="flex items-center gap-0.5 justify-end">{Array.from({ length: 5 }).map((_, j) => <Star key={j} className={`w-3 h-3 ${j < session.rating ? 'fill-[#D97706] text-[#D97706]' : 'text-[#E7E5E4]'}`} />)}</div>
+                <p className="font-bold text-sm text-[#065F46]">TZS {session.amount.toLocaleString()}</p>
+                <div className="flex items-center gap-0.5 justify-end">{Array.from({ length: 5 }).map((_, j) => <Star key={j} className={`w-3 h-3 ${j < session.rating ? 'fill-[#F59E0B] text-[#F59E0B]' : 'text-[#E2E8F0]'}`} />)}</div>
               </div>
             </div>
-            <div className="flex items-center gap-3 text-xs text-[#78716C] mb-2">
+            <div className="flex items-center gap-3 text-xs text-[#64748B] mb-2">
               <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{session.duration}</span>
               <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{session.zone}</span>
               <span>{session.date}</span>
             </div>
-            <p className="text-xs text-[#78716C] italic">"{session.review}"</p>
+            <p className="text-xs text-[#64748B] italic">"{session.review}"</p>
           </motion.div>
         ))}
       </div>

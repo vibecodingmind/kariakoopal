@@ -39,31 +39,31 @@ export default function SeekerDashboard() {
     <div className="px-4 py-4 space-y-5">
       {/* Welcome */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-        <p className="text-sm text-[#78716C]">{l('Welcome back,', 'Karibu tena,')}</p>
-        <h1 className="text-2xl font-bold text-[#312E81] dark:text-[#818CF8]">{user.name} 👋</h1>
+        <p className="text-sm text-[#64748B]">{l('Welcome back,', 'Karibu tena,')}</p>
+        <h1 className="text-2xl font-bold text-[#065F46] dark:text-[#34D399]">{user.name} 👋</h1>
       </motion.div>
 
       {/* Quick Actions */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="grid grid-cols-2 gap-3">
         <button onClick={() => router.push('/seeker/find')} className="kcard-green p-4 text-left">
-          <Search className="w-6 h-6 text-[#D97706] mb-2" />
+          <Search className="w-6 h-6 text-[#F59E0B] mb-2" />
           <h3 className="font-bold text-white text-sm">{l('Find Guide', 'Tafuta Mwongozo')}</h3>
           <p className="text-xs text-white/60 mt-0.5">{l('Get matched now', 'Patanishwa sasa')}</p>
         </button>
         <button onClick={() => router.push('/seeker/shopping-list')} className="kcard-yellow p-4 text-left">
-          <ShoppingBag className="w-6 h-6 text-[#312E81] mb-2" />
-          <h3 className="font-bold text-[#312E81] text-sm">{l('Shopping List', 'Orodha ya Manunuzi')}</h3>
-          <p className="text-xs text-[#312E81]/60 mt-0.5">{l('Plan your trip', 'Panga safari yako')}</p>
+          <ShoppingBag className="w-6 h-6 text-[#065F46] mb-2" />
+          <h3 className="font-bold text-[#065F46] text-sm">{l('Shopping List', 'Orodha ya Manunuzi')}</h3>
+          <p className="text-xs text-[#065F46]/60 mt-0.5">{l('Plan your trip', 'Panga safari yako')}</p>
         </button>
         <button onClick={() => router.push('/prices')} className="kcard p-4 text-left">
-          <TrendingUp className="w-6 h-6 text-[#3730A3] mb-2" />
+          <TrendingUp className="w-6 h-6 text-[#065F46] mb-2" />
           <h3 className="font-bold text-sm">{l('Price Radar', 'Rada ya Bei')}</h3>
-          <p className="text-xs text-[#78716C] mt-0.5">{l('Check fair prices', 'Angalia bei za haki')}</p>
+          <p className="text-xs text-[#64748B] mt-0.5">{l('Check fair prices', 'Angalia bei za haki')}</p>
         </button>
         <button onClick={() => router.push('/seeker/buddy')} className="kcard p-4 text-left">
-          <Users className="w-6 h-6 text-[#3730A3] mb-2" />
+          <Users className="w-6 h-6 text-[#065F46] mb-2" />
           <h3 className="font-bold text-sm">{l('Find Buddy', 'Tafuta Rafiki')}</h3>
-          <p className="text-xs text-[#78716C] mt-0.5">{l('Share guide costs', 'Shiriki gharama')}</p>
+          <p className="text-xs text-[#64748B] mt-0.5">{l('Share guide costs', 'Shiriki gharama')}</p>
         </button>
       </motion.div>
 
@@ -79,7 +79,7 @@ export default function SeekerDashboard() {
             <span className="kbadge kbadge-live">{l('ACTIVE', 'INAYOENDA')}</span>
           </div>
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-full bg-[#D97706] flex items-center justify-center text-[#312E81] font-bold">MJ</div>
+            <div className="w-10 h-10 rounded-full bg-[#F59E0B] flex items-center justify-center text-[#065F46] font-bold">MJ</div>
             <div>
               <p className="text-white font-semibold text-sm">Mwanaildi Juma</p>
               <p className="text-white/60 text-xs">{l('Fabrics & Village Guide', 'Mwongozo wa Vitenge na Kijiji')}</p>
@@ -88,7 +88,7 @@ export default function SeekerDashboard() {
           <div className="flex items-center gap-4 text-xs text-white/60 mb-3">
             <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{l('1h 23m', '1s 23d')}</span>
             <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{l('Fabrics Zone', 'Eneo la Vitenge')}</span>
-            <span className="flex items-center gap-1"><Star className="w-3 h-3 fill-[#D97706] text-[#D97706]" />4.8</span>
+            <span className="flex items-center gap-1"><Star className="w-3 h-3 fill-[#F59E0B] text-[#F59E0B]" />4.8</span>
           </div>
           <button className="kbtn-yellow w-full text-sm">{l('Open Session', 'Fungua Kipindi')}</button>
         </div>
@@ -98,7 +98,7 @@ export default function SeekerDashboard() {
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-bold">{l('Recent', 'Ya Hivi Karibu')}</h2>
-          <button onClick={() => router.push('/seeker/history')} className="text-sm text-[#3730A3] dark:text-[#818CF8] font-medium">{l('See All', 'Tazama Zote')}</button>
+          <button onClick={() => router.push('/seeker/history')} className="text-sm text-[#065F46] dark:text-[#34D399] font-medium">{l('See All', 'Tazama Zote')}</button>
         </div>
         <div className="space-y-3">
           {[
@@ -107,17 +107,17 @@ export default function SeekerDashboard() {
           ].map((session, i) => (
             <div key={i} className="kcard p-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-[#F5F5F4] dark:bg-[#242244] flex items-center justify-center">
-                  <Compass className="w-5 h-5 text-[#3730A3]" />
+                <div className="w-10 h-10 rounded-full bg-[#F1F5F9] dark:bg-[#334155] flex items-center justify-center">
+                  <Compass className="w-5 h-5 text-[#065F46]" />
                 </div>
                 <div>
                   <p className="text-sm font-medium">{session.name}</p>
-                  <p className="text-xs text-[#78716C]">{session.guide} · {session.date}</p>
+                  <p className="text-xs text-[#64748B]">{session.guide} · {session.date}</p>
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-sm font-bold text-[#312E81]">{session.amount}</p>
-                <div className="flex items-center gap-0.5 justify-end">{Array.from({ length: session.rating }).map((_, j) => <Star key={j} className="w-3 h-3 fill-[#D97706] text-[#D97706]" />)}</div>
+                <p className="text-sm font-bold text-[#065F46]">{session.amount}</p>
+                <div className="flex items-center gap-0.5 justify-end">{Array.from({ length: session.rating }).map((_, j) => <Star key={j} className="w-3 h-3 fill-[#F59E0B] text-[#F59E0B]" />)}</div>
               </div>
             </div>
           ))}
@@ -127,22 +127,22 @@ export default function SeekerDashboard() {
       {/* Notifications */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }} className="kcard p-4">
         <div className="flex items-center gap-2 mb-2">
-          <Bell className="w-4 h-4 text-[#D97706]" />
+          <Bell className="w-4 h-4 text-[#F59E0B]" />
           <span className="text-sm font-semibold">{l('Notifications', 'Arifa')}</span>
         </div>
         <div className="space-y-2">
-          <div className="flex items-start gap-2 p-2 rounded-lg bg-[#D97706]/10">
-            <Package className="w-4 h-4 text-[#3730A3] mt-0.5 shrink-0" />
+          <div className="flex items-start gap-2 p-2 rounded-lg bg-[#F59E0B]/10">
+            <Package className="w-4 h-4 text-[#065F46] mt-0.5 shrink-0" />
             <div>
               <p className="text-xs font-medium">{l('Price drop on Samsung Galaxy A54!', 'Bei imepungua kwa Samsung Galaxy A54!')}</p>
-              <p className="text-[10px] text-[#78716C]">2 hours ago</p>
+              <p className="text-[10px] text-[#64748B]">2 hours ago</p>
             </div>
           </div>
-          <div className="flex items-start gap-2 p-2 rounded-lg bg-[#E0E7FF]">
-            <Users className="w-4 h-4 text-[#3730A3] mt-0.5 shrink-0" />
+          <div className="flex items-start gap-2 p-2 rounded-lg bg-[#ECFDF5]">
+            <Users className="w-4 h-4 text-[#065F46] mt-0.5 shrink-0" />
             <div>
               <p className="text-xs font-medium">{l('Buddy match found for Fabrics Zone tour', 'Rafiki amepatikana kwa ziara ya Eneo la Vitenge')}</p>
-              <p className="text-[10px] text-[#78716C]">5 hours ago</p>
+              <p className="text-[10px] text-[#64748B]">5 hours ago</p>
             </div>
           </div>
         </div>

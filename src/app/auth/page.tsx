@@ -57,9 +57,9 @@ function AnimatedBackground() {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
       {/* Floating orbs */}
-      <div className="absolute top-[10%] right-[15%] w-72 h-72 rounded-full bg-[#D97706]/5 blur-3xl animate-float" />
+      <div className="absolute top-[10%] right-[15%] w-72 h-72 rounded-full bg-[#F59E0B]/5 blur-3xl animate-float" />
       <div className="absolute bottom-[20%] left-[10%] w-96 h-96 rounded-full bg-white/3 blur-3xl animate-float-slow" />
-      <div className="absolute top-[60%] right-[5%] w-48 h-48 rounded-full bg-[#818CF8]/5 blur-3xl animate-float-reverse" />
+      <div className="absolute top-[60%] right-[5%] w-48 h-48 rounded-full bg-[#34D399]/5 blur-3xl animate-float-reverse" />
 
       {/* Grid pattern overlay */}
       <div className="absolute inset-0 opacity-[0.015]"
@@ -178,10 +178,10 @@ function AuthContent() {
               className="text-center mb-6"
             >
               <div className="w-16 h-16 rounded-2xl bg-white/15 backdrop-blur-sm mx-auto flex items-center justify-center mb-3 ring-1 ring-white/20">
-                <Compass className="w-8 h-8 text-[#D97706]" strokeWidth={2.5} />
+                <Compass className="w-8 h-8 text-[#F59E0B]" strokeWidth={2.5} />
               </div>
               <h1 className="text-2xl font-black text-white tracking-tight">
-                Kariako<span className="text-[#D97706]">Guide</span>
+                Kariako<span className="text-[#F59E0B]">Guide</span>
               </h1>
               <p className="text-white/50 mt-1 text-sm">
                 {sw ? 'Soko lako, Mwongozo wako' : 'Your Market, Your Guide'}
@@ -197,7 +197,7 @@ function AuthContent() {
             >
               {/* Login / Register Tabs */}
               {step === 'main' && (
-                <div className="flex bg-[#F5F5F4] dark:bg-[#242244] rounded-xl p-1 mb-6">
+                <div className="flex bg-[#F1F5F9] dark:bg-[#334155] rounded-xl p-1 mb-6">
                   <button
                     onClick={() => { setAuthMode('login'); setError(''); }}
                     className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all duration-300 ${
@@ -233,11 +233,11 @@ function AuthContent() {
                   {/* Name field - only register */}
                   {authMode === 'register' && (
                     <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-1.5">
-                      <label className="text-xs font-semibold text-[#78716C] dark:text-[#A1A1AA] uppercase tracking-wider">
+                      <label className="text-xs font-semibold text-[#64748B] dark:text-[#94A3B8] uppercase tracking-wider">
                         {sw ? 'Jina Kamili' : 'Full Name'}
                       </label>
                       <div className="relative">
-                        <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#78716C]" />
+                        <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#64748B]" />
                         <Input
                           type="text"
                           placeholder={sw ? 'Mfano: Juma Ahmed' : 'e.g. Juma Ahmed'}
@@ -252,11 +252,11 @@ function AuthContent() {
                   {/* Email field - only register */}
                   {authMode === 'register' && (
                     <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-1.5">
-                      <label className="text-xs font-semibold text-[#78716C] dark:text-[#A1A1AA] uppercase tracking-wider">
-                        {sw ? 'Barua Pepe' : 'Email'} <span className="text-[#78716C] font-normal normal-case">({sw ? 'si lazima' : 'optional'})</span>
+                      <label className="text-xs font-semibold text-[#64748B] dark:text-[#94A3B8] uppercase tracking-wider">
+                        {sw ? 'Barua Pepe' : 'Email'} <span className="text-[#64748B] font-normal normal-case">({sw ? 'si lazima' : 'optional'})</span>
                       </label>
                       <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#78716C]" />
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#64748B]" />
                         <Input
                           type="email"
                           placeholder={sw ? 'barua@mfano.com' : 'email@example.com'}
@@ -270,11 +270,11 @@ function AuthContent() {
 
                   {/* Phone field */}
                   <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-[#78716C] dark:text-[#A1A1AA] uppercase tracking-wider">
+                    <label className="text-xs font-semibold text-[#64748B] dark:text-[#94A3B8] uppercase tracking-wider">
                       {sw ? 'Nambari ya Simu' : 'Phone Number'}
                     </label>
                     <div className="flex gap-2">
-                      <div className="flex items-center px-3 bg-[#F5F5F4] dark:bg-[#242244] rounded-xl text-sm font-semibold min-w-fit border border-[#E7E5E4] dark:border-[#2E2C4A] h-11">
+                      <div className="flex items-center px-3 bg-[#F1F5F9] dark:bg-[#334155] rounded-xl text-sm font-semibold min-w-fit border border-[#E2E8F0] dark:border-[#475569] h-11">
                         🇹🇿 +255
                       </div>
                       <Input
@@ -292,15 +292,15 @@ function AuthContent() {
                   {authMode === 'login' && (
                     <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-1.5">
                       <div className="flex items-center justify-between">
-                        <label className="text-xs font-semibold text-[#78716C] dark:text-[#A1A1AA] uppercase tracking-wider">
+                        <label className="text-xs font-semibold text-[#64748B] dark:text-[#94A3B8] uppercase tracking-wider">
                           {sw ? 'Nenosiri' : 'Password'}
                         </label>
-                        <button className="text-xs font-medium text-[#312E81] dark:text-[#818CF8] hover:underline">
+                        <button className="text-xs font-medium text-[#065F46] dark:text-[#34D399] hover:underline">
                           {sw ? 'Umesahau?' : 'Forgot?'}
                         </button>
                       </div>
                       <div className="relative">
-                        <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#78716C]" />
+                        <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#64748B]" />
                         <Input
                           type={showPassword ? 'text' : 'password'}
                           placeholder={sw ? 'Weka nenosiri' : 'Enter password'}
@@ -310,7 +310,7 @@ function AuthContent() {
                         />
                         <button
                           onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-[#78716C] hover:text-[#312E81] transition-colors"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748B] hover:text-[#065F46] transition-colors"
                         >
                           {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
@@ -324,12 +324,12 @@ function AuthContent() {
                       <button
                         onClick={() => setAgreeTerms(!agreeTerms)}
                         className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 mt-0.5 transition-all ${
-                          agreeTerms ? 'bg-[#312E81] border-[#312E81]' : 'border-[#CBD5E1] dark:border-[#2E2C4A]'
+                          agreeTerms ? 'bg-[#065F46] border-[#065F46]' : 'border-[#CBD5E1] dark:border-[#475569]'
                         }`}
                       >
                         {agreeTerms && <CheckCircle2 className="w-3 h-3 text-white" />}
                       </button>
-                      <span className="text-xs text-[#78716C] dark:text-[#A1A1AA] leading-relaxed">
+                      <span className="text-xs text-[#64748B] dark:text-[#94A3B8] leading-relaxed">
                         {sw
                           ? 'Nakubaliana na Masharti ya Matumizi na Sera ya Faragha ya KariakoGuide'
                           : 'I agree to KariakoGuide\'s Terms of Service and Privacy Policy'}
@@ -352,11 +352,11 @@ function AuthContent() {
 
                   {/* Divider */}
                   <div className="relative flex items-center gap-3 py-1">
-                    <div className="flex-1 h-px bg-[#E7E5E4] dark:bg-[#2E2C4A]" />
-                    <span className="text-[11px] text-[#78716C] dark:text-[#A1A1AA] whitespace-nowrap font-medium uppercase tracking-wider">
+                    <div className="flex-1 h-px bg-[#E2E8F0] dark:bg-[#475569]" />
+                    <span className="text-[11px] text-[#64748B] dark:text-[#94A3B8] whitespace-nowrap font-medium uppercase tracking-wider">
                       {sw ? 'au ingia kwa' : 'or continue with'}
                     </span>
-                    <div className="flex-1 h-px bg-[#E7E5E4] dark:bg-[#2E2C4A]" />
+                    <div className="flex-1 h-px bg-[#E2E8F0] dark:bg-[#475569]" />
                   </div>
 
                   {/* Social Login */}
@@ -377,11 +377,11 @@ function AuthContent() {
               {step === 'otp' && (
                 <div className="space-y-4">
                   <div className="text-center mb-2">
-                    <div className="w-14 h-14 rounded-2xl bg-[#E0E7FF] dark:bg-[#1E1B4B] mx-auto flex items-center justify-center mb-3">
-                      <Phone className="w-6 h-6 text-[#312E81] dark:text-[#818CF8]" />
+                    <div className="w-14 h-14 rounded-2xl bg-[#ECFDF5] dark:bg-[#022C22] mx-auto flex items-center justify-center mb-3">
+                      <Phone className="w-6 h-6 text-[#065F46] dark:text-[#34D399]" />
                     </div>
                     <h2 className="text-lg font-bold">{sw ? 'Thibitisha Nambari yako' : 'Verify Your Number'}</h2>
-                    <p className="text-sm text-[#78716C] dark:text-[#A1A1AA] mt-1">
+                    <p className="text-sm text-[#64748B] dark:text-[#94A3B8] mt-1">
                       {sw ? `Tumetuma nambari kwa +255${phone.replace(/^0/, '')}` : `We sent a code to +255${phone.replace(/^0/, '')}`}
                     </p>
                   </div>
@@ -393,13 +393,13 @@ function AuthContent() {
                     className="kinput text-center text-2xl tracking-[0.5em] h-14 font-bold"
                     maxLength={6}
                   />
-                  <p className="text-xs text-[#78716C] dark:text-[#A1A1AA] text-center">
+                  <p className="text-xs text-[#64748B] dark:text-[#94A3B8] text-center">
                     {sw ? 'Weka nambari yoyote (mfano: 123456)' : 'Enter any code (e.g. 123456) — Demo mode'}
                   </p>
                   <button onClick={handleVerifyOtp} className="kbtn w-full h-12 text-sm">
                     <Shield className="w-4 h-4" />{sw ? 'Thibitisha' : 'Verify Code'}
                   </button>
-                  <button onClick={() => setStep('main')} className="w-full py-2.5 rounded-xl text-sm font-medium border border-[#E7E5E4] dark:border-[#2E2C4A] hover:bg-[#F5F5F4] dark:hover:bg-[#242244] transition-colors">
+                  <button onClick={() => setStep('main')} className="w-full py-2.5 rounded-xl text-sm font-medium border border-[#E2E8F0] dark:border-[#475569] hover:bg-[#F1F5F9] dark:hover:bg-[#334155] transition-colors">
                     {sw ? 'Rudi' : 'Go Back'}
                   </button>
                 </div>
@@ -410,7 +410,7 @@ function AuthContent() {
                 <div className="space-y-4">
                   <div className="text-center mb-2">
                     <h2 className="text-lg font-bold">{sw ? 'Chagua Jukumu Lako' : 'Choose Your Role'}</h2>
-                    <p className="text-sm text-[#78716C] dark:text-[#A1A1AA] mt-1">
+                    <p className="text-sm text-[#64748B] dark:text-[#94A3B8] mt-1">
                       {sw ? 'Jiwasilishe vipi na Kariakoo?' : 'How do you connect with Kariakoo?'}
                     </p>
                   </div>
@@ -422,23 +422,23 @@ function AuthContent() {
                       onClick={() => setSelectedRole('seeker')}
                       className={`w-full p-4 rounded-2xl text-left transition-all border-2 ${
                         selectedRole === 'seeker'
-                          ? 'border-[#312E81] bg-[#E0E7FF] dark:bg-[#1E1B4B] shadow-md'
-                          : 'border-[#E7E5E4] dark:border-[#2E2C4A] hover:border-[#312E81]/30 hover:bg-[#FAFAF9] dark:hover:bg-[#242244]'
+                          ? 'border-[#065F46] bg-[#ECFDF5] dark:bg-[#022C22] shadow-md'
+                          : 'border-[#E2E8F0] dark:border-[#475569] hover:border-[#065F46]/30 hover:bg-[#F8FAFC] dark:hover:bg-[#334155]'
                       }`}
                     >
                       <div className="flex items-center gap-3.5">
-                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#D97706] to-[#F59E0B] flex items-center justify-center shadow-sm">
+                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#F59E0B] to-[#FBBF24] flex items-center justify-center shadow-sm">
                           <MapPin className="w-6 h-6 text-white" />
                         </div>
                         <div className="flex-1">
                           <div className="font-bold text-sm">{sw ? 'Mtafuta Mwongozo' : 'Market Seeker'}</div>
-                          <div className="text-xs text-[#78716C] dark:text-[#A1A1AA] mt-0.5">
+                          <div className="text-xs text-[#64748B] dark:text-[#94A3B8] mt-0.5">
                             {sw ? 'Tafuta mwongozo, pata bei bora, nunua kwa ujasiri' : 'Find guides, get fair prices, shop with confidence'}
                           </div>
                         </div>
                         {selectedRole === 'seeker' && (
                           <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}>
-                            <CheckCircle2 className="w-5 h-5 text-[#312E81]" />
+                            <CheckCircle2 className="w-5 h-5 text-[#065F46]" />
                           </motion.div>
                         )}
                       </div>
@@ -450,23 +450,23 @@ function AuthContent() {
                       onClick={() => setSelectedRole('guide')}
                       className={`w-full p-4 rounded-2xl text-left transition-all border-2 ${
                         selectedRole === 'guide'
-                          ? 'border-[#312E81] bg-[#E0E7FF] dark:bg-[#1E1B4B] shadow-md'
-                          : 'border-[#E7E5E4] dark:border-[#2E2C4A] hover:border-[#312E81]/30 hover:bg-[#FAFAF9] dark:hover:bg-[#242244]'
+                          ? 'border-[#065F46] bg-[#ECFDF5] dark:bg-[#022C22] shadow-md'
+                          : 'border-[#E2E8F0] dark:border-[#475569] hover:border-[#065F46]/30 hover:bg-[#F8FAFC] dark:hover:bg-[#334155]'
                       }`}
                     >
                       <div className="flex items-center gap-3.5">
-                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#312E81] to-[#818CF8] flex items-center justify-center shadow-sm">
+                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#065F46] to-[#34D399] flex items-center justify-center shadow-sm">
                           <Compass className="w-6 h-6 text-white" />
                         </div>
                         <div className="flex-1">
                           <div className="font-bold text-sm">{sw ? 'Mwongozo wa Soko' : 'Market Guide'}</div>
-                          <div className="text-xs text-[#78716C] dark:text-[#A1A1AA] mt-0.5">
+                          <div className="text-xs text-[#64748B] dark:text-[#94A3B8] mt-0.5">
                             {sw ? 'Pata pato kwa kuongoza wageni katika soko' : 'Earn by guiding visitors through the market'}
                           </div>
                         </div>
                         {selectedRole === 'guide' && (
                           <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}>
-                            <CheckCircle2 className="w-5 h-5 text-[#312E81]" />
+                            <CheckCircle2 className="w-5 h-5 text-[#065F46]" />
                           </motion.div>
                         )}
                       </div>
@@ -498,8 +498,8 @@ function AuthContent() {
               </p>
               <div className="flex gap-2">
                 {[
-                  { role: 'seeker', icon: MapPin, color: 'from-[#D97706] to-[#F59E0B]' },
-                  { role: 'guide', icon: Compass, color: 'from-[#312E81] to-[#818CF8]' },
+                  { role: 'seeker', icon: MapPin, color: 'from-[#F59E0B] to-[#FBBF24]' },
+                  { role: 'guide', icon: Compass, color: 'from-[#065F46] to-[#34D399]' },
                   { role: 'admin', icon: Shield, color: 'from-[#7C3AED] to-[#6D28D9]' },
                 ].map(({ role, icon: Icon, color }) => (
                   <button
@@ -551,9 +551,9 @@ export default function AuthPage() {
         <AnimatedBackground />
         <div className="relative z-10 flex flex-col items-center gap-3">
           <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center animate-pulse">
-            <Compass className="w-6 h-6 text-[#D97706]" />
+            <Compass className="w-6 h-6 text-[#F59E0B]" />
           </div>
-          <div className="w-8 h-8 border-2 border-white/30 border-t-[#D97706] rounded-full animate-spin" />
+          <div className="w-8 h-8 border-2 border-white/30 border-t-[#F59E0B] rounded-full animate-spin" />
         </div>
       </div>
     }>

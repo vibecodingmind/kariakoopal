@@ -125,7 +125,7 @@ export default function ZonePage() {
   if (!zone) {
     return (
       <div className="px-4 py-8 text-center">
-        <p className="text-lg font-semibold text-[#78716C]">{l('Zone not found', 'Eneo halijapatikana')}</p>
+        <p className="text-lg font-semibold text-[#64748B]">{l('Zone not found', 'Eneo halijapatikana')}</p>
         <button onClick={() => router.push('/market')} className="kbtn mt-4">{l('Back to Market', 'Rudi Sokoni')}</button>
       </div>
     );
@@ -139,7 +139,7 @@ export default function ZonePage() {
     <div className="px-4 py-4 space-y-5">
       {/* Back button */}
       <motion.div initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }}>
-        <button onClick={() => router.push('/market')} className="flex items-center gap-1 text-sm text-[#78716C] hover:text-[#0A4D3A] transition-colors">
+        <button onClick={() => router.push('/market')} className="flex items-center gap-1 text-sm text-[#64748B] hover:text-[#0A4D3A] transition-colors">
           <ArrowLeft className="w-4 h-4" /> {l('Back to Market', 'Rudi Sokoni')}
         </button>
       </motion.div>
@@ -152,33 +152,33 @@ export default function ZonePage() {
           </div>
           <div>
             <h1 className="text-xl font-bold" style={{ color: zone.color }}>{sw ? zone.nameSw : zone.name}</h1>
-            <p className="text-xs text-[#78716C]">{zone.stalls}+ {l('stalls', 'maduka')}</p>
+            <p className="text-xs text-[#64748B]">{zone.stalls}+ {l('stalls', 'maduka')}</p>
           </div>
         </div>
-        <p className="text-sm text-[#78716C]">{sw ? zone.descSw : zone.desc}</p>
-        <div className="mt-3 p-3 rounded-lg bg-[#D97706]/10 border border-[#D97706]/20">
-          <p className="text-xs font-medium text-[#0A4D3A] dark:text-[#818CF8]">💡 {l('Insider Tip', 'Ushauri wa Ndani')}: {sw ? zone.tipsSw : zone.tips}</p>
+        <p className="text-sm text-[#64748B]">{sw ? zone.descSw : zone.desc}</p>
+        <div className="mt-3 p-3 rounded-lg bg-[#F59E0B]/10 border border-[#F59E0B]/20">
+          <p className="text-xs font-medium text-[#0A4D3A] dark:text-[#34D399]">💡 {l('Insider Tip', 'Ushauri wa Ndani')}: {sw ? zone.tipsSw : zone.tips}</p>
         </div>
       </motion.div>
 
       {/* Search */}
       <div className="ksearch flex items-center gap-2 px-4 py-3">
-        <Search className="w-4 h-4 text-[#78716C]" />
+        <Search className="w-4 h-4 text-[#64748B]" />
         <input
           type="text"
           placeholder={l('Search vendors...', 'Tafuta wauzaji...')}
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="flex-1 bg-transparent text-sm outline-none placeholder:text-[#78716C]"
+          className="flex-1 bg-transparent text-sm outline-none placeholder:text-[#64748B]"
         />
-        <button onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')} className="text-[#78716C]">
+        <button onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')} className="text-[#64748B]">
           {viewMode === 'list' ? <Grid3X3 className="w-4 h-4" /> : <List className="w-4 h-4" />}
         </button>
       </div>
 
       {/* Vendors */}
       <div>
-        <h2 className="text-lg font-bold text-[#1C1917] dark:text-[#E7E5E4] mb-3">{l('Vendors', 'Wauzaji')} ({filteredVendors.length})</h2>
+        <h2 className="text-lg font-bold text-[#0F172A] dark:text-[#E2E8F0] mb-3">{l('Vendors', 'Wauzaji')} ({filteredVendors.length})</h2>
         <div className={viewMode === 'grid' ? 'grid grid-cols-2 gap-3' : 'space-y-3'}>
           {filteredVendors.map((vendor, i) => (
             <motion.div
@@ -190,24 +190,24 @@ export default function ZonePage() {
               className="kcard p-4 cursor-pointer hover:shadow-md transition-all"
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-[#3730A3] flex items-center justify-center text-white font-bold text-sm shrink-0">
+                <div className="w-10 h-10 rounded-full bg-[#065F46] flex items-center justify-center text-white font-bold text-sm shrink-0">
                   {vendor.name.charAt(0)}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
                     <h4 className="font-semibold text-sm truncate">{vendor.name}</h4>
-                    {vendor.verified && <ShieldCheck className="w-3.5 h-3.5 text-[#3730A3] shrink-0" />}
+                    {vendor.verified && <ShieldCheck className="w-3.5 h-3.5 text-[#065F46] shrink-0" />}
                   </div>
-                  <p className="text-xs text-[#78716C]">{l('Stall', 'Duka')} {vendor.stall}</p>
+                  <p className="text-xs text-[#64748B]">{l('Stall', 'Duka')} {vendor.stall}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3 mt-3">
                 <div className="flex items-center gap-1">
-                  <Star className="w-3 h-3 fill-[#D97706] text-[#D97706]" />
+                  <Star className="w-3 h-3 fill-[#F59E0B] text-[#F59E0B]" />
                   <span className="text-xs font-medium">{vendor.rating}</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <ThumbsUp className="w-3 h-3 text-[#3730A3]" />
+                  <ThumbsUp className="w-3 h-3 text-[#065F46]" />
                   <span className="text-xs">{vendor.recommendations}</span>
                 </div>
                 <span className="kbadge text-[8px]" style={{ background: zone.color + '15', color: zone.color }}>{vendor.category}</span>
@@ -220,13 +220,13 @@ export default function ZonePage() {
       {/* Price Preview */}
       {zone.prices.length > 0 && (
         <div>
-          <h2 className="text-lg font-bold text-[#1C1917] dark:text-[#E7E5E4] mb-3">{l('Price Range', 'Kiwango cha Bei')}</h2>
+          <h2 className="text-lg font-bold text-[#0F172A] dark:text-[#E2E8F0] mb-3">{l('Price Range', 'Kiwango cha Bei')}</h2>
           <div className="space-y-2">
             {zone.prices.map((p, i) => (
               <div key={i} className="kcard p-3 flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium">{p.item}</p>
-                  <p className="text-xs text-[#78716C]">TZS {p.min.toLocaleString()} - {p.max.toLocaleString()}</p>
+                  <p className="text-xs text-[#64748B]">TZS {p.min.toLocaleString()} - {p.max.toLocaleString()}</p>
                 </div>
                 <span className={`kbadge ${p.fair ? 'kbadge-verified' : 'kbadge-pending'}`}>
                   {p.fair ? l('Fair', 'Haki') : l('Moderate', 'Wastani')}
@@ -242,7 +242,7 @@ export default function ZonePage() {
 
       {/* CTA */}
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="kcard-green p-5 text-center">
-        <Navigation className="w-8 h-8 text-[#D97706] mx-auto mb-2" />
+        <Navigation className="w-8 h-8 text-[#F59E0B] mx-auto mb-2" />
         <h3 className="font-bold text-white">{l('Need Navigation Help?', 'Unahitaji Msaada wa Njia?')}</h3>
         <p className="text-sm text-white/70 mt-1">{l('Get a verified guide to navigate this zone', 'Pata mwongozo aliye thibitishwa kusoma eneo hili')}</p>
         <button onClick={() => router.push('/guides')} className="kbtn-yellow mt-3 text-sm">

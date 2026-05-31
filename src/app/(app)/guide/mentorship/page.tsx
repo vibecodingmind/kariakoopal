@@ -16,8 +16,8 @@ export default function GuideMentorshipPage() {
   return (
     <div className="px-4 py-4 space-y-5">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-2xl font-bold text-[#312E81] dark:text-[#818CF8]">{l('Mentorship', 'Ushauri')}</h1>
-        <p className="text-sm text-[#78716C] mt-1">{l('Learn from senior guides and earn bonus', 'Jifunze kutoka kwa miongozo wazee na pata bonasi')}</p>
+        <h1 className="text-2xl font-bold text-[#065F46] dark:text-[#34D399]">{l('Mentorship', 'Ushauri')}</h1>
+        <p className="text-sm text-[#64748B] mt-1">{l('Learn from senior guides and earn bonus', 'Jifunze kutoka kwa miongozo wazee na pata bonasi')}</p>
       </motion.div>
 
       <div className="kcard-green p-4">
@@ -30,14 +30,14 @@ export default function GuideMentorshipPage() {
         {MENTORS.map((mentor, i) => (
           <motion.div key={mentor.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="kcard p-4">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-12 h-12 rounded-full bg-[#3730A3] flex items-center justify-center text-white font-bold">{mentor.name.split(' ').map(n => n[0]).join('')}</div>
+              <div className="w-12 h-12 rounded-full bg-[#065F46] flex items-center justify-center text-white font-bold">{mentor.name.split(' ').map(n => n[0]).join('')}</div>
               <div>
                 <h4 className="font-semibold text-sm">{mentor.name}</h4>
-                <p className="text-xs text-[#78716C]">{mentor.specialty}</p>
+                <p className="text-xs text-[#64748B]">{mentor.specialty}</p>
               </div>
             </div>
-            <div className="flex items-center gap-4 text-xs text-[#78716C]">
-              <span className="flex items-center gap-1"><Star className="w-3 h-3 fill-[#D97706] text-[#D97706]" />{mentor.rating}</span>
+            <div className="flex items-center gap-4 text-xs text-[#64748B]">
+              <span className="flex items-center gap-1"><Star className="w-3 h-3 fill-[#F59E0B] text-[#F59E0B]" />{mentor.rating}</span>
               <span className="flex items-center gap-1"><Users className="w-3 h-3" />{mentor.sessions} {l('sessions', 'vipindi')}</span>
               <span>{mentor.mentees} {l('mentees', 'wanafunzi')}</span>
             </div>

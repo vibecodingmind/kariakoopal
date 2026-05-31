@@ -17,12 +17,12 @@ export default function AdminFraudPage() {
   return (
     <div className="px-4 py-4 space-y-5">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-2xl font-bold text-[#312E81] dark:text-[#818CF8]">{l('Fraud Alerts', 'Tahadhari za Dhuluma')}</h1>
+        <h1 className="text-2xl font-bold text-[#065F46] dark:text-[#34D399]">{l('Fraud Alerts', 'Tahadhari za Dhuluma')}</h1>
       </motion.div>
 
       <div className="space-y-3">
         {FRAUD_ALERTS.map((alert, i) => (
-          <motion.div key={alert.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className={`kcard p-4 border-l-4 ${alert.confidence > 80 ? 'border-[#DC2626]' : alert.confidence > 60 ? 'border-[#F59E0B]' : 'border-[#78716C]'}`}>
+          <motion.div key={alert.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className={`kcard p-4 border-l-4 ${alert.confidence > 80 ? 'border-[#DC2626]' : alert.confidence > 60 ? 'border-[#F59E0B]' : 'border-[#64748B]'}`}>
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <AlertTriangle className={`w-4 h-4 ${alert.confidence > 80 ? 'text-[#DC2626]' : 'text-[#F59E0B]'}`} />
@@ -30,12 +30,12 @@ export default function AdminFraudPage() {
               </div>
               <span className={`kbadge ${alert.status === 'pending' ? 'kbadge-urgent' : 'kbadge-pending'}`}>{alert.status}</span>
             </div>
-            <div className="flex items-center gap-3 text-xs text-[#78716C] mb-2">
+            <div className="flex items-center gap-3 text-xs text-[#64748B] mb-2">
               <span className="flex items-center gap-1"><User className="w-3 h-3" />{alert.entity}</span>
               <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{alert.date}</span>
               <span className="flex items-center gap-1 font-medium" style={{ color: alert.confidence > 80 ? '#DC2626' : '#F59E0B' }}>{alert.confidence}% {l('confidence', 'uhakika')}</span>
             </div>
-            <p className="text-xs text-[#78716C] mb-3">{alert.details}</p>
+            <p className="text-xs text-[#64748B] mb-3">{alert.details}</p>
             <div className="flex gap-2">
               <button className="kbtn flex-1 text-xs py-2 flex items-center justify-center gap-1"><Eye className="w-3 h-3" />{l('Investigate', 'Chunguza')}</button>
               <button className="kbtn-outline flex-1 text-xs py-2">{l('Dismiss', 'Puuzia')}</button>

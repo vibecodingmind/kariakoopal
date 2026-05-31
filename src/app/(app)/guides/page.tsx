@@ -21,13 +21,13 @@ const GUIDES = [
 
 const ZONE_COLORS: Record<string, string> = {
   electronics: '#0891B2', fabrics: '#7C3AED', wholesale: '#14B8A6',
-  spices: '#EF4444', kitchenware: '#F59E0B', artisanal: '#8B5E3C', all: '#3730A3',
+  spices: '#EF4444', kitchenware: '#F59E0B', artisanal: '#8B5E3C', all: '#065F46',
 };
 
 const STATUS_MAP = {
   online: { color: '#10B981', label: 'Online', labelSw: 'Mtandaoni' },
   busy: { color: '#F59E0B', label: 'Busy', labelSw: 'Machwa' },
-  offline: { color: '#78716C', label: 'Offline', labelSw: 'Nje ya Mtandao' },
+  offline: { color: '#64748B', label: 'Offline', labelSw: 'Nje ya Mtandao' },
 };
 
 const SPECIALTIES = ['All', 'Fabrics', 'Electronics', 'Wholesale', 'Spices', 'Kitchenware', 'Artisanal', 'General'];
@@ -54,15 +54,15 @@ export default function GuidesPage() {
   return (
     <div className="px-4 py-4 space-y-5">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-2xl font-bold text-[#312E81] dark:text-[#818CF8]">{l('Browse Guides', 'Vinjua Miongozo')}</h1>
-        <p className="text-sm text-[#78716C] mt-1">{l('Verified local experts who know Kariakoo inside out', 'Wataalamu wa karibu waliothibitishwa wanaojua Kariakoo vizuri')}</p>
+        <h1 className="text-2xl font-bold text-[#065F46] dark:text-[#34D399]">{l('Browse Guides', 'Vinjua Miongozo')}</h1>
+        <p className="text-sm text-[#64748B] mt-1">{l('Verified local experts who know Kariakoo inside out', 'Wataalamu wa karibu waliothibitishwa wanaojua Kariakoo vizuri')}</p>
       </motion.div>
 
       {/* Search */}
       <div className="ksearch flex items-center gap-2 px-4 py-3">
-        <Search className="w-4 h-4 text-[#78716C]" />
-        <input type="text" placeholder={l('Search guides...', 'Tafuta miongozo...')} value={search} onChange={e => setSearch(e.target.value)} className="flex-1 bg-transparent text-sm outline-none placeholder:text-[#78716C]" />
-        <button onClick={() => setSortBy(sortBy === 'rating' ? 'sessions' : 'rating')} className="text-xs text-[#78716C] hover:text-[#0A4D3A] font-medium">
+        <Search className="w-4 h-4 text-[#64748B]" />
+        <input type="text" placeholder={l('Search guides...', 'Tafuta miongozo...')} value={search} onChange={e => setSearch(e.target.value)} className="flex-1 bg-transparent text-sm outline-none placeholder:text-[#64748B]" />
+        <button onClick={() => setSortBy(sortBy === 'rating' ? 'sessions' : 'rating')} className="text-xs text-[#64748B] hover:text-[#0A4D3A] font-medium">
           {sortBy === 'rating' ? l('Top Rated', 'Bora') : l('Most Active', 'Hodzi')}
         </button>
       </div>
@@ -89,24 +89,24 @@ export default function GuidesPage() {
           >
             <div className="flex items-center gap-3">
               <div className="relative">
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold ${guide.status === 'online' ? 'ring-2 ring-[#10B981]' : guide.status === 'busy' ? 'ring-2 ring-[#F59E0B]' : ''}`} style={{ background: ZONE_COLORS[guide.zone] || '#3730A3' }}>
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold ${guide.status === 'online' ? 'ring-2 ring-[#10B981]' : guide.status === 'busy' ? 'ring-2 ring-[#F59E0B]' : ''}`} style={{ background: ZONE_COLORS[guide.zone] || '#065F46' }}>
                   {guide.name.split(' ').map(n => n[0]).join('')}
                 </div>
-                <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-white dark:border-[#1A1832]" style={{ background: STATUS_MAP[guide.status].color }} />
+                <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-white dark:border-[#1E293B]" style={{ background: STATUS_MAP[guide.status].color }} />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5">
                   <h4 className="font-semibold text-sm truncate">{guide.name}</h4>
-                  {guide.verified && <ShieldCheck className="w-3.5 h-3.5 text-[#3730A3] shrink-0" />}
+                  {guide.verified && <ShieldCheck className="w-3.5 h-3.5 text-[#065F46] shrink-0" />}
                 </div>
-                <p className="text-xs text-[#78716C]">{guide.specialty}</p>
+                <p className="text-xs text-[#64748B]">{guide.specialty}</p>
                 <div className="flex items-center gap-3 mt-1">
-                  <div className="flex items-center gap-1"><Star className="w-3 h-3 fill-[#D97706] text-[#D97706]" /><span className="text-xs font-medium">{guide.rating}</span></div>
-                  <div className="flex items-center gap-1"><Users className="w-3 h-3 text-[#78716C]" /><span className="text-xs text-[#78716C]">{guide.sessions} {l('sessions', 'vipindi')}</span></div>
+                  <div className="flex items-center gap-1"><Star className="w-3 h-3 fill-[#F59E0B] text-[#F59E0B]" /><span className="text-xs font-medium">{guide.rating}</span></div>
+                  <div className="flex items-center gap-1"><Users className="w-3 h-3 text-[#64748B]" /><span className="text-xs text-[#64748B]">{guide.sessions} {l('sessions', 'vipindi')}</span></div>
                   <span className="text-[10px] font-medium" style={{ color: STATUS_MAP[guide.status].color }}>{sw ? STATUS_MAP[guide.status].labelSw : STATUS_MAP[guide.status].label}</span>
                 </div>
               </div>
-              <ChevronRight className="w-4 h-4 text-[#78716C] shrink-0" />
+              <ChevronRight className="w-4 h-4 text-[#64748B] shrink-0" />
             </div>
           </motion.div>
         ))}
@@ -115,7 +115,7 @@ export default function GuidesPage() {
       {/* Join CTA */}
       {!isAuthenticated && (
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="kcard-green p-5 text-center">
-          <Compass className="w-8 h-8 text-[#D97706] mx-auto mb-2" />
+          <Compass className="w-8 h-8 text-[#F59E0B] mx-auto mb-2" />
           <h3 className="font-bold text-white">{l('Join as a Guide', 'Jiunge kama Mwongozo')}</h3>
           <p className="text-sm text-white/70 mt-1">{l('Monetize your local expertise and help visitors navigate Kariakoo', 'Pata pato kutoka kwa utaalamu wako wa karibu na wasaidie wageni kusoma Kariakoo')}</p>
           <button onClick={() => router.push('/auth?role=guide')} className="kbtn-yellow mt-3 text-sm">{l('Apply Now', 'Omba Sasa')}</button>

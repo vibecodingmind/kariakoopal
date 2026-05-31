@@ -33,16 +33,16 @@ export default function FindGuidePage() {
   return (
     <div className="px-4 py-4 space-y-5">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-2xl font-bold text-[#312E81] dark:text-[#818CF8]">{l('Find a Guide', 'Tafuta Mwongozo')}</h1>
-        <p className="text-sm text-[#78716C] mt-1">{l('Get matched with a verified local expert', 'Patanishwa na mtaalamu wa karibu aliye thibitishwa')}</p>
+        <h1 className="text-2xl font-bold text-[#065F46] dark:text-[#34D399]">{l('Find a Guide', 'Tafuta Mwongozo')}</h1>
+        <p className="text-sm text-[#64748B] mt-1">{l('Get matched with a verified local expert', 'Patanishwa na mtaalamu wa karibu aliye thibitishwa')}</p>
       </motion.div>
 
       {/* Toggle */}
       <div className="flex gap-2">
-        <button onClick={() => setStep('quick')} className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors ${step === 'quick' ? 'bg-[#3730A3] text-white' : 'bg-[#F5F5F4] dark:bg-[#242244] text-[#78716C]'}`}>
+        <button onClick={() => setStep('quick')} className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors ${step === 'quick' ? 'bg-[#065F46] text-white' : 'bg-[#F1F5F9] dark:bg-[#334155] text-[#64748B]'}`}>
           {l('Quick Match', 'Patanisha Haraka')}
         </button>
-        <button onClick={() => setStep('custom')} className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors ${step === 'custom' ? 'bg-[#3730A3] text-white' : 'bg-[#F5F5F4] dark:bg-[#242244] text-[#78716C]'}`}>
+        <button onClick={() => setStep('custom')} className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors ${step === 'custom' ? 'bg-[#065F46] text-white' : 'bg-[#F1F5F9] dark:bg-[#334155] text-[#64748B]'}`}>
           {l('Custom Request', 'Omba Maalum')}
         </button>
       </div>
@@ -51,8 +51,8 @@ export default function FindGuidePage() {
         <>
           {/* Search & Filter */}
           <div className="ksearch flex items-center gap-2 px-4 py-3">
-            <Search className="w-4 h-4 text-[#78716C]" />
-            <input type="text" placeholder={l('Search guides...', 'Tafuta miongozo...')} value={search} onChange={e => setSearch(e.target.value)} className="flex-1 bg-transparent text-sm outline-none placeholder:text-[#78716C]" />
+            <Search className="w-4 h-4 text-[#64748B]" />
+            <input type="text" placeholder={l('Search guides...', 'Tafuta miongozo...')} value={search} onChange={e => setSearch(e.target.value)} className="flex-1 bg-transparent text-sm outline-none placeholder:text-[#64748B]" />
           </div>
 
           {/* Available Now */}
@@ -65,23 +65,23 @@ export default function FindGuidePage() {
               {AVAILABLE_GUIDES.filter(g => g.status === 'online').filter(g => !search || g.name.toLowerCase().includes(search.toLowerCase()) || g.specialty.toLowerCase().includes(search.toLowerCase())).map((guide, i) => (
                 <motion.div key={guide.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="kcard p-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-[#3730A3] flex items-center justify-center text-white font-bold ring-2 ring-[#10B981]">
+                    <div className="w-12 h-12 rounded-full bg-[#065F46] flex items-center justify-center text-white font-bold ring-2 ring-[#10B981]">
                       {guide.name.split(' ').map(n => n[0]).join('')}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5">
                         <h4 className="font-semibold text-sm">{guide.name}</h4>
-                        {guide.verified && <ShieldCheck className="w-3.5 h-3.5 text-[#3730A3]" />}
+                        {guide.verified && <ShieldCheck className="w-3.5 h-3.5 text-[#065F46]" />}
                       </div>
-                      <p className="text-xs text-[#78716C]">{guide.specialty}</p>
+                      <p className="text-xs text-[#64748B]">{guide.specialty}</p>
                       <div className="flex items-center gap-3 mt-1">
-                        <span className="flex items-center gap-1 text-xs"><Star className="w-3 h-3 fill-[#D97706] text-[#D97706]" />{guide.rating}</span>
-                        <span className="flex items-center gap-1 text-xs text-[#78716C]"><Users className="w-3 h-3" />{guide.sessions}</span>
+                        <span className="flex items-center gap-1 text-xs"><Star className="w-3 h-3 fill-[#F59E0B] text-[#F59E0B]" />{guide.rating}</span>
+                        <span className="flex items-center gap-1 text-xs text-[#64748B]"><Users className="w-3 h-3" />{guide.sessions}</span>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-bold text-[#312E81]">TZS {guide.price.toLocaleString()}</p>
-                      <p className="text-[10px] text-[#78716C]">{l('per session', 'kwa kipindi')}</p>
+                      <p className="text-sm font-bold text-[#065F46]">TZS {guide.price.toLocaleString()}</p>
+                      <p className="text-[10px] text-[#64748B]">{l('per session', 'kwa kipindi')}</p>
                     </div>
                   </div>
                   <button className="kbtn w-full mt-3 text-sm">{l('Request Guide', 'Omba Mwongozo')}</button>
@@ -111,7 +111,7 @@ export default function FindGuidePage() {
                   <button
                     key={zone}
                     onClick={() => setSelectedZone(zone)}
-                    className={`py-2.5 px-3 rounded-lg text-xs font-medium transition-colors ${selectedZone === zone ? 'bg-[#3730A3] text-white' : 'bg-[#F5F5F4] dark:bg-[#242244] text-[#78716C] hover:bg-[#E0E7FF]'}`}
+                    className={`py-2.5 px-3 rounded-lg text-xs font-medium transition-colors ${selectedZone === zone ? 'bg-[#065F46] text-white' : 'bg-[#F1F5F9] dark:bg-[#334155] text-[#64748B] hover:bg-[#ECFDF5]'}`}
                   >
                     {zone}
                   </button>
